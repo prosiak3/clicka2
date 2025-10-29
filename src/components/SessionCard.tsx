@@ -203,7 +203,7 @@ export function SessionCard({
           {lastLocation && (
             <div className="space-y-4 mb-4">
               <div className="rounded-xl overflow-hidden border border-gray-100">
-                <Map 
+                <Map
                   center={[lastLocation.latitude, lastLocation.longitude]}
                   catches={session.catches.map(c => ({
                     location: c.location,
@@ -215,6 +215,7 @@ export function SessionCard({
                   currentLocation={isActive ? currentLocation : undefined}
                   onAddWaypoint={isWaypointMode ? handleWaypointAdd : undefined}
                   isActive={isActive}
+                  interactive={isWaypointMode}
                 />
               </div>
 

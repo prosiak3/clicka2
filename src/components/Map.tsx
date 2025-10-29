@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Circle, Marker, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import { Icon, DivIcon } from 'leaflet';
-import { MapPin, Fish, Flag } from 'lucide-react';
+import { MapPin, Fish, Flag, MousePointer2 } from 'lucide-react';
 import { format, differenceInMinutes } from 'date-fns';
 import 'leaflet/dist/leaflet.css';
 import { Location } from '../types';
@@ -24,11 +24,32 @@ interface MapProps {
   locations?: Location[];
   onAddWaypoint?: (location: Location) => void;
   isActive?: boolean;
+  interactive?: boolean;
 }
 
 function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
   map.setView(center, map.getZoom());
+  return null;
+}
+
+function InteractionController({ enabled }: { enabled: boolean }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (enabled) {
+      map.dragging.enable();
+      map.scrollWheelZoom.enable();
+      map.touchZoom.enable();
+      map.doubleClickZoom.enable();
+    } else {
+      map.dragging.disable();
+      map.scrollWheelZoom.disable();
+      map.touchZoom.disable();
+      map.doubleClickZoom.disable();
+    }
+  }, [enabled, map]);
+
   return null;
 }
 
@@ -126,18 +147,25 @@ const MAP_LAYERS = {
   }
 } as const;
 
-export function Map({ 
-  center, 
-  catches = [], 
+export function Map({
+  center,
+  catches = [],
   showRadius = false,
   height = '200px',
   currentLocation,
   locations = [],
   onAddWaypoint,
-  isActive = false
+  isActive = false,
+  interactive = false
 }: MapProps) {
   const settings = useSettings();
   const mapType = settings.display.mapType;
+  const [isMapActive, setIsMapActive] = useState(interactive);
+  const [mapContainer, setMapContainer] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setIsMapActive(interactive);
+  }, [interactive]);
 
   const getWaypoints = () => {
     if (locations.length === 0) return [];
@@ -163,20 +191,39 @@ export function Map({
   const routeCoordinates = locations.map(loc => [loc.latitude, loc.longitude] as [number, number]);
   const waypoints = getWaypoints();
 
+  const handleActivateMap = () => {
+    setIsMapActive(true);
+  };
+
+  const handleDeactivateMap = () => {
+    if (!interactive) {
+      setIsMapActive(false);
+    }
+  };
+
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      ref={setMapContainer}
+      onMouseLeave={handleDeactivateMap}
+    >
       <MapContainer
         center={center}
         zoom={15}
         style={{ height, width: '100%' }}
         className="rounded-lg z-0"
         zoomControl={false}
+        dragging={false}
+        scrollWheelZoom={false}
+        touchZoom={false}
+        doubleClickZoom={false}
       >
         <TileLayer
           url={MAP_LAYERS[mapType].url}
           attribution={MAP_LAYERS[mapType].attribution}
         />
         <MapUpdater center={center} />
+        <InteractionController enabled={isMapActive} />
         
         {isActive && onAddWaypoint && <MapClickHandler onAddWaypoint={onAddWaypoint} />}
         
@@ -242,6 +289,19 @@ export function Map({
           </>
         )}
       </MapContainer>
+
+      {!isMapActive && !interactive && (
+        <div
+          className="absolute inset-0 bg-white/40 backdrop-blur-[1px] flex items-center justify-center cursor-pointer z-[400] rounded-lg transition-opacity duration-200 hover:bg-white/30"
+          onClick={handleActivateMap}
+          onTouchStart={handleActivateMap}
+        >
+          <div className="bg-white/95 backdrop-blur-sm px-4 py-3 rounded-lg shadow-lg border border-gray-200 flex items-center gap-2 pointer-events-none">
+            <MousePointer2 className="w-5 h-5 text-blue-600" />
+            <span className="text-sm font-medium text-gray-700">Click to interact with map</span>
+          </div>
+        </div>
+      )}
 
       {isActive && onAddWaypoint && (
         <div className="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur-sm p-2 rounded-lg text-sm text-center text-gray-600" style={{ zIndex: 9999 }}>
