@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Clicka - Better Fishing",
+    "slug": "clicka-better-fishing",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Clicka - Better Fishing to use your location to track your fishing spots."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Clicka - Better Fishing to access your camera to take photos of your catches."
+        }
+      ]
+    ]
+  }
+}

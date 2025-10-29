@@ -1,0 +1,202 @@
+# Clicka - Better Fishing Application
+
+## Overview
+Clicka - Better Fishing is a comprehensive fishing tracking application built with React, TypeScript, and Supabase. The application helps anglers track their fishing sessions, monitor weather conditions, and analyze their catches across multiple languages (English, Polish, German).
+
+## Core Features
+
+### 1. Session Management
+- Start, pause, resume, and end fishing sessions
+- Real-time location tracking with multiple sources (GPS, Network, IP)
+- Manual waypoint addition
+- Offline support with local storage
+- Session statistics and analysis
+- Multi-language support (EN, PL, DE)
+
+### 2. Catch Recording
+- Species selection with size limits
+- Length and weight tracking
+- Photo capture and storage
+- Location and weather data association
+- Time of day and moon phase tracking
+
+### 3. Weather Monitoring
+- Real-time temperature, pressure, wind tracking
+- Cloud cover and precipitation monitoring
+- Weather trend visualization
+- Pressure trend analysis
+- Moon phase calculation
+
+### 4. Location Services
+- Multi-source location tracking:
+  - GPS with satellite count
+  - Network-based location
+  - IP-based fallback
+- Location accuracy monitoring
+- Custom map visualization
+- Route tracking and waypoints
+- Location permission management
+
+### 5. Data Analysis
+- Catch distribution by:
+  - Time of day
+  - Season
+  - Weather conditions
+  - Moon phase
+- Temperature correlation analysis
+- Species distribution
+- Success rate analysis
+
+### 6. User Interface
+- Clean, modern design with Tailwind CSS
+- Responsive layout
+- Dark/light theme support
+- Interactive maps
+- Real-time status indicators
+- Custom charts and visualizations
+
+## Technical Architecture
+
+### 1. Frontend
+- React with TypeScript
+- Tailwind CSS for styling
+- React Router for navigation
+- Chart.js for data visualization
+- Leaflet for maps
+
+### 2. State Management
+- Zustand for global state
+- React hooks for local state
+- Custom hooks for specific features:
+  - useGpsTracking
+  - useWeather
+  - useActiveSession
+  - useSettings
+
+### 3. Database
+- Supabase backend
+- Tables:
+  - fishing_sessions
+  - fish_catches
+  - fish_species
+- Row Level Security (RLS)
+- Real-time sync
+
+### 4. Storage
+- Local storage for offline support
+- IndexedDB for large datasets
+- File storage for photos
+- Automatic sync when online
+
+### 5. External Services
+- Weather API integration
+- Map services
+- Geolocation services
+- Time/date handling
+
+## Data Models
+
+### 1. FishingSession
+- Basic info (id, userId, timestamps)
+- Weather conditions
+- Location tracking
+- Catches
+- Pause intervals
+- Tracking settings
+
+### 2. FishCatch
+- Species details
+- Size measurements
+- Location data
+- Weather conditions
+- Photos
+- Timestamps
+
+### 3. FishSpecies
+- Multilingual names
+- Size limits
+- Group categorization
+- Descriptions
+- Images
+
+### 4. WeatherData
+- Temperature
+- Pressure and trend
+- Wind speed and direction
+- Cloud cover
+- Precipitation
+
+## User Experience
+
+### 1. Session Flow
+- Easy session start/pause/resume
+- Quick catch recording
+- Real-time weather updates
+- Location tracking
+- Photo capture
+
+### 2. Analysis Tools
+- Historical data review
+- Trend analysis
+- Success rate calculation
+- Weather correlation
+- Species distribution
+
+### 3. Settings
+- Language selection
+- Measurement system
+- Theme preferences
+- Species management
+- Tracking configuration
+
+### 4. Offline Support
+- Full functionality without connection
+- Automatic background sync
+- Local data storage
+- Conflict resolution
+
+## Security
+
+### 1. Authentication
+- Email/password authentication
+- Session management
+- Secure token storage
+- Permission handling
+
+### 2. Data Protection
+- Row Level Security
+- Encrypted storage
+- Secure transmission
+- Privacy controls
+
+### 3. Location Privacy
+- Permission management
+- Data anonymization
+- Location accuracy control
+- Usage transparency
+
+## Performance
+
+### 1. Optimization
+- Lazy loading
+- Image optimization
+- Data caching
+- Background processing
+
+### 2. Resource Management
+- Battery optimization
+- Storage management
+- Network efficiency
+- Memory usage control
+
+### 3. Error Handling
+- Graceful degradation
+- Error recovery
+- Data preservation
+- User feedback
+
+## Deployment
+- Vite for building
+- Static file hosting
+- Database migrations
+- Environment configuration

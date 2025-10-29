@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --text: #0f172a;
+}
+
+.dark {
+  --background: #0f172a;
+  --text: #f8fafc;
+}
+
+.dark .dark\:bg-dark-800 {
+  background-color: #1e293b;
+}
+
+.dark .dark\:bg-dark-700 {
+  background-color: #334155;
+}
+
+.dark .dark\:border-dark-600 {
+  border-color: #475569;
+}
+
+.dark .dark\:text-dark-50 {
+  color: #f8fafc;
+}
+
+.dark .dark\:text-dark-200 {
+  color: #e2e8f0;
+}
+
+.dark .dark\:from-dark-800 {
+  --tw-gradient-from: #1e293b;
+}
+
+.dark .dark\:to-dark-900 {
+  --tw-gradient-to: #0f172a;
+}
+
+/* Gradient animation */
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 3s linear infinite;
+  background-size: 200% 100%;
+}
+
+/* Pulse animation with gradient */
+@keyframes pulse-gradient {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+}
+
+.animate-pulse-gradient {
+  animation: pulse-gradient 2s ease-in-out infinite;
+}
+
+/* Ping animation with fade */
+@keyframes ping-fade {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping-fade {
+  animation: ping-fade 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
