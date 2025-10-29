@@ -6,8 +6,16 @@ import { saveToStorage, loadFromStorage, getStorageUsage } from './storage';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+console.log('Supabase Config Check:', {
+  hasUrl: !!supabaseUrl,
+  hasKey: !!supabaseKey,
+  url: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'missing'
+});
+
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase environment variables');
+  const errorMsg = `Missing Supabase environment variables. URL: ${!!supabaseUrl}, KEY: ${!!supabaseKey}`;
+  console.error(errorMsg);
+  throw new Error(errorMsg);
 }
 
 // Create Supabase client with improved configuration
