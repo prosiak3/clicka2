@@ -1,0 +1,259 @@
+{
+  // Application metadata and basic information
+  "app": {
+    "name": "Clicka - Better Fishing",
+    "version": "1.0.0",
+    "description": "Advanced fishing tracking application with real-time weather and location monitoring",
+    "author": "StackBlitz",
+    "license": "MIT",
+    "supportEmail": "support@clicka-fishing.com",
+    "website": "https://clicka-fishing.com"
+  },
+
+  // External API configurations
+  "api": {
+    // Supabase database configuration
+    "supabase": {
+      "url": "https://jwsbdfohymvykwvnebzx.supabase.co",
+      "anonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3c2JkZm9oeW12eWt3dm5lYnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3MzYxNzcsImV4cCI6MjA1ODMxMjE3N30.hS3awhcO8F4f4hqaQJymmBbYif3FzTOyBHh65CsjKGM",
+      "maxConnections": 20,
+      "poolTimeout": 30000,
+      "realtime": {
+        "enabled": true,
+        "eventsPerSecond": 2
+      }
+    },
+
+    // Weather API configuration
+    "weather": {
+      "url": "https://api.open-meteo.com/v1/forecast",
+      "timeout": 10000,
+      "retryAttempts": 3,
+      "retryDelay": 2000,
+      "cacheExpiration": 300000,
+      "parameters": {
+        "temperature": true,
+        "pressure": true,
+        "windSpeed": true,
+        "windDirection": true,
+        "cloudCover": true,
+        "precipitation": true
+      }
+    },
+
+    // IP Geolocation services configuration
+    "ipGeolocation": {
+      "services": [
+        "https://ipapi.co/json/",
+        "https://api.ipify.org?format=json",
+        "https://ip-api.com/json/"
+      ],
+      "timeout": 5000,
+      "cacheExpiration": 3600000,
+      "fallbackOrder": ["ipapi", "ipify", "ip-api"]
+    }
+  },
+
+  // Location tracking settings
+  "tracking": {
+    // GPS tracking configuration
+    "gps": {
+      "timeout": 15000,
+      "maxRetries": 3,
+      "retryDelay": 2000,
+      "highAccuracyThreshold": 100,
+      "updateInterval": 5000,
+      "minDistance": 10,
+      "minAccuracy": 20,
+      "satelliteThreshold": 4,
+      "powerSaveMode": {
+        "enabled": true,
+        "interval": 30000
+      }
+    },
+
+    // Network-based location configuration
+    "network": {
+      "timeout": 10000,
+      "maxAge": 30000,
+      "accuracyThreshold": 500,
+      "cacheExpiration": 60000,
+      "wifiOnly": false,
+      "cellTowerTriangulation": true
+    },
+
+    // IP-based location configuration
+    "ip": {
+      "accuracyRadius": 5000,
+      "cacheExpiration": 3600000,
+      "cityLevelOnly": true,
+      "fallbackEnabled": true
+    }
+  },
+
+  // Database configuration
+  "database": {
+    "connectionTimeout": 30000,
+    "retryAttempts": 3,
+    "retryDelay": 1000,
+    "maxLocalSessions": 10,
+    "syncInterval": 300000,
+    "encryption": {
+      "enabled": true,
+      "algorithm": "AES-256-GCM"
+    },
+    "compression": {
+      "enabled": true,
+      "level": "medium"
+    },
+    "backup": {
+      "enabled": true,
+      "interval": 86400000,
+      "maxBackups": 7
+    },
+    "cleanup": {
+      "enabled": true,
+      "maxAge": 2592000000,
+      "preserveStarred": true
+    }
+  },
+
+  // User interface configuration
+  "ui": {
+    // Theme settings
+    "themes": ["light", "dark"],
+    "themeConfig": {
+      "light": {
+        "primary": "#3b82f6",
+        "secondary": "#64748b",
+        "background": "#ffffff",
+        "text": "#1e293b"
+      },
+      "dark": {
+        "primary": "#60a5fa",
+        "secondary": "#94a3b8",
+        "background": "#0f172a",
+        "text": "#f8fafc"
+      }
+    },
+
+    // Language settings
+    "languages": ["en", "pl", "de"],
+    "defaultLanguage": "en",
+    "fallbackLanguage": "en",
+    "autoDetectLanguage": true,
+
+    // Measurement system configuration
+    "measurementSystems": ["metric", "imperial"],
+    "defaultSystem": "metric",
+    "conversions": {
+      "length": {
+        "metric": "cm",
+        "imperial": "in",
+        "factor": 2.54
+      },
+      "weight": {
+        "metric": "kg",
+        "imperial": "lb",
+        "factor": 0.453592
+      }
+    },
+
+    // Species configuration
+    "maxEnabledSpecies": 3,
+    "speciesGroups": ["predatory", "peaceful"],
+    "speciesDefaults": {
+      "minLength": 0,
+      "maxLength": 1000,
+      "maxWeight": 500
+    },
+
+    // Tracking intervals (in minutes)
+    "trackingIntervals": [1, 5, 15, 30, 60],
+    "defaultInterval": 15,
+
+    // Animation settings
+    "animations": {
+      "enabled": true,
+      "reducedMotion": "auto",
+      "duration": 200
+    },
+
+    // Map configuration
+    "map": {
+      "defaultZoom": 15,
+      "maxZoom": 19,
+      "minZoom": 3,
+      "clustering": {
+        "enabled": true,
+        "radius": 50
+      },
+      "style": {
+        "satellite": false,
+        "terrain": true,
+        "labels": true
+      }
+    }
+  },
+
+  // Performance configuration
+  "performance": {
+    "caching": {
+      "enabled": true,
+      "maxAge": 3600000,
+      "maxSize": 50000000
+    },
+    "compression": {
+      "enabled": true,
+      "level": 6
+    },
+    "throttling": {
+      "enabled": true,
+      "maxRequestsPerMinute": 60
+    },
+    "optimization": {
+      "lazyLoading": true,
+      "imageCompression": true,
+      "minificationLevel": "aggressive"
+    }
+  },
+
+  // Security configuration
+  "security": {
+    "authentication": {
+      "sessionTimeout": 3600000,
+      "maxLoginAttempts": 5,
+      "lockoutDuration": 900000
+    },
+    "encryption": {
+      "enabled": true,
+      "algorithm": "AES-256-GCM",
+      "keyRotation": 2592000000
+    },
+    "headers": {
+      "hsts": true,
+      "xssProtection": true,
+      "noSniff": true,
+      "frameOptions": "DENY"
+    }
+  },
+
+  // Error handling configuration
+  "errors": {
+    "logging": {
+      "enabled": true,
+      "level": "error",
+      "maxSize": 10000000
+    },
+    "reporting": {
+      "enabled": true,
+      "automatic": true,
+      "includeStackTrace": true
+    },
+    "fallback": {
+      "enabled": true,
+      "retryAttempts": 3,
+      "retryDelay": 1000
+    }
+  }
+}

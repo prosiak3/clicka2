@@ -1,0 +1,620 @@
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, useNavigate } from 'react-router-dom';
+import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, Plus, ArrowLeft } from 'lucide-react';
+import { CatchForm } from './components/CatchForm';
+import { SessionList } from './components/SessionList';
+import { SessionCard } from './components/SessionCard';
+import { SettingsScreen } from './components/SettingsScreen';
+import { AnalysisSection } from './components/AnalysisSection';
+import { StatusBar } from './components/StatusBar';
+import { ActiveSessionButton } from './components/ActiveSessionButton';
+import { FishCatch, FishingSession, User as UserType, Location } from './types';
+import { saveSession, loadSessions, syncPendingSessions } from './utils/db';
+import { getCurrentUser, signIn, signUp } from './utils/auth';
+import { useSettings } from './utils/settings';
+import { getWeatherData } from './utils/weather';
+import { getCurrentLocation, useLocationPermission } from './utils/location';
+import { useTranslation } from './hooks/useTranslation';
+import { useGpsTracking } from './hooks/useGpsTracking';
+import { useActiveSession } from './hooks/useActiveSession';
+
+type TabType = 'home' | 'sessions' | 'history' | 'analysis' | 'settings' | 'stats' | 'profile';
+
+function App() {
+  const [activeTab, setActiveTab] = useState<TabType>('home');
+  const [sessions, setSessions] = useState<FishingSession[]>([]);
+  const [selectedSession, setSelectedSession] = useState<FishingSession | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
+  const [isStartingSession, setIsStartingSession] = useState(false);
+  const [showCatchForm, setShowCatchForm] = useState(false);
+  const settings = useSettings();
+  const t = useTranslation();
+  const locationPermission = useLocationPermission();
+  const { coords: currentLocation, status: locationStatus } = useGpsTracking();
+  const { session: activeSession, setSession: setActiveSession } = useActiveSession();
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
+          return;
+        }
+
+        try {
+          const { user: signInUser } = await signIn('test@example.com', 'testpassword123');
+          if (signInUser) {
+            setUser({
+              id: signInUser.id,
+              email: signInUser.email!,
+              created_at: signInUser.created_at
+            });
+          }
+        } catch (signInError) {
+          const { user: signUpUser } = await signUp('test@example.com', 'testpassword123');
+          if (signUpUser) {
+            const { user: newUser } = await signIn('test@example.com', 'testpassword123');
+            if (newUser) {
+              setUser({
+                id: newUser.id,
+                email: newUser.email!,
+                created_at: newUser.created_at
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Auth error:', error);
+        setError('Authentication failed. Please try again later.');
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeData = async () => {
+      if (!user) return;
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        const loadedSessions = await loadSessions();
+        
+        if (!isMounted) return;
+
+        setSessions(loadedSessions);
+
+        try {
+          await syncPendingSessions();
+        } catch (syncError) {
+          console.error('Failed to sync pending sessions:', syncError);
+        }
+      } catch (error) {
+        console.error('Failed to initialize data:', error);
+        if (isMounted) {
+          setError('Failed to load sessions. Working in offline mode.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initializeData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  const startNewSession = async () => {
+    if (!user) return;
+    if (isStartingSession) return;
+
+    try {
+      setIsStartingSession(true);
+      setError(null);
+
+      if (locationPermission === 'denied') {
+        throw new Error('Location access is required. Please enable it in your browser settings and refresh the page.');
+      }
+
+      if (!currentLocation || locationStatus === 'error') {
+        throw new Error('Could not get your location. Please check your GPS settings and try again.');
+      }
+
+      let initialWeather;
+      try {
+        initialWeather = await getWeatherData(
+          currentLocation.latitude,
+          currentLocation.longitude
+        );
+      } catch (weatherError) {
+        console.error('Weather fetch failed:', weatherError);
+        initialWeather = {
+          temperature: 20,
+          pressure: 1013,
+          pressureTrend: 'stable',
+          windSpeed: 0,
+          windDirection: 'N',
+          cloudCover: 0,
+          precipitation: 0,
+          precipitationType: 'none',
+          precipitationProbability: 0
+        };
+      }
+
+      const newSession: FishingSession = {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        startTime: new Date().toISOString(),
+        initialWeather,
+        weather: initialWeather,
+        locations: [{
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+          timestamp: new Date().toISOString(),
+          source: currentLocation.source,
+          accuracy: currentLocation.accuracy
+        }],
+        catches: [],
+        synced: false,
+        tracking_enabled: true,
+        tracking_interval: settings.tracking.interval
+      };
+      
+      setSessions(prev => [newSession, ...prev]);
+      setActiveSession(newSession);
+      setActiveTab('sessions');
+
+      try {
+        await saveSession(newSession);
+      } catch (saveError) {
+        console.error('Failed to save new session:', saveError);
+      }
+    } catch (error) {
+      console.error('Failed to start new session:', error);
+      setError(error instanceof Error ? error.message : 'Failed to start new session. Please check your connection.');
+    } finally {
+      setIsStartingSession(false);
+    }
+  };
+
+  const handleCatchSave = async (catchData: Omit<FishCatch, 'id' | 'sessionId'>) => {
+    if (!activeSession) return;
+
+    try {
+      setError(null);
+      const newCatch: FishCatch = {
+        ...catchData,
+        id: crypto.randomUUID(),
+        sessionId: activeSession.id
+      };
+
+      const updatedSession = {
+        ...activeSession,
+        catches: [...activeSession.catches, newCatch]
+      };
+
+      setActiveSession(updatedSession);
+      setSessions(prev => 
+        prev.map(s => s.id === updatedSession.id ? updatedSession : s)
+      );
+
+      try {
+        await saveSession(updatedSession);
+      } catch (saveError) {
+        console.error('Failed to save catch:', saveError);
+      }
+
+      setShowCatchForm(false);
+    } catch (error) {
+      console.error('Failed to save catch:', error);
+      setError('Failed to save catch. Please try again.');
+    }
+  };
+
+  const handleEndSession = async () => {
+    if (!activeSession) return;
+
+    try {
+      setError(null);
+      const endedSession = {
+        ...activeSession,
+        endTime: new Date().toISOString()
+      };
+
+      setActiveSession(null);
+      setSessions(prev =>
+        prev.map(s => s.id === endedSession.id ? endedSession : s)
+      );
+
+      try {
+        await saveSession(endedSession);
+      } catch (saveError) {
+        console.error('Failed to save ended session:', saveError);
+      }
+
+      setActiveTab('home');
+    } catch (error) {
+      console.error('Failed to end session:', error);
+      setError('Failed to end session. Please try again.');
+    }
+  };
+
+  const handlePauseSession = async () => {
+    if (!activeSession) return;
+
+    try {
+      setError(null);
+      const now = new Date().toISOString();
+      
+      const updatedSession = {
+        ...activeSession,
+        pauses: [
+          ...(activeSession.pauses || []),
+          { startTime: now }
+        ]
+      };
+
+      setActiveSession(updatedSession);
+      setSessions(prev =>
+        prev.map(s => s.id === updatedSession.id ? updatedSession : s)
+      );
+
+      try {
+        await saveSession(updatedSession);
+      } catch (saveError) {
+        console.error('Failed to save paused session:', saveError);
+      }
+    } catch (error) {
+      console.error('Failed to pause session:', error);
+      setError('Failed to pause session. Please try again.');
+    }
+  };
+
+  const handleResumeSession = async () => {
+    if (!activeSession) return;
+
+    try {
+      setError(null);
+      const now = new Date().toISOString();
+      
+      const pauses = [...(activeSession.pauses || [])];
+      const lastPause = pauses[pauses.length - 1];
+      
+      if (lastPause && !lastPause.endTime) {
+        lastPause.endTime = now;
+        const pauseDuration = Math.round(
+          (new Date(now).getTime() - new Date(lastPause.startTime).getTime()) / (1000 * 60)
+        );
+        
+        const updatedSession = {
+          ...activeSession,
+          pauses,
+          totalPauseTime: (activeSession.totalPauseTime || 0) + pauseDuration
+        };
+
+        setActiveSession(updatedSession);
+        setSessions(prev =>
+          prev.map(s => s.id === updatedSession.id ? updatedSession : s)
+        );
+
+        try {
+          await saveSession(updatedSession);
+        } catch (saveError) {
+          console.error('Failed to save resumed session:', saveError);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to resume session:', error);
+      setError('Failed to resume session. Please try again.');
+    }
+  };
+
+  const handleDiscardSession = () => {
+    if (!activeSession) return;
+    
+    setActiveSession(null);
+    setSessions(prev => prev.filter(s => s.id !== activeSession.id));
+    setActiveTab('home');
+  };
+
+  const handleAddWaypoint = async (location: Location) => {
+    if (!activeSession) return;
+
+    try {
+      setError(null);
+      const updatedSession = {
+        ...activeSession,
+        locations: [...activeSession.locations, location]
+      };
+
+      setActiveSession(updatedSession);
+      setSessions(prev =>
+        prev.map(s => s.id === updatedSession.id ? updatedSession : s)
+      );
+
+      try {
+        await saveSession(updatedSession);
+      } catch (saveError) {
+        console.error('Failed to save waypoint:', saveError);
+      }
+    } catch (error) {
+      console.error('Failed to add waypoint:', error);
+      setError('Failed to add waypoint. Please try again.');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your fishing data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
+        <div className="text-center">
+          <p className="text-gray-600">Please wait while we authenticate you...</p>
+          {error && (
+            <p className="text-red-600 mt-2">{error}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Router>
+      <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${settings.theme === 'dark' ? 'dark' : ''}`}>
+        <div className="max-w-lg mx-auto pb-20">
+          {/* Header */}
+          <div className="sticky top-0 bg-white/80 backdrop-blur-sm border-b z-10">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  {activeTab === 'history' && selectedSession && (
+                    <button
+                      onClick={() => setSelectedSession(null)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <ArrowLeft className="w-5 h-5 text-gray-600" />
+                    </button>
+                  )}
+                  <h1 className="text-2xl font-bold text-blue-900">
+                    Clicka - Better Fishing
+                  </h1>
+                </div>
+                <StatusBar 
+                  isSessionActive={!!activeSession} 
+                  isPaused={activeSession?.pauses?.some(p => !p.endTime)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {error && (
+            <div className="mx-4 mt-4 p-4 bg-red-50 border border-red-100 rounded-lg">
+              <p className="text-red-600">{error}</p>
+            </div>
+          )}
+
+          <div className="p-4">
+            {activeTab === 'home' && (
+              <div className="space-y-6">
+                {/* Hero Section with Start Fishing Button */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 shadow-lg">
+                  <div className="absolute inset-0 opacity-10">
+                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#wave)" />
+                      <defs>
+                        <pattern id="wave" patternUnits="userSpaceOnUse" width="100" height="100">
+                          <path d="M0,50 Q25,45 50,50 T100,50 T150,50" fill="none" stroke="white" strokeWidth="2" />
+                        </pattern>
+                      </defs>
+                    </svg>
+                  </div>
+                  <div className="relative">
+                    <h2 className="text-2xl font-bold text-white mb-2">Ready to Fish?</h2>
+                    <p className="text-blue-100 mb-6">Track your catches, monitor conditions, and improve your success rate.</p>
+                    <button
+                      onClick={startNewSession}
+                      disabled={isStartingSession}
+                      className={`w-full bg-white text-blue-600 rounded-xl py-4 px-6 font-bold shadow-lg hover:bg-blue-50 transform transition-all hover:scale-105 focus:ring-4 focus:ring-white/50 ${
+                        isStartingSession ? 'opacity-75 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <div className="flex items-center justify-center gap-3">
+                        {isStartingSession ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
+                        ) : (
+                          <Fish className="w-6 h-6" />
+                        )}
+                        <span>{isStartingSession ? 'Starting...' : 'Start Fishing'}</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Stats Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Fish className="w-5 h-5 text-blue-500" />
+                      <h3 className="font-medium text-gray-900">Total Catches</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-600">{sessions.reduce((sum, s) => sum + s.catches.length, 0)}</p>
+                    <p className="text-sm text-gray-500">{sessions.length} sessions</p>
+                  </div>
+
+                  {sessions.length > 0 && (
+                    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Trophy className="w-5 h-5 text-yellow-500" />
+                        <h3 className="font-medium text-gray-900">Best Catch</h3>
+                      </div>
+                      <p className="text-2xl font-bold text-yellow-600">
+                        {sessions.reduce((best, session) => {
+                          const sessionBest = session.catches.reduce((max, catch_) => 
+                            catch_.weight > max.weight ? catch_ : max
+                          , { weight: 0, species: '' });
+                          return sessionBest.weight > best.weight ? sessionBest : best;
+                        }, { weight: 0, species: '' }).weight} kg
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {sessions.reduce((best, session) => {
+                          const sessionBest = session.catches.reduce((max, catch_) => 
+                            catch_.weight > max.weight ? catch_ : max
+                          , { weight: 0, species: '' });
+                          return sessionBest.weight > best.weight ? sessionBest : best;
+                        }, { weight: 0, species: '' }).species}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Last Session Preview */}
+                {sessions.length > 0 && (
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Last Session</h2>
+                    <SessionCard 
+                      session={sessions[0]}
+                      isActive={false}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'sessions' && activeSession && (
+              <div className="space-y-6">
+                {/* Add Catch Button */}
+                <button
+                  onClick={() => setShowCatchForm(!showCatchForm)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span className="font-medium">Add Catch</span>
+                </button>
+
+                {/* Add Catch Form */}
+                {showCatchForm && (
+                  <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
+                    <h2 className="text-lg font-semibold text-blue-900 mb-4">Add Catch</h2>
+                    <CatchForm 
+                      onSave={handleCatchSave} 
+                      selectedSpecies={settings.fishSpecies.filter(s => s.enabled)}
+                    />
+                  </div>
+                )}
+
+                <SessionCard 
+                  session={activeSession} 
+                  isActive={true}
+                  onEndSession={handleEndSession}
+                  onDiscardSession={handleDiscardSession}
+                  onPauseSession={handlePauseSession}
+                  onResumeSession={handleResumeSession}
+                  onAddWaypoint={handleAddWaypoint}
+                />
+              </div>
+            )}
+
+            {activeTab === 'history' && (
+              <div className="space-y-6">
+                {selectedSession ? (
+                  <SessionCard 
+                    session={selectedSession}
+                    isActive={false}
+                  />
+                ) : (
+                  <SessionList 
+                    sessions={sessions.filter(s => s.endTime)}
+                    onSessionSelect={setSelectedSession}
+                  />
+                )}
+              </div>
+            )}
+
+            {activeTab === 'stats' && (
+              <AnalysisSection sessions={sessions} />
+            )}
+
+            {activeTab === 'settings' && <SettingsScreen />}
+          </div>
+        </div>
+
+        {/* Active Session Button */}
+        {activeSession && activeTab !== 'sessions' && (
+          <ActiveSessionButton 
+            session={activeSession}
+            onClick={() => {
+              setActiveTab('sessions');
+              setSelectedSession(null);
+            }}
+          />
+        )}
+
+        {/* Bottom Navigation Bar */}
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
+          <div className="max-w-lg mx-auto grid grid-cols-4 divide-x">
+            <button
+              onClick={() => setActiveTab('home')}
+              className={`p-3 flex flex-col items-center ${
+                activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'
+              }`}
+            >
+              <Home className="w-6 h-6" />
+              <span className="text-xs mt-1">Home</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('stats')}
+              className={`p-3 flex flex-col items-center ${
+                activeTab === 'stats' ? 'text-blue-600' : 'text-gray-600'
+              }`}
+            >
+              <ChartBar className="w-6 h-6" />
+              <span className="text-xs mt-1">Stats</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`p-3 flex flex-col items-center ${
+                activeTab === 'history' ? 'text-blue-600' : 'text-gray-600'
+              }`}
+            >
+              <History className="w-6 h-6" />
+              <span className="text-xs mt-1">History</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`p-3 flex flex-col items-center ${
+                activeTab === 'settings' ? 'text-blue-600' : 'text-gray-600'
+              }`}
+            >
+              <Settings className="w-6 h-6" />
+              <span className="text-xs mt-1">Settings</span>
+            </button>
+          </div>
+        </nav>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
