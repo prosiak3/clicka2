@@ -164,6 +164,12 @@ const translations: Record<string, Translation> = {
       predatory: 'Predatory Fish',
       peaceful: 'Peaceful Fish',
     },
+    pwa: {
+      installTitle: 'Install App',
+      installDescription: 'Install Clicka on your device and use it like a native app!',
+      installButton: 'Install',
+      laterButton: 'Later',
+    },
   },
   pl: {
     common: {
@@ -328,6 +334,12 @@ const translations: Record<string, Translation> = {
       predatory: 'Ryby Drapieżne',
       peaceful: 'Ryby Spokojnego Żeru',
     },
+    pwa: {
+      installTitle: 'Zainstaluj aplikację',
+      installDescription: 'Zainstaluj Clicka na swoim urządzeniu i korzystaj z niej jak z natywnej aplikacji!',
+      installButton: 'Zainstaluj',
+      laterButton: 'Później',
+    },
   },
   de: {
     common: {
@@ -491,6 +503,12 @@ const translations: Record<string, Translation> = {
     fishGroups: {
       predatory: 'Raubfische',
       peaceful: 'Friedfische',
+    },
+    pwa: {
+      installTitle: 'App installieren',
+      installDescription: 'Installiere Clicka auf deinem Gerät und nutze es wie eine native App!',
+      installButton: 'Installieren',
+      laterButton: 'Später',
     },
   },
 };

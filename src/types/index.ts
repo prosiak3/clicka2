@@ -140,6 +140,12 @@ export interface Translation {
     predatory: string;
     peaceful: string;
   };
+  pwa?: {
+    installTitle: string;
+    installDescription: string;
+    installButton: string;
+    laterButton: string;
+  };
 }
 
 export interface PauseInterval {
