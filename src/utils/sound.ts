@@ -46,8 +46,13 @@ export const soundManager = new SoundManager();
 
 export const initSounds = () => {
   soundManager.preloadSound('click', '/sounds/click.mp3');
+  soundManager.preloadSound('reel', '/sounds/reel.mp3');
 };
 
 export const playClickSound = async () => {
   await soundManager.playSound('click');
+};
+
+export const playReelSound = async () => {
+  await soundManager.playSound('reel');
 };

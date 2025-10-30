@@ -29,7 +29,7 @@ import { useTranslation } from './hooks/useTranslation';
 import { useGpsTracking } from './hooks/useGpsTracking';
 import { useActiveSession } from './hooks/useActiveSession';
 import { useInactivityTimer } from './hooks/useInactivityTimer';
-import { playClickSound } from './utils/sound';
+import { playClickSound, playReelSound } from './utils/sound';
 
 type TabType = 'home' | 'sessions' | 'history' | 'analysis' | 'settings' | 'stats' | 'profile';
 
@@ -149,7 +149,7 @@ function App() {
     if (isStartingSession) return;
 
     try {
-      await playClickSound();
+      await playReelSound();
       setIsStartingSession(true);
       setError(null);
       setLoadingStep('checkingGPS');
@@ -637,8 +637,8 @@ function MainApp({
                         <>
                           <div className="relative">
                             <Fish className="w-14 h-14" />
-                            <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-700 rounded-full flex items-center justify-center">
-                              <Plus className="w-6 h-6" />
+                            <div className="absolute -top-1 -right-1 w-7 h-7 bg-green-700 rounded-full flex items-center justify-center">
+                              <Plus className="w-5 h-5" strokeWidth={3} />
                             </div>
                           </div>
                           <span className="text-base font-bold mt-3">Quick</span>
