@@ -32,12 +32,46 @@ const seasons = [
   { name: 'Winter', months: [11, 0, 1] }
 ];
 
+type QuickRange = 'week' | '30days' | '3months' | 'season' | 'all';
+
 export function AnalysisSection({ sessions }: AnalysisSectionProps) {
   const t = useTranslation();
   const [dateRange, setDateRange] = useState<DateRange>({
-    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
     end: new Date()
   });
+  const [selectedQuickRange, setSelectedQuickRange] = useState<QuickRange>('30days');
+
+  const handleQuickRangeSelect = (range: QuickRange) => {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    let start: Date;
+
+    switch (range) {
+      case 'week':
+        start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30days':
+        start = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case '3months':
+        start = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      case 'season':
+        start = startOfYear;
+        break;
+      case 'all':
+        start = sessions.length > 0
+          ? new Date(Math.min(...sessions.map(s => new Date(s.startTime).getTime())))
+          : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        start = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    setDateRange({ start, end: now });
+    setSelectedQuickRange(range);
+  };
 
   // Filter sessions by date range
   const filteredSessions = sessions.filter(session => {
@@ -146,13 +180,72 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Analysis Period</h2>
         </div>
+
+        {/* Quick Range Buttons */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          <button
+            onClick={() => handleQuickRangeSelect('week')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedQuickRange === 'week'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Last Week
+          </button>
+          <button
+            onClick={() => handleQuickRangeSelect('30days')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedQuickRange === '30days'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Last 30 Days
+          </button>
+          <button
+            onClick={() => handleQuickRangeSelect('3months')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedQuickRange === '3months'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Last 3 Months
+          </button>
+          <button
+            onClick={() => handleQuickRangeSelect('season')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedQuickRange === 'season'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            This Season
+          </button>
+          <button
+            onClick={() => handleQuickRangeSelect('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedQuickRange === 'all'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            All Time
+          </button>
+        </div>
+
+        {/* Custom Date Range */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
             <input
               type="date"
               value={format(dateRange.start, 'yyyy-MM-dd')}
-              onChange={(e) => setDateRange(prev => ({ ...prev, start: new Date(e.target.value) }))}
+              onChange={(e) => {
+                setDateRange(prev => ({ ...prev, start: new Date(e.target.value) }));
+                setSelectedQuickRange(null as any);
+              }}
               className="w-full p-2 border rounded-lg"
             />
           </div>
@@ -161,7 +254,10 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
             <input
               type="date"
               value={format(dateRange.end, 'yyyy-MM-dd')}
-              onChange={(e) => setDateRange(prev => ({ ...prev, end: new Date(e.target.value) }))}
+              onChange={(e) => {
+                setDateRange(prev => ({ ...prev, end: new Date(e.target.value) }));
+                setSelectedQuickRange(null as any);
+              }}
               className="w-full p-2 border rounded-lg"
             />
           </div>
