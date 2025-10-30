@@ -576,6 +576,8 @@ function MainApp({
   resetTimer,
   setUser,
 }: MainAppProps) {
+  const t = useTranslation();
+
   return (
       <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${settings.theme === 'dark' ? 'dark' : ''}`}>
         <div className="max-w-lg mx-auto pb-11">
