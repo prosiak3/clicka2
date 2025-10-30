@@ -235,7 +235,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     showMapRadius: true,
     mapRadiusSize: 30,
     mapType: 'standard',
-    hideScrollbar: true
+    hideScrollbar: false
   },
   tracking: {
     interval: 15,
@@ -406,7 +406,7 @@ export const useSettings = create<SettingsState>()(
             ...persistedState,
             display: {
               ...persistedState.display,
-              hideScrollbar: true
+              hideScrollbar: false
             }
           };
         }

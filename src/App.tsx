@@ -710,8 +710,9 @@ function MainApp({
                 {showCatchForm && (
                   <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
                     <h2 className="text-lg font-semibold text-blue-900 mb-4">Add Catch</h2>
-                    <CatchForm 
-                      onSave={handleCatchSave} 
+                    <CatchForm
+                      onSave={handleCatchSave}
+                      onCancel={() => setShowCatchForm(false)}
                       selectedSpecies={settings.fishSpecies.filter(s => s.enabled)}
                     />
                   </div>

@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 
 interface CatchFormProps {
   onSave: (catchData: Omit<FishCatch, 'id' | 'sessionId'>) => void;
+  onCancel: () => void;
   selectedSpecies: FishSpecies[];
 }
 
@@ -35,7 +36,7 @@ function getSeason(date: Date) {
   return 'Winter';
 }
 
-export function CatchForm({ onSave, selectedSpecies }: CatchFormProps) {
+export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps) {
   const { language } = useSettings();
   const t = useTranslation();
   const { coords: currentLocation, status: locationStatus } = useGpsTracking();
@@ -412,17 +413,26 @@ export function CatchForm({ onSave, selectedSpecies }: CatchFormProps) {
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={!currentLocation || !weather || !selectedSpeciesData}
-        className={`w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors ${
-          !currentLocation || !weather || !selectedSpeciesData
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-        }`}
-      >
-        {!currentLocation || !weather ? 'Waiting for location...' : t.catch.saveButton}
-      </button>
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={!currentLocation || !weather || !selectedSpeciesData}
+          className={`flex-1 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors ${
+            !currentLocation || !weather || !selectedSpeciesData
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+          }`}
+        >
+          {!currentLocation || !weather ? 'Waiting for location...' : t.catch.saveButton}
+        </button>
+      </div>
     </form>
   );
 }
