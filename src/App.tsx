@@ -693,7 +693,20 @@ function MainApp({
             {activeTab === 'sessions' && activeSession && (
               <div className="space-y-6">
                 {/* Add Catch Button and Catch Counter */}
-                <div className="flex items-start gap-6">
+                <div className="flex items-center justify-center gap-4">
+                  <div className="flex-1 flex justify-end pr-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-4 shadow-lg border border-blue-200 min-w-[140px]">
+                      <div className="flex flex-col items-center">
+                        <div className="text-5xl font-bold text-blue-900">
+                          {activeSession.catches?.length || 0}
+                        </div>
+                        <div className="text-xs font-semibold text-blue-700 mt-1">
+                          Total Catches
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex flex-col items-center gap-2">
                     <button
                       onClick={async () => {
@@ -716,18 +729,7 @@ function MainApp({
                     </p>
                   </div>
 
-                  <div className="flex-1 flex flex-col justify-center">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-lg border border-blue-200">
-                      <div className="flex flex-col items-center">
-                        <div className="text-6xl font-bold text-blue-900">
-                          {activeSession.catches?.length || 0}
-                        </div>
-                        <div className="text-sm font-semibold text-blue-700 mt-2">
-                          Total Catches
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <div className="flex-1"></div>
                 </div>
 
                 {/* Add Catch Form */}
