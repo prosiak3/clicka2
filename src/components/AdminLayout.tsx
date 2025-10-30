@@ -61,7 +61,8 @@ export function AdminLayout({ user, children, currentView, onViewChange, onLogou
             </div>
             <div>
               <h1 className="text-lg font-bold text-gray-900 dark:text-white">Admin Panel</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Clicka - Better Fishing</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Clicka</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">Better Fishing</p>
             </div>
           </div>
 

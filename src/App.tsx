@@ -494,9 +494,10 @@ function MainApp({
                       <ArrowLeft className="w-5 h-5 text-gray-600" />
                     </button>
                   )}
-                  <h1 className="text-2xl font-bold text-blue-900">
-                    Clicka - Better Fishing
-                  </h1>
+                  <div>
+                    <h1 className="text-2xl font-bold text-blue-900">Clicka</h1>
+                    <p className="text-xs text-blue-600">Better Fishing</p>
+                  </div>
                 </div>
                 <StatusBar 
                   isSessionActive={!!activeSession} 
