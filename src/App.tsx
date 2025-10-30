@@ -715,18 +715,19 @@ function MainApp({
                       }}
                       disabled={showCatchForm}
                       className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 ${
-                        showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-green-500/50 active:scale-95'
+                        showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-2xl hover:shadow-green-500/50 active:scale-95 animate-pulse-slow'
                       }`}
+                      style={{
+                        animation: showCatchForm ? 'none' : 'pulse-glow 2s ease-in-out infinite'
+                      }}
                     >
+                      <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" style={{ animationDuration: '3s' }} />
                       <div className="relative flex flex-col items-center justify-center h-full text-white">
                         <Fish className="w-14 h-14" />
                         <span className="text-base font-bold mt-3">{t.session.addCatch.split(' ')[0]}</span>
                         <span className="text-sm font-medium">{t.session.addCatch.split(' ')[1] || 'Catch'}</span>
                       </div>
                     </button>
-                    <p className="text-xs text-gray-400 text-center">
-                      {t.session.tapToAddCatch}
-                    </p>
                   </div>
                 </div>
 
