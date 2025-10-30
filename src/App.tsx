@@ -545,43 +545,6 @@ function MainApp({
                     </button>
                   </div>
                 </div>
-
-                {/* Quick Stats Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Fish className="w-5 h-5 text-blue-500" />
-                      <h3 className="font-medium text-gray-900">Total Catches</h3>
-                    </div>
-                    <p className="text-2xl font-bold text-blue-600">{sessions.reduce((sum, s) => sum + s.catches.length, 0)}</p>
-                    <p className="text-sm text-gray-500">{sessions.length} sessions</p>
-                  </div>
-
-                  {sessions.length > 0 && (
-                    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Trophy className="w-5 h-5 text-yellow-500" />
-                        <h3 className="font-medium text-gray-900">Best Catch</h3>
-                      </div>
-                      <p className="text-2xl font-bold text-yellow-600">
-                        {sessions.reduce((best, session) => {
-                          const sessionBest = session.catches.reduce((max, catch_) =>
-                            catch_.weight > max.weight ? catch_ : max
-                          , { weight: 0, species: '' });
-                          return sessionBest.weight > best.weight ? sessionBest : best;
-                        }, { weight: 0, species: '' }).weight} kg
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {sessions.reduce((best, session) => {
-                          const sessionBest = session.catches.reduce((max, catch_) =>
-                            catch_.weight > max.weight ? catch_ : max
-                          , { weight: 0, species: '' });
-                          return sessionBest.weight > best.weight ? sessionBest : best;
-                        }, { weight: 0, species: '' }).species}
-                      </p>
-                    </div>
-                  )}
-                </div>
               </div>
             )}
 

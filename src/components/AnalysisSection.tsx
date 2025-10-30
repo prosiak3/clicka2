@@ -49,9 +49,16 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
   const totalCatches = filteredSessions.reduce((sum, s) => sum + s.catches.length, 0);
   const totalSessions = filteredSessions.length;
   const completedSessions = filteredSessions.filter(s => s.endTime).length;
-  const totalWeight = filteredSessions.reduce((sum, session) => 
+  const totalWeight = filteredSessions.reduce((sum, session) =>
     session.catches.reduce((catchSum, catch_) => catchSum + catch_.weight, 0)
   , 0);
+
+  const bestCatch = filteredSessions.reduce((best, session) => {
+    const sessionBest = session.catches.reduce((max, catch_) =>
+      catch_.weight > max.weight ? catch_ : max
+    , { weight: 0, species: '', length: 0 });
+    return sessionBest.weight > best.weight ? sessionBest : best;
+  }, { weight: 0, species: '', length: 0 });
 
   // Calculate moon phase distribution
   const moonPhaseStats = filteredSessions.reduce((stats, session) => {
@@ -189,6 +196,17 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
             <p className="text-2xl font-bold text-purple-700">{completedSessions}</p>
             <p className="text-sm text-purple-600">of {totalSessions} total</p>
           </div>
+
+          {bestCatch.weight > 0 && (
+            <div className="bg-yellow-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <Trophy className="w-5 h-5 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-900">Best Catch</span>
+              </div>
+              <p className="text-2xl font-bold text-yellow-700">{bestCatch.weight} kg</p>
+              <p className="text-sm text-yellow-600">{bestCatch.species}</p>
+            </div>
+          )}
         </div>
       </div>
 
