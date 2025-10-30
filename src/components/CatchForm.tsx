@@ -9,6 +9,7 @@ import { useSettings } from '../utils/settings';
 import { useTranslation } from '../hooks/useTranslation';
 import { useGpsTracking } from '../hooks/useGpsTracking';
 import { useLastSpecies } from '../hooks/useLastSpecies';
+import { getFishSpecies, FishSpeciesDetails, calculateSuggestedWeight } from '../utils/fish';
 import { format } from 'date-fns';
 
 interface CatchFormProps {
@@ -48,6 +49,8 @@ export function CatchForm({ onSave, selectedSpecies }: CatchFormProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [fishSpeciesData, setFishSpeciesData] = useState<FishSpeciesDetails[]>([]);
+  const [manualWeightEdit, setManualWeightEdit] = useState(false);
 
   const now = new Date();
   const timeOfDay = getTimeOfDay(now);
@@ -82,6 +85,14 @@ export function CatchForm({ onSave, selectedSpecies }: CatchFormProps) {
       }
     }
   }, [selectedSpecies, selectedGroup, language, lastSpecies]);
+
+  useEffect(() => {
+    const loadFishData = async () => {
+      const data = await getFishSpecies();
+      setFishSpeciesData(data);
+    };
+    loadFishData();
+  }, []);
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -124,8 +135,27 @@ export function CatchForm({ onSave, selectedSpecies }: CatchFormProps) {
     setSpecies(speciesName);
     setLength(selectedSpecies.minLength);
     setWeight(MIN_WEIGHT);
+    setManualWeightEdit(false);
     setLastSpecies(speciesName);
   };
+
+  useEffect(() => {
+    if (!manualWeightEdit && selectedSpeciesData) {
+      const fullSpeciesData = fishSpeciesData.find(fs => {
+        const nameMatch = fs.name_pl === species || fs.name_en === species || fs.name_de === species;
+        return nameMatch;
+      });
+
+      if (fullSpeciesData?.length_weight_data) {
+        const suggestedWeight = calculateSuggestedWeight(
+          length,
+          fullSpeciesData.length_weight_data,
+          MIN_WEIGHT
+        );
+        setWeight(suggestedWeight);
+      }
+    }
+  }, [length, species, fishSpeciesData, manualWeightEdit, selectedSpeciesData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -331,12 +361,20 @@ export function CatchForm({ onSave, selectedSpecies }: CatchFormProps) {
                 max={selectedSpeciesData.maxWeight}
                 step={0.1}
                 value={weight}
-                onChange={(e) => setWeight(parseFloat(e.target.value))}
+                onChange={(e) => {
+                  setWeight(parseFloat(e.target.value));
+                  setManualWeightEdit(true);
+                }}
                 className="mt-1 block w-full"
               />
               <div className="flex justify-between items-center mt-1">
                 <span className="text-sm text-gray-500">{MIN_WEIGHT} kg</span>
-                <span className="text-sm font-medium text-blue-600">{weight} kg</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-blue-600">{weight} kg</span>
+                  {!manualWeightEdit && (
+                    <span className="text-xs text-gray-400">(suggested)</span>
+                  )}
+                </div>
                 <span className="text-sm text-gray-500">{selectedSpeciesData.maxWeight} kg</span>
               </div>
             </div>

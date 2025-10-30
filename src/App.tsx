@@ -582,17 +582,6 @@ function MainApp({
                     </div>
                   )}
                 </div>
-
-                {/* Last Session Preview */}
-                {sessions.length > 0 && (
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Last Session</h2>
-                    <SessionCard
-                      session={sessions[0]}
-                      isActive={false}
-                    />
-                  </div>
-                )}
               </div>
             )}
 
@@ -633,15 +622,31 @@ function MainApp({
             {activeTab === 'history' && (
               <div className="space-y-6">
                 {selectedSession ? (
-                  <SessionCard 
+                  <SessionCard
                     session={selectedSession}
                     isActive={false}
                   />
                 ) : (
-                  <SessionList 
-                    sessions={sessions.filter(s => s.endTime)}
-                    onSessionSelect={setSelectedSession}
-                  />
+                  <>
+                    {sessions.length > 0 && sessions[0].endTime && (
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Last Session</h2>
+                        <SessionCard
+                          session={sessions[0]}
+                          isActive={false}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      {sessions.length > 0 && sessions[0].endTime && (
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">All Sessions</h2>
+                      )}
+                      <SessionList
+                        sessions={sessions.filter(s => s.endTime)}
+                        onSessionSelect={setSelectedSession}
+                      />
+                    </div>
+                  </>
                 )}
               </div>
             )}
