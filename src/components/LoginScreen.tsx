@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Fish, Mail, Lock, Loader2 } from 'lucide-react';
+import { Fish, Mail, Lock, Loader2, Map } from 'lucide-react';
 import { signIn, signUp, signInWithOAuth } from '../utils/auth';
 import { ForgotPasswordDialog } from './ForgotPasswordDialog';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginScreenProps {
   onLoginSuccess: () => void;
 }
 
 export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -184,16 +186,25 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               </button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-3">
               <button
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setError(null);
                 }}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium block w-full"
                 disabled={isLoading}
               >
                 {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+              </button>
+
+              <button
+                onClick={() => navigate('/roadmap')}
+                className="flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium w-full"
+                disabled={isLoading}
+              >
+                <Map className="w-4 h-4" />
+                View Roadmap & Changelog
               </button>
             </div>
           </div>

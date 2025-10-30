@@ -15,6 +15,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/AdminLayout';
 import { AdminDashboard } from './screens/AdminDashboard';
 import { AdminUsersScreen } from './screens/AdminUsersScreen';
+import { RoadmapScreen } from './screens/RoadmapScreen';
 import { FishCatch, FishingSession, User as UserType, Location } from './types';
 import { saveSession, loadSessions, syncPendingSessions } from './utils/db';
 import { getCurrentUser, signIn, signUp } from './utils/auth';
@@ -354,6 +355,7 @@ function App() {
         <Route path="/login" element={
           user ? <Navigate to="/" replace /> : <LoginScreen onLoginSuccess={handleLoginSuccess} />
         } />
+        <Route path="/roadmap" element={<RoadmapScreen />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/*" element={
           <ProtectedRoute isAuthenticated={!!user} isLoading={isLoading}>
