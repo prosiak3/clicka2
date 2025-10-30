@@ -1,11 +1,17 @@
-# Debugowanie Instalacji PWA na Androidzie
+# Debugowanie Instalacji PWA na Androidzie i iOS
 
 ## Co zostało zaimplementowane:
 
+### Dla Androida:
 1. **Automatyczny banner instalacji PWA** - Pojawi się po 2 sekundach od załadowania strony
 2. **Przycisk instalacji w Ustawieniach** - Zawsze dostępny backup dla użytkowników
-3. **Instrukcje dla iOS** - Specjalne instrukcje dla użytkowników iPhone
-4. **Debug logging** - Szczegółowe logi w konsoli przeglądarki
+3. **Debug logging** - Szczegółowe logi w konsoli przeglądarki
+
+### Dla iOS (iPhone/iPad):
+1. **Dedykowany banner z instrukcjami** - Pojawi się po 3 sekundach, zawiera krok po kroku instrukcję
+2. **Przycisk w Ustawieniach** - Z automatycznym wykrywaniem iOS i wyświetlaniem instrukcji
+3. **Optymalizacja dla Safari** - Wszystkie wymagane meta tagi i ikony
+4. **Standalone mode** - Aplikacja uruchomi się w pełnym ekranie bez paska Safari
 
 ## Wymagania dla instalacji PWA na Androidzie:
 
@@ -141,7 +147,37 @@ Po wdrożeniu na hosting z HTTPS, instalacja PWA powinna działać automatycznie
 
 ## Debug na żywo:
 
+### Android:
 Po wdrożeniu, otwórz konsolę na telefonie (przez chrome://inspect) i sprawdź:
 1. Czy wszystkie logi PWA są zielone
 2. Czy event `beforeinstallprompt` się wywołał
 3. Czy banner się pokazuje po 2 sekundach
+
+### iOS (iPhone/iPad):
+1. **Wymagania**:
+   - HTTPS (obowiązkowe, localhost nie działa)
+   - Przeglądarka Safari (Chrome/Firefox NIE działają dla instalacji PWA na iOS)
+   - iOS 11.3 lub nowszy
+
+2. **Jak zainstalować**:
+   - Otwórz aplikację w Safari
+   - Banner z instrukcjami pojawi się automatycznie po 3 sekundach
+   - LUB przejdź do Ustawienia → Instalacja Aplikacji i kliknij przycisk
+
+3. **Ograniczenia iOS**:
+   - Brak automatycznego promptu instalacji (wymaga ręcznej akcji)
+   - Brak powiadomień push
+   - Cache może być wyczyszczony po ~7 dniach nieużywania
+   - Instalacja działa TYLKO w Safari (nie w Chrome/Firefox)
+
+4. **Testowanie na iOS**:
+   - Podłącz iPhone do Maca
+   - Otwórz Safari → Develop → [Twój iPhone] → [Twoja strona]
+   - Sprawdź konsolę czy banner iOS się pokazuje
+
+5. **Wyczyść test**:
+   ```javascript
+   localStorage.removeItem('ios-pwa-install-dismissed');
+   localStorage.removeItem('ios-pwa-install-dismissed-time');
+   location.reload();
+   ```

@@ -14,6 +14,7 @@ import { AuthCallback } from './components/AuthCallback';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/AdminLayout';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
+import { IosInstallPrompt } from './components/IosInstallPrompt';
 import { AdminDashboard } from './screens/AdminDashboard';
 import { AdminUsersScreen } from './screens/AdminUsersScreen';
 import { AdminRoadmapScreen } from './screens/AdminRoadmapScreen';
@@ -729,6 +730,7 @@ function MainApp({
         />
 
         <PwaInstallPrompt />
+        <IosInstallPrompt />
       </div>
   );
 }
