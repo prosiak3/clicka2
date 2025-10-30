@@ -58,7 +58,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               <Fish className="w-10 h-10 text-blue-600" />
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">Clicka</h1>
-            <p className="text-blue-100">Better Fishing Tracking</p>
+            <p className="text-blue-100">Better Fishing</p>
           </div>
 
           <div className="p-8">
