@@ -377,6 +377,7 @@ function App() {
               isWarningActive={isWarningActive}
               remainingSeconds={remainingSeconds}
               resetTimer={resetTimer}
+              setUser={setUser}
             />
           </ProtectedRoute>
         } />
@@ -408,6 +409,7 @@ interface MainAppProps {
   isWarningActive: boolean;
   remainingSeconds: number;
   resetTimer: () => void;
+  setUser: (user: UserType | null) => void;
 }
 
 function MainApp({
@@ -417,6 +419,7 @@ function MainApp({
   selectedSession,
   setSelectedSession,
   error,
+  user,
   activeSession,
   showCatchForm,
   setShowCatchForm,
@@ -432,6 +435,7 @@ function MainApp({
   isWarningActive,
   remainingSeconds,
   resetTimer,
+  setUser,
 }: MainAppProps) {
   return (
       <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${settings.theme === 'dark' ? 'dark' : ''}`}>
@@ -608,7 +612,15 @@ function MainApp({
               <AnalysisSection sessions={sessions} />
             )}
 
-            {activeTab === 'settings' && <SettingsScreen />}
+            {activeTab === 'settings' && (
+              <SettingsScreen
+                user={user}
+                onLogout={() => {
+                  setUser(null);
+                  window.location.href = '/login';
+                }}
+              />
+            )}
           </div>
         </div>
 

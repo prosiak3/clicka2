@@ -24,13 +24,16 @@ import {
   Globe,
   Map as MapIcon,
   Satellite,
+  LogOut,
+  User as UserIcon,
 } from 'lucide-react';
 import { useSettings } from '../utils/settings';
-import { FishSpecies } from '../types';
+import { FishSpecies, User } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { ConfirmSettingsDialog } from './ConfirmSettingsDialog';
 import { ExportDialog } from './ExportDialog';
 import { StatsCleanupDialog } from './StatsCleanupDialog';
+import { signOut } from '../utils/auth';
 
 interface SettingsSectionProps {
   title: string;
@@ -103,7 +106,12 @@ function SettingsSection({
   );
 }
 
-export function SettingsScreen() {
+interface SettingsScreenProps {
+  user?: User;
+  onLogout?: () => void;
+}
+
+export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
   const settings = useSettings();
   const t = useTranslation();
   const enabledCount = settings.fishSpecies.filter(s => s.enabled).length;
@@ -111,6 +119,7 @@ export function SettingsScreen() {
   const [showExport, setShowExport] = useState(false);
   const [showCleanup, setShowCleanup] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLanguageChange = (newLanguage: string) => {
     settings.updateLanguage(newLanguage);
@@ -148,8 +157,61 @@ export function SettingsScreen() {
     return acc;
   }, {} as Record<string, FishSpecies[]>);
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut();
+      if (onLogout) {
+        onLogout();
+      } else {
+        window.location.href = '/login';
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {user && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-4 mb-4">
+            {user.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt="Profile"
+                className="w-16 h-16 rounded-full"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                <UserIcon className="w-8 h-8 text-blue-600" />
+              </div>
+            )}
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {user.full_name || user.email}
+              </h3>
+              <p className="text-sm text-gray-500">{user.email}</p>
+              {user.provider && user.provider !== 'email' && (
+                <p className="text-xs text-gray-400 mt-1">
+                  Signed in with {user.provider.charAt(0).toUpperCase() + user.provider.slice(1)}
+                </p>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">
+              {isLoggingOut ? 'Signing out...' : 'Sign Out'}
+            </span>
+          </button>
+        </div>
+      )}
       <div className={`sticky top-0 z-10 bg-white dark:bg-dark-800 p-4 -mx-4 border-b border-gray-200 dark:border-dark-600 shadow-sm transition-opacity ${
         settings.hasPendingChanges ? 'opacity-100' : 'opacity-50 pointer-events-none'
       }`}>
