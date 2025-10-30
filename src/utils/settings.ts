@@ -245,6 +245,10 @@ const DEFAULT_SETTINGS: AppSettings = {
       ip: true
     }
   },
+  session: {
+    autoEndTimeout: 30,
+    autoEndEnabled: true
+  },
 };
 
 interface SettingsState extends AppSettings {
@@ -258,6 +262,7 @@ interface SettingsState extends AppSettings {
   toggleFishSpecies: (id: string) => void;
   updateDisplaySettings: (display: Partial<AppSettings['display']>) => void;
   updateTrackingSettings: (tracking: Partial<AppSettings['tracking']> & { methods?: Partial<AppSettings['tracking']['methods']> }) => void;
+  updateSessionSettings: (session: Partial<AppSettings['session']>) => void;
   applyPendingChanges: () => void;
   discardPendingChanges: () => void;
   resetSettings: () => void;
@@ -346,6 +351,14 @@ export const useSettings = create<SettingsState>()(
           hasPendingChanges: true
         };
       }),
+      updateSessionSettings: (session) => set((state) => ({
+        session: { ...state.session, ...session },
+        pendingChanges: {
+          ...state.pendingChanges,
+          session: { ...state.session, ...session }
+        },
+        hasPendingChanges: true
+      })),
       applyPendingChanges: () => set((state) => {
         const updates = { ...state, ...state.pendingChanges };
         return {
@@ -367,7 +380,7 @@ export const useSettings = create<SettingsState>()(
     }),
     {
       name: 'clicka-better-fishing-settings',
-      version: 2,
+      version: 3,
       migrate: (persistedState: any, version: number) => {
         if (version === 1) {
           return {
@@ -375,6 +388,15 @@ export const useSettings = create<SettingsState>()(
             display: {
               ...persistedState.display,
               mapType: 'standard'
+            }
+          };
+        }
+        if (version === 2) {
+          return {
+            ...persistedState,
+            session: {
+              autoEndTimeout: 30,
+              autoEndEnabled: true
             }
           };
         }

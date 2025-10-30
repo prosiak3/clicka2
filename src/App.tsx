@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, useNavigate } from 'react-router-dom';
 import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, Plus, ArrowLeft } from 'lucide-react';
 import { CatchForm } from './components/CatchForm';
@@ -8,6 +8,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { AnalysisSection } from './components/AnalysisSection';
 import { StatusBar } from './components/StatusBar';
 import { ActiveSessionButton } from './components/ActiveSessionButton';
+import { InactivityWarning } from './components/InactivityWarning';
 import { FishCatch, FishingSession, User as UserType, Location } from './types';
 import { saveSession, loadSessions, syncPendingSessions } from './utils/db';
 import { getCurrentUser, signIn, signUp } from './utils/auth';
@@ -17,6 +18,7 @@ import { getCurrentLocation, useLocationPermission } from './utils/location';
 import { useTranslation } from './hooks/useTranslation';
 import { useGpsTracking } from './hooks/useGpsTracking';
 import { useActiveSession } from './hooks/useActiveSession';
+import { useInactivityTimer } from './hooks/useInactivityTimer';
 
 type TabType = 'home' | 'sessions' | 'history' | 'analysis' | 'settings' | 'stats' | 'profile';
 
@@ -34,6 +36,42 @@ function App() {
   const locationPermission = useLocationPermission();
   const { coords: currentLocation, status: locationStatus } = useGpsTracking();
   const { session: activeSession, setSession: setActiveSession } = useActiveSession();
+
+  const handleEndSession = useCallback(async () => {
+    if (!activeSession) return;
+
+    try {
+      setError(null);
+      const endedSession = {
+        ...activeSession,
+        endTime: new Date().toISOString()
+      };
+
+      setActiveSession(null);
+      setSessions(prev =>
+        prev.map(s => s.id === endedSession.id ? endedSession : s)
+      );
+
+      try {
+        await saveSession(endedSession);
+      } catch (saveError) {
+        console.error('Failed to save ended session:', saveError);
+      }
+
+      setActiveTab('home');
+    } catch (error) {
+      console.error('Failed to end session:', error);
+      setError('Failed to end session. Please try again.');
+    }
+  }, [activeSession, setActiveSession]);
+
+  const { remainingSeconds, isWarningActive, resetTimer } = useInactivityTimer({
+    timeoutMinutes: settings.session.autoEndTimeout,
+    warningMinutes: 5,
+    enabled: !!activeSession && settings.session.autoEndEnabled,
+    onTimeout: handleEndSession,
+    onWarning: () => {}
+  });
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -218,34 +256,6 @@ function App() {
     } catch (error) {
       console.error('Failed to save catch:', error);
       setError('Failed to save catch. Please try again.');
-    }
-  };
-
-  const handleEndSession = async () => {
-    if (!activeSession) return;
-
-    try {
-      setError(null);
-      const endedSession = {
-        ...activeSession,
-        endTime: new Date().toISOString()
-      };
-
-      setActiveSession(null);
-      setSessions(prev =>
-        prev.map(s => s.id === endedSession.id ? endedSession : s)
-      );
-
-      try {
-        await saveSession(endedSession);
-      } catch (saveError) {
-        console.error('Failed to save ended session:', saveError);
-      }
-
-      setActiveTab('home');
-    } catch (error) {
-      console.error('Failed to end session:', error);
-      setError('Failed to end session. Please try again.');
     }
   };
 
@@ -612,6 +622,14 @@ function App() {
             </button>
           </div>
         </nav>
+
+        <InactivityWarning
+          isOpen={isWarningActive}
+          remainingSeconds={remainingSeconds}
+          onExtend={resetTimer}
+          onEndSession={handleEndSession}
+          onClose={resetTimer}
+        />
       </div>
     </Router>
   );

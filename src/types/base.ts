@@ -28,4 +28,8 @@ export interface AppSettings {
       ip: boolean;
     };
   };
+  session: {
+    autoEndTimeout: number;
+    autoEndEnabled: boolean;
+  };
 }

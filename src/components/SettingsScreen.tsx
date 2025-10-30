@@ -339,8 +339,51 @@ export function SettingsScreen() {
         </div>
       </SettingsSection>
 
-      <SettingsSection 
-        title={t.settings.fishSpecies} 
+      <SettingsSection
+        title="Session Settings"
+        icon={<Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />}
+        isExpanded={expandedSection === 'session'}
+        onToggle={() => setExpandedSection(expandedSection === 'session' ? null : 'session')}
+      >
+        <div className="space-y-4">
+          <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
+            <div>
+              <span className="font-medium text-gray-900 dark:text-dark-50">Auto-End Session</span>
+              <p className="text-sm text-gray-500 dark:text-dark-300">Automatically end session after inactivity</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.session.autoEndEnabled}
+              onChange={(e) => settings.updateSessionSettings({ autoEndEnabled: e.target.checked })}
+              className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 dark:bg-dark-600"
+            />
+          </label>
+
+          {settings.session.autoEndEnabled && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
+                Inactivity Timeout
+              </label>
+              <select
+                value={settings.session.autoEndTimeout}
+                onChange={(e) => settings.updateSessionSettings({ autoEndTimeout: Number(e.target.value) })}
+                className="w-full p-3 border border-gray-200 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-50"
+              >
+                <option value={15}>15 minutes</option>
+                <option value={30}>30 minutes</option>
+                <option value={60}>1 hour</option>
+                <option value={120}>2 hours</option>
+              </select>
+              <p className="mt-2 text-sm text-gray-500 dark:text-dark-300">
+                You'll receive a warning 5 minutes before the session ends. Any interaction extends the session automatically.
+              </p>
+            </div>
+          )}
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title={t.settings.fishSpecies}
         icon={<Fish className="w-5 h-5 text-orange-600 dark:text-orange-400" />}
         isExpanded={expandedSection === 'species'}
         onToggle={() => setExpandedSection(expandedSection === 'species' ? null : 'species')}
