@@ -635,12 +635,7 @@ function MainApp({
                         </div>
                       ) : (
                         <>
-                          <div className="relative">
-                            <Fish className="w-14 h-14" />
-                            <div className="absolute -top-1 -right-1 w-7 h-7 bg-green-700 rounded-full flex items-center justify-center">
-                              <Plus className="w-5 h-5" strokeWidth={3} />
-                            </div>
-                          </div>
+                          <Fish className="w-14 h-14" />
                           <span className="text-base font-bold mt-3">Quick</span>
                           <span className="text-sm font-medium">Catch</span>
                         </>
