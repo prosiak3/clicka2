@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, LogOut, Menu, X, Shield, Map } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, Menu, X, Shield, Map, Cloud } from 'lucide-react';
 import { User } from '../types';
 import { signOut } from '../utils/auth';
 
 interface AdminLayoutProps {
   user: User;
   children: React.ReactNode;
-  currentView: 'dashboard' | 'users' | 'roadmap';
-  onViewChange: (view: 'dashboard' | 'users' | 'roadmap') => void;
+  currentView: 'dashboard' | 'users' | 'roadmap' | 'weather-api';
+  onViewChange: (view: 'dashboard' | 'users' | 'roadmap' | 'weather-api') => void;
   onLogout: () => void;
 }
 
@@ -44,6 +44,11 @@ export function AdminLayout({ user, children, currentView, onViewChange, onLogou
       name: 'Roadmap',
       icon: Map,
     },
+    {
+      id: 'weather-api',
+      name: 'Weather API',
+      icon: Cloud,
+    },
   ];
 
   return (
@@ -68,7 +73,7 @@ export function AdminLayout({ user, children, currentView, onViewChange, onLogou
               return (
                 <button
                   key={item.id}
-                  onClick={() => onViewChange(item.id as 'dashboard' | 'users' | 'roadmap')}
+                  onClick={() => onViewChange(item.id as 'dashboard' | 'users' | 'roadmap' | 'weather-api')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive
                       ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -131,7 +136,7 @@ export function AdminLayout({ user, children, currentView, onViewChange, onLogou
                   <button
                     key={item.id}
                     onClick={() => {
-                      onViewChange(item.id as 'dashboard' | 'users' | 'roadmap');
+                      onViewChange(item.id as 'dashboard' | 'users' | 'roadmap' | 'weather-api');
                       setMobileMenuOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${

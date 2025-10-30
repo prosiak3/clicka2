@@ -1,4 +1,5 @@
 import { WeatherData, CloudType, CloudLayers } from '../types';
+import { supabase } from './db';
 
 const WEATHER_API_URL = 'https://api.open-meteo.com/v1/forecast';
 
@@ -57,6 +58,42 @@ const getDefaultWeatherData = (): WeatherData => ({
   precipitationProbability: 0
 });
 
+const getEnabledProviders = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('weather_api_providers')
+      .select('*')
+      .eq('enabled', true)
+      .order('priority', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching weather providers:', error);
+    return [{
+      id: 'default',
+      name: 'open-meteo',
+      display_name: 'Open-Meteo',
+      api_url: 'https://api.open-meteo.com/v1/forecast',
+      requires_key: false,
+      enabled: true,
+      priority: 1
+    }];
+  }
+};
+
+const fetchFromOpenMeteo = async (lat: number, lon: number, apiUrl: string) => {
+  const response = await fetch(
+    `${apiUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,precipitation,precipitation_probability&wind_speed_unit=ms`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Weather API request failed: ${response.status}`);
+  }
+
+  return await response.json();
+};
+
 export const getWeatherData = async (lat: number, lon: number): Promise<WeatherData> => {
   try {
     // Check cache first
@@ -73,17 +110,29 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
     }
 
     lastRequestTime = Date.now();
-    const response = await fetch(
-      `${WEATHER_API_URL}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,precipitation,precipitation_probability&wind_speed_unit=ms`
-    );
-    
-    if (!response.ok) {
-      throw new Error(`Weather API request failed: ${response.status}`);
+
+    const providers = await getEnabledProviders();
+    let data = null;
+    let lastError = null;
+
+    for (const provider of providers) {
+      try {
+        if (provider.name === 'open-meteo') {
+          data = await fetchFromOpenMeteo(lat, lon, provider.api_url);
+          break;
+        }
+      } catch (error) {
+        console.warn(`Provider ${provider.display_name} failed:`, error);
+        lastError = error;
+        continue;
+      }
     }
 
-    const data = await response.json();
+    if (!data) {
+      throw lastError || new Error('All weather providers failed');
+    }
 
-    if (!data || !data.current) {
+    if (!data.current) {
       throw new Error('Invalid weather data received');
     }
 
