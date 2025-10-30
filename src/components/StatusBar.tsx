@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Signal, Antenna, Database, MapPin, Satellite, User, Shield } from 'lucide-react';
+import { Signal, Antenna, Database, MapPin, Satellite, User, Shield } from 'lucide-react';
 import { supabase } from '../utils/db';
 import { GpsPermissionDialog } from './GpsPermissionDialog';
 import { useGpsTracking } from '../hooks/useGpsTracking';
@@ -7,7 +7,7 @@ import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useDatabaseStatus } from '../hooks/useDatabaseStatus';
 
 interface StatusBarProps {
-  isSessionActive: boolean;
+  isSessionActive?: boolean;
   isPaused?: boolean;
 }
 
@@ -49,10 +49,8 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
   }, []);
 
   // Helper function to get tooltip text based on status
-  const getTooltip = (type: 'session' | 'gps' | 'internet' | 'database') => {
+  const getTooltip = (type: 'gps' | 'internet' | 'database') => {
     switch (type) {
-      case 'session':
-        return isPaused ? 'Session Paused' : 'Active Fishing Session';
       case 'gps':
         if (gpsStatus === 'connected' && coords) {
           const sourceText = coords.source === 'gps' 
@@ -111,24 +109,6 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
             {userInfo.role === 'admin' && (
               <span className="text-[10px] font-bold text-red-600 uppercase">Admin</span>
             )}
-          </div>
-        )}
-        {/* Active Session Status */}
-        {isSessionActive && (
-          <div 
-            className={`relative flex items-center gap-1 cursor-help ${
-              isPaused ? 'text-orange-600' : 'text-red-600'
-            }`}
-            title={getTooltip('session')}
-          >
-            <Activity className={`w-5 h-5 ${
-              isPaused ? 'animate-pulse' : 'animate-gradient-x bg-gradient-to-r from-red-500 via-red-300 to-red-500'
-            }`} />
-            <div className={`absolute -top-1 -right-1 w-2 h-2 rounded-full ${
-              isPaused 
-                ? 'bg-orange-500 animate-pulse' 
-                : 'bg-gradient-to-r from-red-500 via-red-300 to-red-500 animate-gradient-x'
-            }`} />
           </div>
         )}
 

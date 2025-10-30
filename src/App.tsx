@@ -7,7 +7,6 @@ import { SessionCard } from './components/SessionCard';
 import { SettingsScreen } from './components/SettingsScreen';
 import { AnalysisSection } from './components/AnalysisSection';
 import { StatusBar } from './components/StatusBar';
-import { ActiveSessionButton } from './components/ActiveSessionButton';
 import { InactivityWarning } from './components/InactivityWarning';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthCallback } from './components/AuthCallback';
@@ -499,10 +498,7 @@ function MainApp({
                     <p className="text-xs text-blue-600">Better Fishing</p>
                   </div>
                 </div>
-                <StatusBar 
-                  isSessionActive={!!activeSession} 
-                  isPaused={activeSession?.pauses?.some(p => !p.endTime)}
-                />
+                <StatusBar />
               </div>
             </div>
           </div>
@@ -514,79 +510,44 @@ function MainApp({
           )}
 
           <div className="p-4">
-            {activeTab === 'home' && (
+            {activeTab === 'home' && !activeSession && (
               <div className="space-y-6">
-                {/* Show Active Session or Start Button */}
-                {activeSession ? (
-                  <>
-                    {/* Active Session Card */}
-                    <div className="bg-green-50 border-2 border-green-500 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <h2 className="text-lg font-bold text-green-900">Active Fishing Session</h2>
+                {/* Hero Section with Start Fishing Button */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 shadow-lg">
+                  <div className="absolute inset-0 opacity-10">
+                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#wave)" />
+                      <defs>
+                        <pattern id="wave" patternUnits="userSpaceOnUse" width="100" height="100">
+                          <path d="M0,50 Q25,45 50,50 T100,50 T150,50" fill="none" stroke="white" strokeWidth="2" />
+                        </pattern>
+                      </defs>
+                    </svg>
+                  </div>
+                  <div className="relative">
+                    <h2 className="text-2xl font-bold text-white mb-2">Ready to Fish?</h2>
+                    <p className="text-blue-100 mb-6">Track your catches, monitor conditions, and improve your success rate.</p>
+                    <button
+                      onClick={startNewSession}
+                      disabled={isStartingSession}
+                      className={`w-full bg-white text-blue-600 rounded-xl py-4 px-6 font-bold shadow-lg hover:bg-blue-50 transform transition-all hover:scale-105 focus:ring-4 focus:ring-white/50 ${
+                        isStartingSession ? 'opacity-75 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <div className="flex items-center justify-center gap-3">
+                        {isStartingSession ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
+                        ) : (
+                          <Fish className="w-6 h-6" />
+                        )}
+                        <span>{isStartingSession ? 'Starting...' : 'Start Fishing'}</span>
                       </div>
-                      <p className="text-green-700 text-sm mb-4">Your session is in progress. Tap below to add catches and manage your session.</p>
-                      <button
-                        onClick={() => setActiveTab('sessions')}
-                        className="w-full bg-green-600 text-white rounded-xl py-3 px-6 font-bold shadow-lg hover:bg-green-700 transform transition-all hover:scale-105"
-                      >
-                        <div className="flex items-center justify-center gap-3">
-                          <Fish className="w-5 h-5" />
-                          <span>Go to Active Session</span>
-                        </div>
-                      </button>
-                    </div>
-                    <SessionCard
-                      session={activeSession}
-                      isActive={true}
-                      onEndSession={handleEndSession}
-                      onDiscardSession={handleDiscardSession}
-                      onPauseSession={handlePauseSession}
-                      onResumeSession={handleResumeSession}
-                      onAddWaypoint={handleAddWaypoint}
-                    />
-                  </>
-                ) : (
-                  <>
-                    {/* Hero Section with Start Fishing Button */}
-                    <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 shadow-lg">
-                      <div className="absolute inset-0 opacity-10">
-                        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                          <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#wave)" />
-                          <defs>
-                            <pattern id="wave" patternUnits="userSpaceOnUse" width="100" height="100">
-                              <path d="M0,50 Q25,45 50,50 T100,50 T150,50" fill="none" stroke="white" strokeWidth="2" />
-                            </pattern>
-                          </defs>
-                        </svg>
-                      </div>
-                      <div className="relative">
-                        <h2 className="text-2xl font-bold text-white mb-2">Ready to Fish?</h2>
-                        <p className="text-blue-100 mb-6">Track your catches, monitor conditions, and improve your success rate.</p>
-                        <button
-                          onClick={startNewSession}
-                          disabled={isStartingSession}
-                          className={`w-full bg-white text-blue-600 rounded-xl py-4 px-6 font-bold shadow-lg hover:bg-blue-50 transform transition-all hover:scale-105 focus:ring-4 focus:ring-white/50 ${
-                            isStartingSession ? 'opacity-75 cursor-not-allowed' : ''
-                          }`}
-                        >
-                          <div className="flex items-center justify-center gap-3">
-                            {isStartingSession ? (
-                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
-                            ) : (
-                              <Fish className="w-6 h-6" />
-                            )}
-                            <span>{isStartingSession ? 'Starting...' : 'Start Fishing'}</span>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
+                    </button>
+                  </div>
+                </div>
 
                 {/* Quick Stats Grid */}
-                {!activeSession && (
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <div className="flex items-center gap-2 mb-2">
                       <Fish className="w-5 h-5 text-blue-500" />
@@ -604,7 +565,7 @@ function MainApp({
                       </div>
                       <p className="text-2xl font-bold text-yellow-600">
                         {sessions.reduce((best, session) => {
-                          const sessionBest = session.catches.reduce((max, catch_) => 
+                          const sessionBest = session.catches.reduce((max, catch_) =>
                             catch_.weight > max.weight ? catch_ : max
                           , { weight: 0, species: '' });
                           return sessionBest.weight > best.weight ? sessionBest : best;
@@ -612,7 +573,7 @@ function MainApp({
                       </p>
                       <p className="text-sm text-gray-500">
                         {sessions.reduce((best, session) => {
-                          const sessionBest = session.catches.reduce((max, catch_) => 
+                          const sessionBest = session.catches.reduce((max, catch_) =>
                             catch_.weight > max.weight ? catch_ : max
                           , { weight: 0, species: '' });
                           return sessionBest.weight > best.weight ? sessionBest : best;
@@ -621,10 +582,9 @@ function MainApp({
                     </div>
                   )}
                 </div>
-                )}
 
                 {/* Last Session Preview */}
-                {!activeSession && sessions.length > 0 && (
+                {sessions.length > 0 && (
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900 mb-4">Last Session</h2>
                     <SessionCard
@@ -702,29 +662,40 @@ function MainApp({
           </div>
         </div>
 
-        {/* Active Session Button */}
-        {activeSession && activeTab !== 'sessions' && (
-          <ActiveSessionButton 
-            session={activeSession}
-            onClick={() => {
-              setActiveTab('sessions');
-              setSelectedSession(null);
-            }}
-          />
-        )}
-
         {/* Bottom Navigation Bar */}
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
           <div className="max-w-lg mx-auto grid grid-cols-4 divide-x">
-            <button
-              onClick={() => setActiveTab('home')}
-              className={`p-3 flex flex-col items-center ${
-                activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'
-              }`}
-            >
-              <Home className="w-6 h-6" />
-              <span className="text-xs mt-1">Home</span>
-            </button>
+            {activeSession ? (
+              <button
+                onClick={() => {
+                  setActiveTab('sessions');
+                  setSelectedSession(null);
+                }}
+                className={`p-3 flex flex-col items-center relative ${
+                  activeTab === 'sessions' ? 'text-blue-600' : 'text-gray-600'
+                }`}
+              >
+                <div className="relative">
+                  <Fish className="w-6 h-6" />
+                  <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${
+                    activeSession.pauses?.some(p => !p.endTime)
+                      ? 'bg-orange-500 animate-pulse'
+                      : 'bg-green-500 animate-pulse'
+                  }`} />
+                </div>
+                <span className="text-xs mt-1">Session</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setActiveTab('home')}
+                className={`p-3 flex flex-col items-center ${
+                  activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'
+                }`}
+              >
+                <Home className="w-6 h-6" />
+                <span className="text-xs mt-1">Home</span>
+              </button>
+            )}
 
             <button
               onClick={() => setActiveTab('stats')}
