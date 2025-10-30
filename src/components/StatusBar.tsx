@@ -1,5 +1,5 @@
-import React from 'react';
-import { Activity, Signal, Antenna, Database, MapPin, Satellite } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Activity, Signal, Antenna, Database, MapPin, Satellite, User, Shield } from 'lucide-react';
 import { supabase } from '../utils/db';
 import { GpsPermissionDialog } from './GpsPermissionDialog';
 import { useGpsTracking } from '../hooks/useGpsTracking';
@@ -12,17 +12,41 @@ interface StatusBarProps {
 }
 
 export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
-  const { 
-    status: gpsStatus, 
+  const {
+    status: gpsStatus,
     satelliteCount,
     coords,
     showPermissionDialog,
     requestPermission,
     hidePermissionDialog
   } = useGpsTracking();
-  
+
   const internetStatus = useOnlineStatus();
   const dbStatus = useDatabaseStatus();
+
+  const [userInfo, setUserInfo] = useState<{ email: string; role: string } | null>(null);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        console.log('User profile query:', { profile, error, userId: user.id });
+
+        setUserInfo({
+          email: user.email || 'Unknown',
+          role: profile?.role || 'user'
+        });
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   // Helper function to get tooltip text based on status
   const getTooltip = (type: 'session' | 'gps' | 'internet' | 'database') => {
@@ -72,6 +96,23 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
   return (
     <>
       <div className="flex items-center gap-3">
+        {/* User Info */}
+        {userInfo && (
+          <div
+            className="flex items-center gap-1.5 cursor-help text-gray-700 bg-gray-100 px-2 py-1 rounded"
+            title={`Logged in as: ${userInfo.email}\nRole: ${userInfo.role}`}
+          >
+            {userInfo.role === 'admin' ? (
+              <Shield className="w-4 h-4 text-red-600" />
+            ) : (
+              <User className="w-4 h-4" />
+            )}
+            <span className="text-xs font-medium">{userInfo.email}</span>
+            {userInfo.role === 'admin' && (
+              <span className="text-[10px] font-bold text-red-600 uppercase">Admin</span>
+            )}
+          </div>
+        )}
         {/* Active Session Status */}
         {isSessionActive && (
           <div 
