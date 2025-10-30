@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Fish, Mail, Lock, Loader2 } from 'lucide-react';
 import { signIn, signUp, signInWithOAuth } from '../utils/auth';
+import { ForgotPasswordDialog } from './ForgotPasswordDialog';
 
 interface LoginScreenProps {
   onLoginSuccess: () => void;
@@ -12,6 +13,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,9 +143,21 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
+                <div className="flex justify-between items-center mb-2">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  {isLogin && (
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      disabled={isLoading}
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
@@ -189,6 +203,11 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           Track your fishing sessions, analyze patterns, and improve your catches
         </p>
       </div>
+
+      <ForgotPasswordDialog
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </div>
   );
 }

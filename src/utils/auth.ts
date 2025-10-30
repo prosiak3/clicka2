@@ -153,3 +153,18 @@ export async function handleOAuthCallback() {
     return null;
   }
 }
+
+export async function resetPassword(email: string) {
+  try {
+    return await retryAuth(async () => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+    });
+  } catch (error) {
+    console.error('Password reset error:', error);
+    throw new Error('Failed to send password reset email. Please check your connection and try again.');
+  }
+}
