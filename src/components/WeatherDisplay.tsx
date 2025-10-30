@@ -1,5 +1,6 @@
 import { Cloud, Thermometer, Wind, Droplets, ArrowUp, TrendingUp, TrendingDown, Minus, CloudRain, CloudSnow, CloudDrizzle } from 'lucide-react';
 import { WeatherData } from '../types';
+import { getBeaufortScale } from '../utils/weather';
 
 interface WeatherDisplayProps {
   weather: WeatherData;
@@ -45,13 +46,13 @@ export function WeatherDisplay({ weather, waterTemp }: WeatherDisplayProps) {
       {/* Wind */}
       <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
         <Wind className="text-blue-500 w-5 h-5" />
-        <div>
+        <div className="flex-1">
           <p className="text-xs font-medium text-gray-600">Wind</p>
           <div className="flex items-center gap-2">
             <p className="text-lg font-bold text-gray-900">{weather.windSpeed} m/s</p>
-            <ArrowUp 
-              className="w-4 h-4 text-gray-600" 
-              style={{ 
+            <ArrowUp
+              className="w-4 h-4 text-gray-600"
+              style={{
                 transform: `rotate(${
                   weather.windDirection === 'N' ? 0 :
                   weather.windDirection === 'NE' ? 45 :
@@ -62,9 +63,12 @@ export function WeatherDisplay({ weather, waterTemp }: WeatherDisplayProps) {
                   weather.windDirection === 'W' ? 270 :
                   weather.windDirection === 'NW' ? 315 : 0
                 }deg)`
-              }} 
+              }}
             />
           </div>
+          <p className="text-xs text-gray-500 mt-1">
+            {getBeaufortScale(weather.windSpeed).level} B - {getBeaufortScale(weather.windSpeed).description}
+          </p>
         </div>
       </div>
 

@@ -148,3 +148,19 @@ const getWindDirection = (degrees: number): string => {
   const index = Math.round(degrees / 45) % 8;
   return directions[index];
 };
+
+export const getBeaufortScale = (windSpeedMs: number): { level: number; description: string } => {
+  if (windSpeedMs < 0.5) return { level: 0, description: 'Calm' };
+  if (windSpeedMs < 1.6) return { level: 1, description: 'Light air' };
+  if (windSpeedMs < 3.4) return { level: 2, description: 'Light breeze' };
+  if (windSpeedMs < 5.5) return { level: 3, description: 'Gentle breeze' };
+  if (windSpeedMs < 8.0) return { level: 4, description: 'Moderate breeze' };
+  if (windSpeedMs < 10.8) return { level: 5, description: 'Fresh breeze' };
+  if (windSpeedMs < 13.9) return { level: 6, description: 'Strong breeze' };
+  if (windSpeedMs < 17.2) return { level: 7, description: 'Near gale' };
+  if (windSpeedMs < 20.8) return { level: 8, description: 'Gale' };
+  if (windSpeedMs < 24.5) return { level: 9, description: 'Strong gale' };
+  if (windSpeedMs < 28.5) return { level: 10, description: 'Storm' };
+  if (windSpeedMs < 32.7) return { level: 11, description: 'Violent storm' };
+  return { level: 12, description: 'Hurricane' };
+};
