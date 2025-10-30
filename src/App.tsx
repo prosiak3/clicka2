@@ -12,6 +12,9 @@ import { InactivityWarning } from './components/InactivityWarning';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthCallback } from './components/AuthCallback';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminLayout } from './components/AdminLayout';
+import { AdminDashboard } from './screens/AdminDashboard';
+import { AdminUsersScreen } from './screens/AdminUsersScreen';
 import { FishCatch, FishingSession, User as UserType, Location } from './types';
 import { saveSession, loadSessions, syncPendingSessions } from './utils/db';
 import { getCurrentUser, signIn, signUp } from './utils/auth';
@@ -354,31 +357,35 @@ function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/*" element={
           <ProtectedRoute isAuthenticated={!!user} isLoading={isLoading}>
-            <MainApp
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              sessions={sessions}
-              selectedSession={selectedSession}
-              setSelectedSession={setSelectedSession}
-              error={error}
-              user={user!}
-              activeSession={activeSession}
-              showCatchForm={showCatchForm}
-              setShowCatchForm={setShowCatchForm}
-              handleCatchSave={handleCatchSave}
-              handleEndSession={handleEndSession}
-              handleDiscardSession={handleDiscardSession}
-              handlePauseSession={handlePauseSession}
-              handleResumeSession={handleResumeSession}
-              handleAddWaypoint={handleAddWaypoint}
-              startNewSession={startNewSession}
-              isStartingSession={isStartingSession}
-              settings={settings}
-              isWarningActive={isWarningActive}
-              remainingSeconds={remainingSeconds}
-              resetTimer={resetTimer}
-              setUser={setUser}
-            />
+            {user?.role === 'admin' ? (
+              <AdminApp user={user} setUser={setUser} />
+            ) : (
+              <MainApp
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                sessions={sessions}
+                selectedSession={selectedSession}
+                setSelectedSession={setSelectedSession}
+                error={error}
+                user={user!}
+                activeSession={activeSession}
+                showCatchForm={showCatchForm}
+                setShowCatchForm={setShowCatchForm}
+                handleCatchSave={handleCatchSave}
+                handleEndSession={handleEndSession}
+                handleDiscardSession={handleDiscardSession}
+                handlePauseSession={handlePauseSession}
+                handleResumeSession={handleResumeSession}
+                handleAddWaypoint={handleAddWaypoint}
+                startNewSession={startNewSession}
+                isStartingSession={isStartingSession}
+                settings={settings}
+                isWarningActive={isWarningActive}
+                remainingSeconds={remainingSeconds}
+                resetTimer={resetTimer}
+                setUser={setUser}
+              />
+            )}
           </ProtectedRoute>
         } />
       </Routes>
@@ -410,6 +417,32 @@ interface MainAppProps {
   remainingSeconds: number;
   resetTimer: () => void;
   setUser: (user: UserType | null) => void;
+}
+
+interface AdminAppProps {
+  user: UserType;
+  setUser: (user: UserType | null) => void;
+}
+
+function AdminApp({ user, setUser }: AdminAppProps) {
+  const [currentView, setCurrentView] = useState<'dashboard' | 'users'>('dashboard');
+
+  const handleLogout = () => {
+    setUser(null);
+    window.location.href = '/login';
+  };
+
+  return (
+    <AdminLayout
+      user={user}
+      currentView={currentView}
+      onViewChange={setCurrentView}
+      onLogout={handleLogout}
+    >
+      {currentView === 'dashboard' && <AdminDashboard />}
+      {currentView === 'users' && <AdminUsersScreen user={user} />}
+    </AdminLayout>
+  );
 }
 
 function MainApp({
