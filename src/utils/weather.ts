@@ -1,4 +1,4 @@
-import { WeatherData } from '../types';
+import { WeatherData, CloudType, CloudLayers } from '../types';
 
 const WEATHER_API_URL = 'https://api.open-meteo.com/v1/forecast';
 
@@ -49,6 +49,9 @@ const getDefaultWeatherData = (): WeatherData => ({
   windSpeed: 0,
   windDirection: 'N',
   cloudCover: 0,
+  cloudLayers: { low: 0, mid: 0, high: 0 },
+  cloudBase: undefined,
+  dominantCloudType: 'clear',
   precipitation: 0,
   precipitationType: 'none',
   precipitationProbability: 0
@@ -71,7 +74,7 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
 
     lastRequestTime = Date.now();
     const response = await fetch(
-      `${WEATHER_API_URL}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,wind_speed_10m,wind_direction_10m,precipitation,precipitation_probability&wind_speed_unit=ms`
+      `${WEATHER_API_URL}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,precipitation,precipitation_probability&wind_speed_unit=ms`
     );
     
     if (!response.ok) {
@@ -121,6 +124,15 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
       }
     }
 
+    const cloudLayers: CloudLayers = {
+      low: Math.round(data.current.cloud_cover_low ?? 0),
+      mid: Math.round(data.current.cloud_cover_mid ?? 0),
+      high: Math.round(data.current.cloud_cover_high ?? 0)
+    };
+
+    const cloudBase = calculateCloudBase(temp, data.current.relative_humidity_2m ?? 50);
+    const dominantCloudType = determineCloudType(cloudLayers, cloudBase, precipType);
+
     const weatherData: WeatherData = {
       temperature: Math.round(temp),
       pressure: currentPressure,
@@ -128,6 +140,9 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
       windSpeed: Math.round(data.current.wind_speed_10m ?? 0),
       windDirection: getWindDirection(data.current.wind_direction_10m ?? 0),
       cloudCover: Math.round(data.current.cloud_cover ?? 0),
+      cloudLayers,
+      cloudBase,
+      dominantCloudType,
       precipitation: precip,
       precipitationType: precipType,
       precipitationProbability: Math.round(data.current.precipitation_probability ?? 0)
@@ -163,4 +178,71 @@ export const getBeaufortScale = (windSpeedMs: number): { level: number; descript
   if (windSpeedMs < 28.5) return { level: 10, description: 'Storm' };
   if (windSpeedMs < 32.7) return { level: 11, description: 'Violent storm' };
   return { level: 12, description: 'Hurricane' };
+};
+
+const calculateCloudBase = (temperature: number, humidity: number): number | undefined => {
+  if (humidity < 50) return undefined;
+
+  const dewPointSpread = temperature - (temperature - ((100 - humidity) / 5));
+  const cloudBaseMeters = Math.round(dewPointSpread * 125);
+
+  return cloudBaseMeters > 0 ? cloudBaseMeters : undefined;
+};
+
+const determineCloudType = (
+  layers: CloudLayers,
+  cloudBase: number | undefined,
+  precipType: 'none' | 'rain' | 'snow' | 'sleet'
+): CloudType => {
+  const { low, mid, high } = layers;
+
+  if (low === 0 && mid === 0 && high === 0) {
+    return 'clear';
+  }
+
+  if (precipType === 'rain' || precipType === 'sleet') {
+    if (low > 70) return 'nimbostratus';
+    if (low > 50) return 'cumulonimbus';
+  }
+
+  if (low > mid && low > high) {
+    if (!cloudBase) return 'cumulus';
+    if (cloudBase < 500) return 'stratus';
+    if (cloudBase < 1500) return 'stratocumulus';
+    return 'cumulus';
+  }
+
+  if (mid > low && mid > high) {
+    if (mid > 60) return 'altostratus';
+    return 'altocumulus';
+  }
+
+  if (high > low && high > mid) {
+    if (high > 60) return 'cirrostratus';
+    if (high > 30) return 'cirrocumulus';
+    return 'cirrus';
+  }
+
+  if (low > 40) return 'cumulus';
+  if (mid > 40) return 'altocumulus';
+  if (high > 40) return 'cirrus';
+
+  return 'clear';
+};
+
+export const getCloudTypeDescription = (cloudType: CloudType): string => {
+  switch (cloudType) {
+    case 'clear': return 'Clear sky';
+    case 'cirrus': return 'High wispy clouds';
+    case 'cirrostratus': return 'High thin sheet clouds';
+    case 'cirrocumulus': return 'High small puffy clouds';
+    case 'altostratus': return 'Mid-level gray clouds';
+    case 'altocumulus': return 'Mid-level puffy clouds';
+    case 'stratus': return 'Low gray layer clouds';
+    case 'stratocumulus': return 'Low puffy layer clouds';
+    case 'cumulus': return 'Puffy fair-weather clouds';
+    case 'nimbostratus': return 'Rain clouds';
+    case 'cumulonimbus': return 'Thunderstorm clouds';
+    default: return 'Unknown';
+  }
 };

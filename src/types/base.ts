@@ -8,6 +8,25 @@ export interface User {
   role?: 'user' | 'admin';
 }
 
+export interface CloudLayers {
+  low: number;
+  mid: number;
+  high: number;
+}
+
+export type CloudType =
+  | 'clear'
+  | 'cirrus'
+  | 'cirrostratus'
+  | 'cirrocumulus'
+  | 'altostratus'
+  | 'altocumulus'
+  | 'stratus'
+  | 'stratocumulus'
+  | 'cumulus'
+  | 'nimbostratus'
+  | 'cumulonimbus';
+
 export interface WeatherData {
   temperature: number;
   pressure: number;
@@ -15,6 +34,9 @@ export interface WeatherData {
   windSpeed: number;
   windDirection: string;
   cloudCover: number;
+  cloudLayers?: CloudLayers;
+  cloudBase?: number;
+  dominantCloudType?: CloudType;
   precipitation: number;
   precipitationType: 'none' | 'rain' | 'snow';
   precipitationProbability: number;

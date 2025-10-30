@@ -1,4 +1,4 @@
-import { WeatherData, Location, FishCatch, User, FishSpecies, AppSettings } from './base';
+import { WeatherData, Location, FishCatch, User, FishSpecies, AppSettings, CloudType, CloudLayers } from './base';
 
 export interface Translation {
   common: {
@@ -68,6 +68,24 @@ export interface Translation {
     windSpeed: string;
     weatherConditions: string;
     weatherTrends: string;
+    cloudBase: string;
+    cloudLayers: string;
+    cloudTypes: {
+      clear: string;
+      cirrus: string;
+      cirrostratus: string;
+      cirrocumulus: string;
+      altostratus: string;
+      altocumulus: string;
+      stratus: string;
+      stratocumulus: string;
+      cumulus: string;
+      nimbostratus: string;
+      cumulonimbus: string;
+    };
+    lowClouds: string;
+    midClouds: string;
+    highClouds: string;
   };
   stats: {
     overallStatistics: string;
@@ -146,4 +164,4 @@ export interface FishingSession {
   tracking_interval: number;
 }
 
-export type { WeatherData, Location, FishCatch, User, FishSpecies, AppSettings };
+export type { WeatherData, Location, FishCatch, User, FishSpecies, AppSettings, CloudType, CloudLayers };

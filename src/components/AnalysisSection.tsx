@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FishingSession } from '../types';
+import { FishingSession, CloudType } from '../types';
 import { format, differenceInMinutes, getMonth } from 'date-fns';
 import { Fish, Clock, Sun, Moon, Wind, Thermometer, Trophy, Scale, Calendar, BarChart as ChartBar, CloudRain, Cloud } from 'lucide-react';
 import { getMoonPhase } from '../utils/moon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface AnalysisSectionProps {
   sessions: FishingSession[];
@@ -32,6 +33,7 @@ const seasons = [
 ];
 
 export function AnalysisSection({ sessions }: AnalysisSectionProps) {
+  const t = useTranslation();
   const [dateRange, setDateRange] = useState<DateRange>({
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
     end: new Date()
@@ -71,6 +73,15 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
     });
     return stats;
   }, { clear: 0, partlyCloudy: 0, mostlyCloudy: 0, overcast: 0 });
+
+  // Calculate cloud type distribution
+  const cloudTypeStats = filteredSessions.reduce((stats, session) => {
+    session.catches.forEach(catch_ => {
+      const cloudType = catch_.weather.dominantCloudType || 'clear';
+      stats[cloudType] = (stats[cloudType] || 0) + 1;
+    });
+    return stats;
+  }, {} as Record<string, number>);
 
   // Calculate temperature distribution
   const tempStats = filteredSessions.reduce((stats, session) => {
@@ -218,7 +229,7 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
                 {condition.replace(/([A-Z])/g, ' $1').trim()}
               </div>
               <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-blue-500 rounded-full"
                   style={{ width: `${(count / totalCatches) * 100}%` }}
                 />
@@ -230,6 +241,45 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
           ))}
         </div>
       </div>
+
+      {/* Cloud Type Analysis */}
+      {Object.keys(cloudTypeStats).length > 0 && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-2 mb-4">
+            <Cloud className="w-6 h-6 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Cloud Type Analysis</h2>
+          </div>
+          <div className="space-y-3">
+            {Object.entries(cloudTypeStats)
+              .sort(([, a], [, b]) => b - a)
+              .map(([cloudType, count]) => {
+                const typedCloudType = cloudType as CloudType;
+                return (
+                  <div key={cloudType} className="flex items-center gap-4">
+                    <div className="w-40 text-sm font-medium text-gray-900">
+                      {t.weather.cloudTypes[typedCloudType] || cloudType}
+                    </div>
+                    <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
+                        style={{ width: `${(count / totalCatches) * 100}%` }}
+                      />
+                    </div>
+                    <div className="w-20 text-sm text-gray-600 text-right">
+                      {count} ({Math.round((count / totalCatches) * 100)}%)
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-xs text-gray-600">
+              This analysis shows which cloud types were present during your most successful catches.
+              Understanding cloud patterns can help predict better fishing conditions.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Temperature Analysis */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
