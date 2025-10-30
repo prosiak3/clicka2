@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, LogOut, Menu, X, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, Menu, X, Shield, Map } from 'lucide-react';
 import { User } from '../types';
 import { signOut } from '../utils/auth';
 
 interface AdminLayoutProps {
   user: User;
   children: React.ReactNode;
-  currentView: 'dashboard' | 'users';
-  onViewChange: (view: 'dashboard' | 'users') => void;
+  currentView: 'dashboard' | 'users' | 'roadmap';
+  onViewChange: (view: 'dashboard' | 'users' | 'roadmap') => void;
   onLogout: () => void;
 }
 
@@ -39,6 +39,11 @@ export function AdminLayout({ user, children, currentView, onViewChange, onLogou
       name: 'Users',
       icon: Users,
     },
+    {
+      id: 'roadmap',
+      name: 'Roadmap',
+      icon: Map,
+    },
   ];
 
   return (
@@ -63,7 +68,7 @@ export function AdminLayout({ user, children, currentView, onViewChange, onLogou
               return (
                 <button
                   key={item.id}
-                  onClick={() => onViewChange(item.id as 'dashboard' | 'users')}
+                  onClick={() => onViewChange(item.id as 'dashboard' | 'users' | 'roadmap')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive
                       ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -126,7 +131,7 @@ export function AdminLayout({ user, children, currentView, onViewChange, onLogou
                   <button
                     key={item.id}
                     onClick={() => {
-                      onViewChange(item.id as 'dashboard' | 'users');
+                      onViewChange(item.id as 'dashboard' | 'users' | 'roadmap');
                       setMobileMenuOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
