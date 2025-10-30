@@ -692,27 +692,42 @@ function MainApp({
 
             {activeTab === 'sessions' && activeSession && (
               <div className="space-y-6">
-                {/* Add Catch Button */}
-                <div className="flex flex-col items-center gap-2">
-                  <button
-                    onClick={async () => {
-                      await playReelSound();
-                      setShowCatchForm(!showCatchForm);
-                    }}
-                    disabled={showCatchForm}
-                    className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 ${
-                      showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-green-500/50 active:scale-95'
-                    }`}
-                  >
-                    <div className="relative flex flex-col items-center justify-center h-full text-white">
-                      <Fish className="w-14 h-14" />
-                      <span className="text-base font-bold mt-3">Add</span>
-                      <span className="text-sm font-medium">Catch</span>
+                {/* Add Catch Button and Catch Counter */}
+                <div className="flex items-start gap-6">
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      onClick={async () => {
+                        await playReelSound();
+                        setShowCatchForm(!showCatchForm);
+                      }}
+                      disabled={showCatchForm}
+                      className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 ${
+                        showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-green-500/50 active:scale-95'
+                      }`}
+                    >
+                      <div className="relative flex flex-col items-center justify-center h-full text-white">
+                        <Fish className="w-14 h-14" />
+                        <span className="text-base font-bold mt-3">Add</span>
+                        <span className="text-sm font-medium">Catch</span>
+                      </div>
+                    </button>
+                    <p className="text-xs text-gray-400 text-center max-w-xs">
+                      Tap to add a new catch to your active session
+                    </p>
+                  </div>
+
+                  <div className="flex-1 flex flex-col justify-center">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-lg border border-blue-200">
+                      <div className="flex flex-col items-center">
+                        <div className="text-6xl font-bold text-blue-900">
+                          {activeSession.catches?.length || 0}
+                        </div>
+                        <div className="text-sm font-semibold text-blue-700 mt-2">
+                          Total Catches
+                        </div>
+                      </div>
                     </div>
-                  </button>
-                  <p className="text-xs text-gray-400 text-center max-w-xs">
-                    Tap to add a new catch to your active session
-                  </p>
+                  </div>
                 </div>
 
                 {/* Add Catch Form */}
