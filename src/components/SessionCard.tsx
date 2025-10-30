@@ -187,12 +187,12 @@ export function SessionCard({
                 {isWaypointMode ? (
                   <>
                     <X className="w-4 h-4" />
-                    <span className="font-medium">Cancel Waypoint</span>
+                    <span className="text-xs">Cancel Waypoint</span>
                   </>
                 ) : (
                   <>
                     <Flag className="w-4 h-4" />
-                    <span className="font-medium">Add Waypoint</span>
+                    <span className="text-xs">Add Waypoint</span>
                   </>
                 )}
               </button>
