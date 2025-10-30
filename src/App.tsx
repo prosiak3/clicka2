@@ -570,23 +570,23 @@ function MainApp({
 }: MainAppProps) {
   return (
       <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${settings.theme === 'dark' ? 'dark' : ''}`}>
-        <div className="max-w-lg mx-auto pb-14">
+        <div className="max-w-lg mx-auto pb-11">
           {/* Header */}
           <div className="sticky top-0 bg-white backdrop-blur-sm border-b z-10 shadow-sm">
-            <div className="px-3 py-2">
+            <div className="px-3 py-1.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {activeTab === 'history' && selectedSession && (
                     <button
                       onClick={() => setSelectedSession(null)}
-                      className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <ArrowLeft className="w-4 h-4 text-gray-600" />
                     </button>
                   )}
                   <div>
-                    <h1 className="text-lg font-bold text-blue-900">Clicka</h1>
-                    <p className="text-[10px] text-blue-600 leading-none">Better Fishing</p>
+                    <h1 className="text-base font-bold text-blue-900">Clicka</h1>
+                    <p className="text-[9px] text-blue-600 leading-none">Better Fishing</p>
                   </div>
                 </div>
                 <StatusBar />
@@ -603,6 +603,54 @@ function MainApp({
           <div className="p-4">
             {activeTab === 'home' && !activeSession && (
               <div className="space-y-6">
+                {/* Quick Catch Button */}
+                <div className="flex flex-col items-center gap-3 pt-2">
+                  <button
+                    onClick={startQuickCatch}
+                    disabled={isStartingSession}
+                    className={`relative w-44 h-44 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
+                      isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-green-500/50 active:scale-95'
+                    } ${!isStartingSession ? 'animate-pulse' : ''}`}
+                  >
+                    <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
+                    <div className="relative flex flex-col items-center justify-center h-full text-white">
+                      {isStartingSession && loadingStep ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
+                          <span className="text-sm font-medium">
+                            {loadingStep === 'checkingGPS' && 'GPS...'}
+                            {loadingStep === 'gettingLocation' && 'Location...'}
+                            {loadingStep === 'gettingWeather' && 'Weather...'}
+                            {loadingStep === 'startingSession' && 'Starting...'}
+                            {loadingStep === 'ready' && 'Ready!'}
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="relative">
+                            <Fish className="w-14 h-14" />
+                            <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-700 rounded-full flex items-center justify-center">
+                              <Plus className="w-6 h-6" />
+                            </div>
+                          </div>
+                          <span className="text-base font-bold mt-3">Quick</span>
+                          <span className="text-sm font-medium">Catch</span>
+                        </>
+                      )}
+                    </div>
+                  </button>
+                  <p className="text-xs text-gray-400 text-center max-w-xs">
+                    Tap to quickly add a catch with automatic session start
+                  </p>
+                </div>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3 py-2">
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-gray-300" />
+                  <p className="text-sm text-gray-500 font-medium">or</p>
+                  <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gray-300 to-gray-300" />
+                </div>
+
                 {/* Hero Section with Start Fishing Button */}
                 <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 shadow-lg">
                   <div className="absolute inset-0 opacity-10">
@@ -635,47 +683,6 @@ function MainApp({
                       </div>
                     </button>
                   </div>
-                </div>
-
-                {/* Quick Catch Button */}
-                <div className="flex flex-col items-center gap-3 pt-4">
-                  <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-                  <p className="text-sm text-gray-500 font-medium">or</p>
-                  <button
-                    onClick={startQuickCatch}
-                    disabled={isStartingSession}
-                    className={`relative w-32 h-32 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
-                      isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-green-500/50 active:scale-95'
-                    } ${!isStartingSession ? 'animate-pulse' : ''}`}
-                  >
-                    <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
-                    <div className="relative flex flex-col items-center justify-center h-full text-white">
-                      {isStartingSession && loadingStep ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
-                          <span className="text-xs font-medium">
-                            {loadingStep === 'checkingGPS' && 'GPS...'}
-                            {loadingStep === 'gettingLocation' && 'Location...'}
-                            {loadingStep === 'gettingWeather' && 'Weather...'}
-                            {loadingStep === 'startingSession' && 'Starting...'}
-                            {loadingStep === 'ready' && 'Ready!'}
-                          </span>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="relative">
-                            <Fish className="w-10 h-10" />
-                            <Plus className="w-5 h-5 absolute -top-1 -right-1 bg-green-700 rounded-full p-0.5" />
-                          </div>
-                          <span className="text-sm font-bold mt-2">Quick</span>
-                          <span className="text-xs font-medium">Catch</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-                  <p className="text-xs text-gray-400 text-center max-w-xs">
-                    Tap to quickly add a catch with automatic session start
-                  </p>
                 </div>
               </div>
             )}
@@ -771,7 +778,7 @@ function MainApp({
                   setActiveTab('sessions');
                   setSelectedSession(null);
                 }}
-                className={`py-2 px-2 flex flex-col items-center relative ${
+                className={`py-1.5 px-2 flex flex-col items-center relative ${
                   activeTab === 'sessions' ? 'text-blue-600' : 'text-gray-600'
                 }`}
               >
@@ -783,48 +790,48 @@ function MainApp({
                       : 'bg-green-500 animate-pulse'
                   }`} />
                 </div>
-                <span className="text-[10px] mt-0.5">Session</span>
+                <span className="text-[9px] mt-0.5">Session</span>
               </button>
             ) : (
               <button
                 onClick={() => setActiveTab('home')}
-                className={`py-2 px-2 flex flex-col items-center ${
+                className={`py-1.5 px-2 flex flex-col items-center ${
                   activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'
                 }`}
               >
                 <Home className="w-5 h-5" />
-                <span className="text-[10px] mt-0.5">Home</span>
+                <span className="text-[9px] mt-0.5">Home</span>
               </button>
             )}
 
             <button
               onClick={() => setActiveTab('stats')}
-              className={`py-2 px-2 flex flex-col items-center ${
+              className={`py-1.5 px-2 flex flex-col items-center ${
                 activeTab === 'stats' ? 'text-blue-600' : 'text-gray-600'
               }`}
             >
               <ChartBar className="w-5 h-5" />
-              <span className="text-[10px] mt-0.5">Stats</span>
+              <span className="text-[9px] mt-0.5">Stats</span>
             </button>
 
             <button
               onClick={() => setActiveTab('history')}
-              className={`py-2 px-2 flex flex-col items-center ${
+              className={`py-1.5 px-2 flex flex-col items-center ${
                 activeTab === 'history' ? 'text-blue-600' : 'text-gray-600'
               }`}
             >
               <History className="w-5 h-5" />
-              <span className="text-[10px] mt-0.5">History</span>
+              <span className="text-[9px] mt-0.5">History</span>
             </button>
 
             <button
               onClick={() => setActiveTab('settings')}
-              className={`py-2 px-2 flex flex-col items-center ${
+              className={`py-1.5 px-2 flex flex-col items-center ${
                 activeTab === 'settings' ? 'text-blue-600' : 'text-gray-600'
               }`}
             >
               <Settings className="w-5 h-5" />
-              <span className="text-[10px] mt-0.5">Settings</span>
+              <span className="text-[9px] mt-0.5">Settings</span>
             </button>
           </div>
         </nav>
