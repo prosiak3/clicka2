@@ -7,26 +7,66 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+declare global {
+  interface WindowEventMap {
+    beforeinstallprompt: BeforeInstallPromptEvent;
+  }
+}
+
 export function PwaInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   const t = useTranslation();
 
   useEffect(() => {
-    const handler = (e: Event) => {
+    const isInStandaloneMode = () => {
+      return (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true ||
+        document.referrer.includes('android-app://')
+      );
+    };
+
+    setIsStandalone(isInStandaloneMode());
+
+    const handler = (e: BeforeInstallPromptEvent) => {
+      console.log('beforeinstallprompt event fired');
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setDeferredPrompt(e);
 
       const dismissed = localStorage.getItem('pwa-install-dismissed');
-      if (!dismissed) {
-        setShowPrompt(true);
+      const dismissedTime = localStorage.getItem('pwa-install-dismissed-time');
+
+      if (dismissed && dismissedTime) {
+        const daysSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
+        if (daysSinceDismissed < 7) {
+          console.log('User dismissed recently, not showing prompt');
+          return;
+        }
       }
+
+      setTimeout(() => {
+        setShowPrompt(true);
+        console.log('Showing PWA install prompt');
+      }, 2000);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
+    const appInstalledHandler = () => {
+      console.log('PWA was installed');
+      setShowPrompt(false);
+      setDeferredPrompt(null);
+      localStorage.removeItem('pwa-install-dismissed');
+      localStorage.removeItem('pwa-install-dismissed-time');
+    };
+
+    window.addEventListener('appinstalled', appInstalledHandler);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', appInstalledHandler);
     };
   }, []);
 
@@ -47,8 +87,13 @@ export function PwaInstallPrompt() {
 
   const handleDismiss = () => {
     localStorage.setItem('pwa-install-dismissed', 'true');
+    localStorage.setItem('pwa-install-dismissed-time', Date.now().toString());
     setShowPrompt(false);
   };
+
+  if (isStandalone) {
+    return null;
+  }
 
   if (!showPrompt || !deferredPrompt) {
     return null;

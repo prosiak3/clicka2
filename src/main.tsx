@@ -4,6 +4,7 @@ import App from './App';
 import './index.css';
 import { registerSW } from 'virtual:pwa-register';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { logPWAStatus } from './utils/pwa-debug';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -26,6 +27,8 @@ registerSW({
     console.error('Service Worker registration error:', error);
   }
 });
+
+logPWAStatus();
 
 createRoot(rootElement).render(
   <StrictMode>

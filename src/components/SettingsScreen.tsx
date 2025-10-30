@@ -33,6 +33,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { ConfirmSettingsDialog } from './ConfirmSettingsDialog';
 import { ExportDialog } from './ExportDialog';
 import { StatsCleanupDialog } from './StatsCleanupDialog';
+import { InstallPwaButton } from './InstallPwaButton';
 import { signOut } from '../utils/auth';
 
 interface SettingsSectionProps {
@@ -681,9 +682,23 @@ export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
         </div>
       </SettingsSection>
 
-      <SettingsSection 
-        title="Data Management" 
-        icon={<Download className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />}
+      <SettingsSection
+        title="Instalacja Aplikacji"
+        icon={<Download className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+        isExpanded={expandedSection === 'install'}
+        onToggle={() => setExpandedSection(expandedSection === 'install' ? null : 'install')}
+      >
+        <div className="space-y-4">
+          <InstallPwaButton />
+          <p className="text-xs text-gray-500 text-center">
+            Zainstaluj aplikację na swoim urządzeniu, aby korzystać z niej offline i mieć szybki dostęp z ekranu głównego.
+          </p>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Data Management"
+        icon={<FileDown className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />}
         isExpanded={expandedSection === 'data'}
         onToggle={() => setExpandedSection(expandedSection === 'data' ? null : 'data')}
       >
