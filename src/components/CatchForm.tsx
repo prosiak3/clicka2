@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Sun, Moon, Calendar, Clock, Cloud, CloudRain, Sunrise, Sunset } from 'lucide-react';
+import { Camera, X } from 'lucide-react';
 import { Map } from './Map';
 import { WeatherDisplay } from './WeatherDisplay';
-import { MoonPhase } from './MoonPhase';
 import { getWeatherData } from '../utils/weather';
 import { FishCatch, WeatherData, FishSpecies } from '../types';
 import { useSettings } from '../utils/settings';
@@ -10,7 +9,6 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useGpsTracking } from '../hooks/useGpsTracking';
 import { useLastSpecies } from '../hooks/useLastSpecies';
 import { getFishSpecies, FishSpeciesDetails, calculateSuggestedWeight } from '../utils/fish';
-import { format } from 'date-fns';
 
 interface CatchFormProps {
   onSave: (catchData: Omit<FishCatch, 'id' | 'sessionId'>) => void;
@@ -18,30 +16,16 @@ interface CatchFormProps {
   selectedSpecies: FishSpecies[];
 }
 
-const MIN_WEIGHT = 0.25; // Minimum weight in kg
+const MIN_WEIGHT = 0.25;
 
-function getTimeOfDay(date: Date) {
-  const hour = date.getHours();
-  if (hour >= 5 && hour < 12) return { name: 'Morning', icon: <Sunrise className="w-5 h-5 text-amber-500" /> };
-  if (hour >= 12 && hour < 17) return { name: 'Afternoon', icon: <Sun className="w-5 h-5 text-orange-500" /> };
-  if (hour >= 17 && hour < 21) return { name: 'Evening', icon: <Sunset className="w-5 h-5 text-purple-500" /> };
-  return { name: 'Night', icon: <Moon className="w-5 h-5 text-indigo-500" /> };
-}
-
-function getSeason(date: Date) {
-  const month = date.getMonth();
-  if (month >= 2 && month <= 4) return 'Spring';
-  if (month >= 5 && month <= 7) return 'Summer';
-  if (month >= 8 && month <= 10) return 'Autumn';
-  return 'Winter';
-}
+const TOP_SPECIES = ['Pike', 'Perch', 'Zander'];
 
 export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps) {
   const { language } = useSettings();
   const t = useTranslation();
   const { coords: currentLocation, status: locationStatus } = useGpsTracking();
   const { lastSpecies, setLastSpecies } = useLastSpecies();
-  
+
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [species, setSpecies] = useState('');
   const [length, setLength] = useState(0);
@@ -49,43 +33,31 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [fishSpeciesData, setFishSpeciesData] = useState<FishSpeciesDetails[]>([]);
   const [manualWeightEdit, setManualWeightEdit] = useState(false);
 
-  const now = new Date();
-  const timeOfDay = getTimeOfDay(now);
-  const season = getSeason(now);
-
-  // Get the selected species data
   const selectedSpeciesData = selectedSpecies.find(s => s.name[language] === species);
 
-  useEffect(() => {
-    if (selectedSpecies.length > 0) {
-      // Set initial group
-      if (!selectedGroup) {
-        setSelectedGroup(selectedSpecies[0].group);
-      }
+  const topSpeciesList = selectedSpecies.filter(s =>
+    TOP_SPECIES.includes(s.name.en) && s.enabled
+  );
 
-      // Set initial species - prefer last used species if available
+  useEffect(() => {
+    if (topSpeciesList.length > 0) {
       if (lastSpecies) {
-        const lastUsedSpecies = selectedSpecies.find(s => s.name[language] === lastSpecies);
-        if (lastUsedSpecies?.enabled) {
+        const lastUsedSpecies = topSpeciesList.find(s => s.name[language] === lastSpecies);
+        if (lastUsedSpecies) {
           setSpecies(lastSpecies);
           setLength(lastUsedSpecies.minLength);
-          setSelectedGroup(lastUsedSpecies.group);
           return;
         }
       }
 
-      // Fallback to first enabled species
-      const defaultSpecies = selectedSpecies.find(s => s.enabled);
-      if (defaultSpecies) {
-        setSpecies(defaultSpecies.name[language]);
-        setLength(defaultSpecies.minLength);
-      }
+      const defaultSpecies = topSpeciesList[0];
+      setSpecies(defaultSpecies.name[language]);
+      setLength(defaultSpecies.minLength);
     }
-  }, [selectedSpecies, selectedGroup, language, lastSpecies]);
+  }, [topSpeciesList, language, lastSpecies]);
 
   useEffect(() => {
     const loadFishData = async () => {
@@ -102,7 +74,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
         setError(null);
 
         if (!currentLocation) {
-          return; // Don't fetch weather until we have location
+          return;
         }
 
         const weatherData = await getWeatherData(
@@ -129,6 +101,10 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
       const newPhotos = Array.from(files).map(file => URL.createObjectURL(file));
       setPhotos(prev => [...prev, ...newPhotos]);
     }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSpeciesSelect = (selectedSpecies: FishSpecies) => {
@@ -199,7 +175,6 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
 
     await onSave(catchData);
 
-    // Reset form but keep the same species selected
     setLength(selectedSpeciesData.minLength);
     setWeight(MIN_WEIGHT);
     setPhotos([]);
@@ -215,63 +190,34 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
     );
   }
 
-  // Group species by their group
-  const groupedSpecies = selectedSpecies.reduce((acc, species) => {
-    if (!acc[species.group]) {
-      acc[species.group] = [];
-    }
-    acc[species.group].push(species);
-    return acc;
-  }, {} as Record<string, FishSpecies[]>);
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Time and Date Information */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-          {timeOfDay.icon}
-          <div>
-            <p className="text-sm font-medium text-gray-600">Time of Day</p>
-            <p className="text-base font-semibold text-gray-900">{timeOfDay.name}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-          <Calendar className="w-5 h-5 text-green-600" />
-          <div>
-            <p className="text-sm font-medium text-gray-600">Season</p>
-            <p className="text-base font-semibold text-gray-900">{season}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-          <Calendar className="w-5 h-5 text-blue-600" />
-          <div>
-            <p className="text-sm font-medium text-gray-600">Date</p>
-            <p className="text-base font-semibold text-gray-900">{format(now, 'dd.MM.yyyy')}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-          <Clock className="w-5 h-5 text-purple-600" />
-          <div>
-            <p className="text-sm font-medium text-gray-600">Time</p>
-            <p className="text-base font-semibold text-gray-900">{format(now, 'HH:mm')}</p>
-          </div>
-        </div>
+      {/* Top Species Buttons */}
+      <div className="grid grid-cols-3 gap-3">
+        {topSpeciesList.map(s => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => handleSpeciesSelect(s)}
+            className={`p-3 rounded-xl border-2 transition-all ${
+              s.name[language] === species
+                ? 'bg-blue-50 border-blue-500 shadow-md'
+                : 'bg-white border-gray-200 hover:border-blue-300'
+            }`}
+          >
+            <div className="text-center">
+              <div className={`text-base font-semibold ${
+                s.name[language] === species ? 'text-blue-700' : 'text-gray-700'
+              }`}>
+                {s.name[language]}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {s.minLength}-{s.maxLength} cm / {s.maxWeight} kg
+              </div>
+            </div>
+          </button>
+        ))}
       </div>
-
-      {currentLocation && (
-        <div className="rounded-lg overflow-hidden border border-gray-100">
-          <Map 
-            center={[currentLocation.latitude, currentLocation.longitude]}
-            catches={[{ location: currentLocation, species }]}
-            showRadius={true}
-            height="150px"
-            currentLocation={currentLocation}
-          />
-        </div>
-      )}
 
       {error && (
         <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
@@ -279,116 +225,100 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
         </div>
       )}
 
-      {/* Weather Information */}
-      {weather && (
-        <div className="space-y-4">
-          <WeatherDisplay weather={weather} />
-          <MoonPhase />
-        </div>
+      {selectedSpeciesData && (
+        <>
+          {/* Length Slider */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Length ({selectedSpeciesData.minLength} - {selectedSpeciesData.maxLength} cm)
+            </label>
+            <input
+              type="range"
+              min={selectedSpeciesData.minLength}
+              max={selectedSpeciesData.maxLength}
+              step={1}
+              value={length}
+              onChange={(e) => setLength(parseFloat(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            />
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm text-gray-500">{selectedSpeciesData.minLength} cm</span>
+              <span className="text-lg font-bold text-blue-600">{length} cm</span>
+              <span className="text-sm text-gray-500">{selectedSpeciesData.maxLength} cm</span>
+            </div>
+          </div>
+
+          {/* Weight Slider */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Weight ({MIN_WEIGHT} - {selectedSpeciesData.maxWeight} kg)
+            </label>
+            <input
+              type="range"
+              min={MIN_WEIGHT}
+              max={selectedSpeciesData.maxWeight}
+              step={0.01}
+              value={weight}
+              onChange={(e) => {
+                setWeight(parseFloat(e.target.value));
+                setManualWeightEdit(true);
+              }}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            />
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm text-gray-500">{MIN_WEIGHT} kg</span>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-blue-600">{weight.toFixed(2)} kg</span>
+                {!manualWeightEdit && (
+                  <span className="text-xs text-gray-400">(suggested)</span>
+                )}
+              </div>
+              <span className="text-sm text-gray-500">{selectedSpeciesData.maxWeight} kg</span>
+            </div>
+          </div>
+        </>
       )}
 
-      <div className="space-y-4">
-        {/* Species Selection */}
-        <div>
-          {/* Group Selection Tabs */}
-          <div className="flex gap-2 mb-4 overflow-x-auto">
-            {Object.keys(groupedSpecies).map(group => (
-              <button
-                key={group}
-                type="button"
-                onClick={() => setSelectedGroup(group)}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap flex-shrink-0 transition-colors ${
-                  selectedGroup === group
-                    ? 'bg-blue-100 text-blue-700 font-medium'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                {t.fishGroups[group]}
-              </button>
-            ))}
-          </div>
+      {/* Photos Section */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">Photos</label>
 
-          {/* Species List */}
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {selectedGroup && groupedSpecies[selectedGroup]?.map(s => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => handleSpeciesSelect(s)}
-                className={`flex-1 flex flex-col items-center p-3 rounded-lg transition-all ${
-                  s.name[language] === species
-                    ? 'bg-blue-50 border-2 border-blue-500 text-blue-700'
-                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <span className="text-base font-medium">{s.name[language]}</span>
-                <div className="text-sm text-gray-500 mt-1">
-                  {s.minLength}-{s.maxLength} cm / {s.maxWeight} kg
+        {photos.length === 0 ? (
+          <label className="w-full flex flex-col items-center justify-center px-6 py-12 bg-white text-blue-500 rounded-xl border-2 border-blue-300 border-dashed cursor-pointer hover:bg-blue-50 transition-colors">
+            <Camera className="h-12 w-12 mb-3" />
+            <span className="text-base font-medium text-blue-600">Add photos</span>
+            <span className="text-sm text-gray-500 mt-1">Tap to capture</span>
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*,video/*"
+              multiple
+              onChange={handlePhotoCapture}
+            />
+          </label>
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-3">
+              {photos.map((photo, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={photo}
+                    alt={`Catch photo ${index + 1}`}
+                    className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePhoto(index)}
+                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {selectedSpeciesData && (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                {t.catch.length} ({selectedSpeciesData.minLength} - {selectedSpeciesData.maxLength} cm)
-              </label>
-              <input
-                type="range"
-                min={selectedSpeciesData.minLength}
-                max={selectedSpeciesData.maxLength}
-                step={0.5}
-                value={length}
-                onChange={(e) => setLength(parseFloat(e.target.value))}
-                className="mt-1 block w-full"
-              />
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-sm text-gray-500">{selectedSpeciesData.minLength} cm</span>
-                <span className="text-sm font-medium text-blue-600">{length} cm</span>
-                <span className="text-sm text-gray-500">{selectedSpeciesData.maxLength} cm</span>
-              </div>
+              ))}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                {t.catch.weight} ({MIN_WEIGHT} - {selectedSpeciesData.maxWeight} kg)
-              </label>
-              <input
-                type="range"
-                min={MIN_WEIGHT}
-                max={selectedSpeciesData.maxWeight}
-                step={0.1}
-                value={weight}
-                onChange={(e) => {
-                  setWeight(parseFloat(e.target.value));
-                  setManualWeightEdit(true);
-                }}
-                className="mt-1 block w-full"
-              />
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-sm text-gray-500">{MIN_WEIGHT} kg</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-blue-600">{weight} kg</span>
-                  {!manualWeightEdit && (
-                    <span className="text-xs text-gray-400">(suggested)</span>
-                  )}
-                </div>
-                <span className="text-sm text-gray-500">{selectedSpeciesData.maxWeight} kg</span>
-              </div>
-            </div>
-          </>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">{t.catch.photos}</label>
-          <div className="flex items-center justify-center w-full">
-            <label className="w-full flex flex-col items-center justify-center px-4 py-6 bg-white text-blue-500 rounded-lg border-2 border-blue-400 border-dashed cursor-pointer hover:bg-blue-50 transition-colors">
-              <Camera className="h-8 w-8 mb-2" />
-              <span className="text-sm font-medium">{t.catch.addPhotos}</span>
-              <span className="text-xs text-gray-500 mt-1">{t.catch.tapToCapture}</span>
+            <label className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors">
+              <Camera className="h-5 w-5" />
+              <span className="text-sm font-medium">Add more photos</span>
               <input
                 type="file"
                 className="hidden"
@@ -398,21 +328,30 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
               />
             </label>
           </div>
-          {photos.length > 0 && (
-            <div className="mt-4 grid grid-cols-4 gap-2">
-              {photos.map((photo, index) => (
-                <img
-                  key={index}
-                  src={photo}
-                  alt={`Catch photo ${index + 1}`}
-                  className="w-full h-20 object-cover rounded-lg"
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
+      {/* Map */}
+      {currentLocation && (
+        <div className="rounded-lg overflow-hidden border border-gray-100">
+          <Map
+            center={[currentLocation.latitude, currentLocation.longitude]}
+            catches={[{ location: currentLocation, species }]}
+            showRadius={true}
+            height="150px"
+            currentLocation={currentLocation}
+          />
+        </div>
+      )}
+
+      {/* Weather Information */}
+      {weather && (
+        <div>
+          <WeatherDisplay weather={weather} />
+        </div>
+      )}
+
+      {/* Action Buttons */}
       <div className="flex gap-3">
         <button
           type="button"
