@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, Plus, ArrowLeft } from 'lucide-react';
 import { CatchForm } from './components/CatchForm';
 import { SessionList } from './components/SessionList';
@@ -9,6 +9,9 @@ import { AnalysisSection } from './components/AnalysisSection';
 import { StatusBar } from './components/StatusBar';
 import { ActiveSessionButton } from './components/ActiveSessionButton';
 import { InactivityWarning } from './components/InactivityWarning';
+import { LoginScreen } from './components/LoginScreen';
+import { AuthCallback } from './components/AuthCallback';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { FishCatch, FishingSession, User as UserType, Location } from './types';
 import { saveSession, loadSessions, syncPendingSessions } from './utils/db';
 import { getCurrentUser, signIn, signUp } from './utils/auth';
@@ -79,34 +82,11 @@ function App() {
         const currentUser = await getCurrentUser();
         if (currentUser) {
           setUser(currentUser);
-          return;
-        }
-
-        try {
-          const { user: signInUser } = await signIn('test@example.com', 'testpassword123');
-          if (signInUser) {
-            setUser({
-              id: signInUser.id,
-              email: signInUser.email!,
-              created_at: signInUser.created_at
-            });
-          }
-        } catch (signInError) {
-          const { user: signUpUser } = await signUp('test@example.com', 'testpassword123');
-          if (signUpUser) {
-            const { user: newUser } = await signIn('test@example.com', 'testpassword123');
-            if (newUser) {
-              setUser({
-                id: newUser.id,
-                email: newUser.email!,
-                created_at: newUser.created_at
-              });
-            }
-          }
         }
       } catch (error) {
         console.error('Auth error:', error);
-        setError('Authentication failed. Please try again later.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -120,10 +100,9 @@ function App() {
       if (!user) return;
 
       try {
-        setIsLoading(true);
         setError(null);
         const loadedSessions = await loadSessions();
-        
+
         if (!isMounted) return;
 
         setSessions(loadedSessions);
@@ -137,10 +116,6 @@ function App() {
         console.error('Failed to initialize data:', error);
         if (isMounted) {
           setError('Failed to load sessions. Working in offline mode.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
         }
       }
     };
@@ -363,32 +338,102 @@ function App() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your fishing data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
-        <div className="text-center">
-          <p className="text-gray-600">Please wait while we authenticate you...</p>
-          {error && (
-            <p className="text-red-600 mt-2">{error}</p>
-          )}
-        </div>
-      </div>
-    );
-  }
+  const handleLoginSuccess = async () => {
+    const currentUser = await getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
+  };
 
   return (
     <Router>
+      <Routes>
+        <Route path="/login" element={
+          user ? <Navigate to="/" replace /> : <LoginScreen onLoginSuccess={handleLoginSuccess} />
+        } />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/*" element={
+          <ProtectedRoute isAuthenticated={!!user} isLoading={isLoading}>
+            <MainApp
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              sessions={sessions}
+              selectedSession={selectedSession}
+              setSelectedSession={setSelectedSession}
+              error={error}
+              user={user!}
+              activeSession={activeSession}
+              showCatchForm={showCatchForm}
+              setShowCatchForm={setShowCatchForm}
+              handleCatchSave={handleCatchSave}
+              handleEndSession={handleEndSession}
+              handleDiscardSession={handleDiscardSession}
+              handlePauseSession={handlePauseSession}
+              handleResumeSession={handleResumeSession}
+              handleAddWaypoint={handleAddWaypoint}
+              startNewSession={startNewSession}
+              isStartingSession={isStartingSession}
+              settings={settings}
+              isWarningActive={isWarningActive}
+              remainingSeconds={remainingSeconds}
+              resetTimer={resetTimer}
+            />
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </Router>
+  );
+}
+
+interface MainAppProps {
+  activeTab: TabType;
+  setActiveTab: (tab: TabType) => void;
+  sessions: FishingSession[];
+  selectedSession: FishingSession | null;
+  setSelectedSession: (session: FishingSession | null) => void;
+  error: string | null;
+  user: UserType;
+  activeSession: FishingSession | null;
+  showCatchForm: boolean;
+  setShowCatchForm: (show: boolean) => void;
+  handleCatchSave: (catchData: Omit<FishCatch, 'id' | 'sessionId'>) => void;
+  handleEndSession: () => void;
+  handleDiscardSession: () => void;
+  handlePauseSession: () => void;
+  handleResumeSession: () => void;
+  handleAddWaypoint: (location: Location) => void;
+  startNewSession: () => void;
+  isStartingSession: boolean;
+  settings: any;
+  isWarningActive: boolean;
+  remainingSeconds: number;
+  resetTimer: () => void;
+}
+
+function MainApp({
+  activeTab,
+  setActiveTab,
+  sessions,
+  selectedSession,
+  setSelectedSession,
+  error,
+  activeSession,
+  showCatchForm,
+  setShowCatchForm,
+  handleCatchSave,
+  handleEndSession,
+  handleDiscardSession,
+  handlePauseSession,
+  handleResumeSession,
+  handleAddWaypoint,
+  startNewSession,
+  isStartingSession,
+  settings,
+  isWarningActive,
+  remainingSeconds,
+  resetTimer,
+}: MainAppProps) {
+  return (
       <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${settings.theme === 'dark' ? 'dark' : ''}`}>
         <div className="max-w-lg mx-auto pb-20">
           {/* Header */}
@@ -631,7 +676,6 @@ function App() {
           onClose={resetTimer}
         />
       </div>
-    </Router>
   );
 }
 

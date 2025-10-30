@@ -1,5 +1,6 @@
 import { supabase } from './db';
 import { User } from '../types';
+import { Provider } from '@supabase/supabase-js';
 
 const AUTH_RETRY_DELAY = 2000; // 2 seconds
 const MAX_AUTH_RETRIES = 3;
@@ -88,15 +89,67 @@ export async function getCurrentUser(): Promise<User | null> {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-      
+
+      const provider = user.app_metadata?.provider || 'email';
+
       return {
         id: user.id,
         email: user.email!,
-        created_at: user.created_at
+        created_at: user.created_at,
+        full_name: user.user_metadata?.full_name || user.user_metadata?.name,
+        avatar_url: user.user_metadata?.avatar_url,
+        provider: provider as 'email' | 'google' | 'apple'
       };
     });
   } catch (error) {
     console.error('Get current user error:', error);
+    return null;
+  }
+}
+
+export async function signInWithOAuth(provider: 'google' | 'apple') {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider as Provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error(`${provider} sign in error:`, error);
+    throw new Error(`Failed to sign in with ${provider}. Please try again.`);
+  }
+}
+
+export async function handleOAuthCallback() {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error) throw error;
+    if (!session) return null;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const provider = user.app_metadata?.provider || 'email';
+
+    return {
+      id: user.id,
+      email: user.email!,
+      created_at: user.created_at,
+      full_name: user.user_metadata?.full_name || user.user_metadata?.name,
+      avatar_url: user.user_metadata?.avatar_url,
+      provider: provider as 'email' | 'google' | 'apple'
+    };
+  } catch (error) {
+    console.error('OAuth callback error:', error);
     return null;
   }
 }

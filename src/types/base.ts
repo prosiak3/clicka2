@@ -1,4 +1,52 @@
-// Update AppSettings interface to include mapType
+export interface User {
+  id: string;
+  email: string;
+  created_at: string;
+  full_name?: string;
+  avatar_url?: string;
+  provider?: 'email' | 'google' | 'apple';
+}
+
+export interface WeatherData {
+  temperature: number;
+  pressure: number;
+  pressureTrend?: 'rising' | 'falling' | 'stable';
+  windSpeed: number;
+  windDirection: string;
+  cloudCover: number;
+  precipitation: number;
+  precipitationType: 'none' | 'rain' | 'snow';
+  precipitationProbability: number;
+}
+
+export interface Location {
+  latitude: number;
+  longitude: number;
+  timestamp: string;
+  source: 'gps' | 'network' | 'ip';
+  accuracy?: number;
+}
+
+export interface FishCatch {
+  id: string;
+  sessionId: string;
+  species: string;
+  length: number;
+  weight: number;
+  location: Location;
+  weather: WeatherData;
+  photoUrls?: string[];
+  timestamp: string;
+}
+
+export interface FishSpecies {
+  id: string;
+  code: string;
+  name: string;
+  enabled: boolean;
+  group?: string;
+}
+
 export interface AppSettings {
   theme: 'light' | 'dark';
   language: string;
