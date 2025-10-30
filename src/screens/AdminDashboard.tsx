@@ -36,10 +36,10 @@ export function AdminDashboard() {
 
       const [usersResult, sessionsResult, catchesResult, newUsersResult, recentSessionsResult] = await Promise.all([
         supabase.from('user_profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('sessions').select('id', { count: 'exact', head: true }),
-        supabase.from('catches').select('id', { count: 'exact', head: true }),
+        supabase.from('fishing_sessions').select('id', { count: 'exact', head: true }),
+        supabase.from('fish_catches').select('id', { count: 'exact', head: true }),
         supabase.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo),
-        supabase.from('sessions').select('id', { count: 'exact', head: true }).gte('start_time', weekAgo),
+        supabase.from('fishing_sessions').select('id', { count: 'exact', head: true }).gte('start_time', weekAgo),
       ]);
 
       setStats({
