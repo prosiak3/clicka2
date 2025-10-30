@@ -92,13 +92,20 @@ export async function getCurrentUser(): Promise<User | null> {
 
       const provider = user.app_metadata?.provider || 'email';
 
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
       return {
         id: user.id,
         email: user.email!,
         created_at: user.created_at,
         full_name: user.user_metadata?.full_name || user.user_metadata?.name,
         avatar_url: user.user_metadata?.avatar_url,
-        provider: provider as 'email' | 'google' | 'apple'
+        provider: provider as 'email' | 'google' | 'apple',
+        role: profile?.role || 'user'
       };
     });
   } catch (error) {
@@ -140,13 +147,20 @@ export async function handleOAuthCallback() {
 
     const provider = user.app_metadata?.provider || 'email';
 
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
     return {
       id: user.id,
       email: user.email!,
       created_at: user.created_at,
       full_name: user.user_metadata?.full_name || user.user_metadata?.name,
       avatar_url: user.user_metadata?.avatar_url,
-      provider: provider as 'email' | 'google' | 'apple'
+      provider: provider as 'email' | 'google' | 'apple',
+      role: profile?.role || 'user'
     };
   } catch (error) {
     console.error('OAuth callback error:', error);

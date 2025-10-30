@@ -26,6 +26,7 @@ import {
   Satellite,
   LogOut,
   User as UserIcon,
+  Shield,
 } from 'lucide-react';
 import { useSettings } from '../utils/settings';
 import { FishSpecies, User } from '../types';
@@ -33,6 +34,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { ConfirmSettingsDialog } from './ConfirmSettingsDialog';
 import { ExportDialog } from './ExportDialog';
 import { StatsCleanupDialog } from './StatsCleanupDialog';
+import { AdminPanel } from './AdminPanel';
 import { signOut } from '../utils/auth';
 
 interface SettingsSectionProps {
@@ -706,8 +708,19 @@ export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
         </div>
       </SettingsSection>
 
-      <SettingsSection 
-        title={t.settings.reset} 
+      {user?.role === 'admin' && (
+        <SettingsSection
+          title="Admin Panel"
+          icon={<Shield className="w-5 h-5 text-red-600 dark:text-red-400" />}
+          isExpanded={expandedSection === 'admin'}
+          onToggle={() => setExpandedSection(expandedSection === 'admin' ? null : 'admin')}
+        >
+          <AdminPanel currentUserId={user.id} />
+        </SettingsSection>
+      )}
+
+      <SettingsSection
+        title={t.settings.reset}
         icon={<RotateCcw className="w-5 h-5 text-red-600 dark:text-red-400" />}
         isExpanded={expandedSection === 'reset'}
         onToggle={() => setExpandedSection(expandedSection === 'reset' ? null : 'reset')}

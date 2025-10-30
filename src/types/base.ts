@@ -5,6 +5,7 @@ export interface User {
   full_name?: string;
   avatar_url?: string;
   provider?: 'email' | 'google' | 'apple';
+  role?: 'user' | 'admin';
 }
 
 export interface WeatherData {
