@@ -570,23 +570,23 @@ function MainApp({
 }: MainAppProps) {
   return (
       <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${settings.theme === 'dark' ? 'dark' : ''}`}>
-        <div className="max-w-lg mx-auto pb-20">
+        <div className="max-w-lg mx-auto pb-14">
           {/* Header */}
-          <div className="sticky top-0 bg-white/80 backdrop-blur-sm border-b z-10">
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-3">
+          <div className="sticky top-0 bg-white backdrop-blur-sm border-b z-10 shadow-sm">
+            <div className="px-3 py-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   {activeTab === 'history' && selectedSession && (
                     <button
                       onClick={() => setSelectedSession(null)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                      <ArrowLeft className="w-5 h-5 text-gray-600" />
+                      <ArrowLeft className="w-4 h-4 text-gray-600" />
                     </button>
                   )}
                   <div>
-                    <h1 className="text-2xl font-bold text-blue-900">Clicka</h1>
-                    <p className="text-xs text-blue-600">Better Fishing</p>
+                    <h1 className="text-lg font-bold text-blue-900">Clicka</h1>
+                    <p className="text-[10px] text-blue-600 leading-none">Better Fishing</p>
                   </div>
                 </div>
                 <StatusBar />
@@ -771,60 +771,60 @@ function MainApp({
                   setActiveTab('sessions');
                   setSelectedSession(null);
                 }}
-                className={`p-3 flex flex-col items-center relative ${
+                className={`py-2 px-2 flex flex-col items-center relative ${
                   activeTab === 'sessions' ? 'text-blue-600' : 'text-gray-600'
                 }`}
               >
                 <div className="relative">
-                  <Fish className="w-6 h-6" />
-                  <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${
+                  <Fish className="w-5 h-5" />
+                  <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${
                     activeSession.pauses?.some(p => !p.endTime)
                       ? 'bg-orange-500 animate-pulse'
                       : 'bg-green-500 animate-pulse'
                   }`} />
                 </div>
-                <span className="text-xs mt-1">Session</span>
+                <span className="text-[10px] mt-0.5">Session</span>
               </button>
             ) : (
               <button
                 onClick={() => setActiveTab('home')}
-                className={`p-3 flex flex-col items-center ${
+                className={`py-2 px-2 flex flex-col items-center ${
                   activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'
                 }`}
               >
-                <Home className="w-6 h-6" />
-                <span className="text-xs mt-1">Home</span>
+                <Home className="w-5 h-5" />
+                <span className="text-[10px] mt-0.5">Home</span>
               </button>
             )}
 
             <button
               onClick={() => setActiveTab('stats')}
-              className={`p-3 flex flex-col items-center ${
+              className={`py-2 px-2 flex flex-col items-center ${
                 activeTab === 'stats' ? 'text-blue-600' : 'text-gray-600'
               }`}
             >
-              <ChartBar className="w-6 h-6" />
-              <span className="text-xs mt-1">Stats</span>
+              <ChartBar className="w-5 h-5" />
+              <span className="text-[10px] mt-0.5">Stats</span>
             </button>
 
             <button
               onClick={() => setActiveTab('history')}
-              className={`p-3 flex flex-col items-center ${
+              className={`py-2 px-2 flex flex-col items-center ${
                 activeTab === 'history' ? 'text-blue-600' : 'text-gray-600'
               }`}
             >
-              <History className="w-6 h-6" />
-              <span className="text-xs mt-1">History</span>
+              <History className="w-5 h-5" />
+              <span className="text-[10px] mt-0.5">History</span>
             </button>
 
             <button
               onClick={() => setActiveTab('settings')}
-              className={`p-3 flex flex-col items-center ${
+              className={`py-2 px-2 flex flex-col items-center ${
                 activeTab === 'settings' ? 'text-blue-600' : 'text-gray-600'
               }`}
             >
-              <Settings className="w-6 h-6" />
-              <span className="text-xs mt-1">Settings</span>
+              <Settings className="w-5 h-5" />
+              <span className="text-[10px] mt-0.5">Settings</span>
             </button>
           </div>
         </nav>
