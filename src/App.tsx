@@ -701,7 +701,7 @@ function MainApp({
                           {activeSession.catches?.length || 0}
                         </div>
                         <div className="text-sm font-semibold text-blue-700 mt-2">
-                          Catches
+                          Połowy w sesji
                         </div>
                       </div>
                     </div>
