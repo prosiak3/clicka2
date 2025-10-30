@@ -700,8 +700,8 @@ function MainApp({
                         <div className="text-6xl font-bold text-blue-900">
                           {activeSession.catches?.length || 0}
                         </div>
-                        <div className="text-sm font-semibold text-blue-700 mt-2">
-                          Połowy w sesji
+                        <div className="text-xs font-semibold text-blue-700 mt-2">
+                          {t.session.catchesInSession}
                         </div>
                       </div>
                     </div>
@@ -720,12 +720,12 @@ function MainApp({
                     >
                       <div className="relative flex flex-col items-center justify-center h-full text-white">
                         <Fish className="w-14 h-14" />
-                        <span className="text-base font-bold mt-3">Add</span>
-                        <span className="text-sm font-medium">Catch</span>
+                        <span className="text-base font-bold mt-3">{t.session.addCatch.split(' ')[0]}</span>
+                        <span className="text-sm font-medium">{t.session.addCatch.split(' ')[1] || 'Catch'}</span>
                       </div>
                     </button>
-                    <p className="text-xs text-gray-400 text-center max-w-xs">
-                      Tap to add a new catch to your active session
+                    <p className="text-xs text-gray-400 text-center">
+                      {t.session.tapToAddCatch}
                     </p>
                   </div>
                 </div>
