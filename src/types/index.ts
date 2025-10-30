@@ -12,6 +12,13 @@ export interface Translation {
     minutes: string;
     of: string;
   };
+  loading: {
+    checkingGPS: string;
+    gettingLocation: string;
+    gettingWeather: string;
+    startingSession: string;
+    ready: string;
+  };
   navigation: {
     home: string;
     stats: string;
@@ -26,6 +33,8 @@ export interface Translation {
     bestCatch: string;
     lastSession: string;
     sessions: string;
+    quickAddCatch: string;
+    quickAddDescription: string;
   };
   session: {
     fishingSession: string;

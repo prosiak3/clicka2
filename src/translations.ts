@@ -13,6 +13,13 @@ const translations: Record<string, Translation> = {
       minutes: 'min',
       of: 'of',
     },
+    loading: {
+      checkingGPS: 'Checking GPS...',
+      gettingLocation: 'Getting location...',
+      gettingWeather: 'Getting weather...',
+      startingSession: 'Starting session...',
+      ready: 'Ready!',
+    },
     navigation: {
       home: 'Home',
       stats: 'Statistics',
@@ -27,6 +34,8 @@ const translations: Record<string, Translation> = {
       bestCatch: 'Best Catch',
       lastSession: 'Last Session',
       sessions: 'sessions',
+      quickAddCatch: 'Quick Catch',
+      quickAddDescription: 'Quickly add a catch with auto-start session',
     },
     session: {
       fishingSession: 'Fishing Session',
@@ -183,6 +192,13 @@ const translations: Record<string, Translation> = {
       minutes: 'min',
       of: 'z',
     },
+    loading: {
+      checkingGPS: 'Sprawdzanie GPS...',
+      gettingLocation: 'Pobieranie lokalizacji...',
+      gettingWeather: 'Pobieranie pogody...',
+      startingSession: 'Uruchamianie sesji...',
+      ready: 'Gotowe!',
+    },
     navigation: {
       home: 'Główna',
       stats: 'Statystyki',
@@ -197,6 +213,8 @@ const translations: Record<string, Translation> = {
       bestCatch: 'Najlepszy Połów',
       lastSession: 'Ostatnia Sesja',
       sessions: 'sesji',
+      quickAddCatch: 'Dodaj Połów',
+      quickAddDescription: 'Szybko dodaj połów z automatycznym startem sesji',
     },
     session: {
       fishingSession: 'Sesja Wędkarska',
@@ -353,6 +371,13 @@ const translations: Record<string, Translation> = {
       minutes: 'min',
       of: 'von',
     },
+    loading: {
+      checkingGPS: 'GPS wird geprüft...',
+      gettingLocation: 'Standort wird abgerufen...',
+      gettingWeather: 'Wetter wird abgerufen...',
+      startingSession: 'Session wird gestartet...',
+      ready: 'Fertig!',
+    },
     navigation: {
       home: 'Start',
       stats: 'Statistiken',
@@ -367,6 +392,8 @@ const translations: Record<string, Translation> = {
       bestCatch: 'Bester Fang',
       lastSession: 'Letzte Session',
       sessions: 'Sessions',
+      quickAddCatch: 'Schneller Fang',
+      quickAddDescription: 'Schnell einen Fang mit automatischem Session-Start hinzufügen',
     },
     session: {
       fishingSession: 'Angelsession',

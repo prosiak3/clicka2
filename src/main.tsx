@@ -6,6 +6,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { logPWAStatus } from './utils/pwa-debug';
 import { showOfflineNotification, showOnlineNotification } from './utils/notifications';
+import { initSounds } from './utils/sound';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -46,6 +47,8 @@ registerSW({
 });
 
 logPWAStatus();
+
+initSounds();
 
 createRoot(rootElement).render(
   <StrictMode>

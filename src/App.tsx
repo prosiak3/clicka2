@@ -29,6 +29,7 @@ import { useTranslation } from './hooks/useTranslation';
 import { useGpsTracking } from './hooks/useGpsTracking';
 import { useActiveSession } from './hooks/useActiveSession';
 import { useInactivityTimer } from './hooks/useInactivityTimer';
+import { playClickSound } from './utils/sound';
 
 type TabType = 'home' | 'sessions' | 'history' | 'analysis' | 'settings' | 'stats' | 'profile';
 
@@ -41,6 +42,7 @@ function App() {
   const [user, setUser] = useState<UserType | null>(null);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [showCatchForm, setShowCatchForm] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<string | null>(null);
   const settings = useSettings();
   const t = useTranslation();
   const locationPermission = useLocationPermission();
@@ -133,6 +135,89 @@ function App() {
       isMounted = false;
     };
   }, [user]);
+
+  const startQuickCatch = async () => {
+    if (!user) return;
+    if (isStartingSession) return;
+
+    try {
+      await playClickSound();
+      setIsStartingSession(true);
+      setError(null);
+      setLoadingStep('checkingGPS');
+
+      if (locationPermission === 'denied') {
+        throw new Error('Location access is required. Please enable it in your browser settings and refresh the page.');
+      }
+
+      setLoadingStep('gettingLocation');
+      if (!currentLocation || locationStatus === 'error') {
+        throw new Error('Could not get your location. Please check your GPS settings and try again.');
+      }
+
+      setLoadingStep('gettingWeather');
+      let initialWeather;
+      try {
+        initialWeather = await getWeatherData(
+          currentLocation.latitude,
+          currentLocation.longitude
+        );
+      } catch (weatherError) {
+        console.error('Weather fetch failed:', weatherError);
+        initialWeather = {
+          temperature: 20,
+          pressure: 1013,
+          pressureTrend: 'stable',
+          windSpeed: 0,
+          windDirection: 'N',
+          cloudCover: 0,
+          precipitation: 0,
+          precipitationType: 'none',
+          precipitationProbability: 0
+        };
+      }
+
+      setLoadingStep('startingSession');
+      const newSession: FishingSession = {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        startTime: new Date().toISOString(),
+        initialWeather,
+        weather: initialWeather,
+        locations: [{
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+          timestamp: new Date().toISOString(),
+          source: currentLocation.source,
+          accuracy: currentLocation.accuracy
+        }],
+        catches: [],
+        synced: false,
+        tracking_enabled: true,
+        tracking_interval: settings.tracking.interval
+      };
+
+      setSessions(prev => [newSession, ...prev]);
+      setActiveSession(newSession);
+      setActiveTab('sessions');
+      setShowCatchForm(true);
+
+      try {
+        await saveSession(newSession);
+      } catch (saveError) {
+        console.error('Failed to save new session:', saveError);
+      }
+
+      setLoadingStep('ready');
+      setTimeout(() => setLoadingStep(null), 500);
+    } catch (error) {
+      console.error('Failed to start quick catch:', error);
+      setError(error instanceof Error ? error.message : 'Failed to start quick catch. Please check your connection.');
+      setLoadingStep(null);
+    } finally {
+      setIsStartingSession(false);
+    }
+  };
 
   const startNewSession = async () => {
     if (!user) return;
@@ -383,7 +468,9 @@ function App() {
                 handleResumeSession={handleResumeSession}
                 handleAddWaypoint={handleAddWaypoint}
                 startNewSession={startNewSession}
+                startQuickCatch={startQuickCatch}
                 isStartingSession={isStartingSession}
+                loadingStep={loadingStep}
                 settings={settings}
                 isWarningActive={isWarningActive}
                 remainingSeconds={remainingSeconds}
@@ -416,7 +503,9 @@ interface MainAppProps {
   handleResumeSession: () => void;
   handleAddWaypoint: (location: Location) => void;
   startNewSession: () => void;
+  startQuickCatch: () => void;
   isStartingSession: boolean;
+  loadingStep: string | null;
   settings: any;
   isWarningActive: boolean;
   remainingSeconds: number;
@@ -470,7 +559,9 @@ function MainApp({
   handleResumeSession,
   handleAddWaypoint,
   startNewSession,
+  startQuickCatch,
   isStartingSession,
+  loadingStep,
   settings,
   isWarningActive,
   remainingSeconds,
@@ -544,6 +635,47 @@ function MainApp({
                       </div>
                     </button>
                   </div>
+                </div>
+
+                {/* Quick Catch Button */}
+                <div className="flex flex-col items-center gap-3 pt-4">
+                  <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+                  <p className="text-sm text-gray-500 font-medium">or</p>
+                  <button
+                    onClick={startQuickCatch}
+                    disabled={isStartingSession}
+                    className={`relative w-32 h-32 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
+                      isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-green-500/50 active:scale-95'
+                    } ${!isStartingSession ? 'animate-pulse' : ''}`}
+                  >
+                    <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
+                    <div className="relative flex flex-col items-center justify-center h-full text-white">
+                      {isStartingSession && loadingStep ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
+                          <span className="text-xs font-medium">
+                            {loadingStep === 'checkingGPS' && 'GPS...'}
+                            {loadingStep === 'gettingLocation' && 'Location...'}
+                            {loadingStep === 'gettingWeather' && 'Weather...'}
+                            {loadingStep === 'startingSession' && 'Starting...'}
+                            {loadingStep === 'ready' && 'Ready!'}
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="relative">
+                            <Fish className="w-10 h-10" />
+                            <Plus className="w-5 h-5 absolute -top-1 -right-1 bg-green-700 rounded-full p-0.5" />
+                          </div>
+                          <span className="text-sm font-bold mt-2">Quick</span>
+                          <span className="text-xs font-medium">Catch</span>
+                        </>
+                      )}
+                    </div>
+                  </button>
+                  <p className="text-xs text-gray-400 text-center max-w-xs">
+                    Tap to quickly add a catch with automatic session start
+                  </p>
                 </div>
               </div>
             )}
