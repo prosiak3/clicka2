@@ -19,6 +19,7 @@ export default defineConfig({
         orientation: 'portrait-primary',
         start_url: '/?source=pwa',
         scope: '/',
+        categories: ['sports', 'utilities', 'lifestyle'],
         icons: [
           {
             src: '/icon-192x192.svg',
@@ -47,8 +48,22 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
+          {
+            urlPattern: /^\/api\//,
+            handler: 'NetworkOnly',
+            options: {
+              backgroundSync: {
+                name: 'api-queue',
+                options: {
+                  maxRetentionTime: 24 * 60
+                }
+              }
+            }
+          },
           {
             urlPattern: /^https:\/\/api\.openweathermap\.org\/.*/i,
             handler: 'NetworkFirst',
@@ -91,7 +106,11 @@ export default defineConfig({
         ],
         cleanupOutdatedCaches: true,
         skipWaiting: true,
-        clientsClaim: true
+        clientsClaim: true,
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024
+      },
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}']
       },
       devOptions: {
         enabled: false

@@ -5,11 +5,28 @@ import './index.css';
 import { registerSW } from 'virtual:pwa-register';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { logPWAStatus } from './utils/pwa-debug';
+import { showOfflineNotification, showOnlineNotification } from './utils/notifications';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error('Failed to find root element');
 }
+
+let wasOffline = false;
+
+window.addEventListener('offline', () => {
+  wasOffline = true;
+  console.log('App is now offline');
+  showOfflineNotification().catch(console.error);
+});
+
+window.addEventListener('online', () => {
+  if (wasOffline) {
+    console.log('App is back online');
+    showOnlineNotification().catch(console.error);
+    wasOffline = false;
+  }
+});
 
 registerSW({
   onNeedRefresh() {

@@ -35,6 +35,7 @@ import { ExportDialog } from './ExportDialog';
 import { StatsCleanupDialog } from './StatsCleanupDialog';
 import { InstallPwaButton } from './InstallPwaButton';
 import { signOut } from '../utils/auth';
+import { useNotifications } from '../hooks/useNotifications';
 
 interface SettingsSectionProps {
   title: string;
@@ -115,6 +116,7 @@ interface SettingsScreenProps {
 export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
   const settings = useSettings();
   const t = useTranslation();
+  const notifications = useNotifications();
   const enabledCount = settings.fishSpecies.filter(s => s.enabled).length;
   const [showConfirm, setShowConfirm] = useState(false);
   const [showExport, setShowExport] = useState(false);
@@ -525,46 +527,148 @@ export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
         </div>
       </SettingsSection>
 
-      <SettingsSection 
-        title={t.settings.notifications} 
+      <SettingsSection
+        title={t.settings.notifications}
         icon={<Bell className="w-5 h-5 text-red-600 dark:text-red-400" />}
         isExpanded={expandedSection === 'notifications'}
         onToggle={() => setExpandedSection(expandedSection === 'notifications' ? null : 'notifications')}
       >
-        <div className="space-y-3">
-          <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
-            <span className="font-medium text-gray-900 dark:text-dark-50">{t.settings.enableNotifications}</span>
-            <input
-              type="checkbox"
-              checked={settings.notifications.enabled}
-              onChange={(e) =>
-                settings.updateNotifications({ enabled: e.target.checked })
-              }
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-dark-600"
-            />
-          </label>
-          <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
-            <span className="font-medium text-gray-900 dark:text-dark-50">{t.settings.weatherAlerts}</span>
-            <input
-              type="checkbox"
-              checked={settings.notifications.weatherAlerts}
-              onChange={(e) =>
-                settings.updateNotifications({ weatherAlerts: e.target.checked })
-              }
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-dark-600"
-            />
-          </label>
-          <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
-            <span className="font-medium text-gray-900 dark:text-dark-50">{t.settings.catchReminders}</span>
-            <input
-              type="checkbox"
-              checked={settings.notifications.catchReminders}
-              onChange={(e) =>
-                settings.updateNotifications({ catchReminders: e.target.checked })
-              }
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-dark-600"
-            />
-          </label>
+        <div className="space-y-4">
+          {!notifications.permission.granted && (
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Bell className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-medium text-yellow-900 dark:text-yellow-200 mb-1">
+                    Powiadomienia zablokowane
+                  </h4>
+                  <p className="text-sm text-yellow-800 dark:text-yellow-300 mb-3">
+                    Aby otrzymywać alerty pogodowe i przypomnienia, zezwól na powiadomienia push.
+                  </p>
+                  <button
+                    onClick={async () => {
+                      const permission = await notifications.requestPermission();
+                      if (permission === 'granted') {
+                        await notifications.subscribe();
+                      }
+                    }}
+                    disabled={notifications.isLoading || notifications.permission.denied}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      notifications.permission.denied
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-yellow-600 text-white hover:bg-yellow-700'
+                    }`}
+                  >
+                    {notifications.isLoading ? 'Ładowanie...' :
+                     notifications.permission.denied ? 'Zablokowane w przeglądarce' :
+                     'Zezwól na powiadomienia'}
+                  </button>
+                  {notifications.permission.denied && (
+                    <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-2">
+                      Odblokuj powiadomienia w ustawieniach przeglądarki
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {notifications.permission.granted && !notifications.isSubscribed && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Bell className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-1">
+                    Włącz powiadomienia push
+                  </h4>
+                  <p className="text-sm text-blue-800 dark:text-blue-300 mb-3">
+                    Aktywuj subskrypcję, aby otrzymywać powiadomienia nawet gdy aplikacja jest zamknięta.
+                  </p>
+                  <button
+                    onClick={() => notifications.subscribe()}
+                    disabled={notifications.isLoading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    {notifications.isLoading ? 'Aktywuję...' : 'Aktywuj powiadomienia'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {notifications.permission.granted && notifications.isSubscribed && (
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center">
+                    <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-green-900 dark:text-green-200">
+                      Powiadomienia aktywne
+                    </h4>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      Otrzymasz alerty i przypomnienia
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => notifications.unsubscribe()}
+                  disabled={notifications.isLoading}
+                  className="px-3 py-1.5 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                >
+                  Wyłącz
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3 pt-2">
+            <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
+              <div>
+                <span className="font-medium text-gray-900 dark:text-dark-50">{t.settings.enableNotifications}</span>
+                <p className="text-xs text-gray-500 dark:text-dark-300 mt-1">Włącz wszystkie powiadomienia w aplikacji</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.notifications.enabled}
+                onChange={(e) =>
+                  settings.updateNotifications({ enabled: e.target.checked })
+                }
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-dark-600"
+              />
+            </label>
+            <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
+              <div>
+                <span className="font-medium text-gray-900 dark:text-dark-50">{t.settings.weatherAlerts}</span>
+                <p className="text-xs text-gray-500 dark:text-dark-300 mt-1">Alerty o idealnych warunkach połowowych</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.notifications.weatherAlerts}
+                onChange={(e) =>
+                  settings.updateNotifications({ weatherAlerts: e.target.checked })
+                }
+                disabled={!settings.notifications.enabled}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-dark-600 disabled:opacity-50"
+              />
+            </label>
+            <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
+              <div>
+                <span className="font-medium text-gray-900 dark:text-dark-50">{t.settings.catchReminders}</span>
+                <p className="text-xs text-gray-500 dark:text-dark-300 mt-1">Przypomnienia o zapisaniu połowów</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.notifications.catchReminders}
+                onChange={(e) =>
+                  settings.updateNotifications({ catchReminders: e.target.checked })
+                }
+                disabled={!settings.notifications.enabled}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-dark-600 disabled:opacity-50"
+              />
+            </label>
+          </div>
         </div>
       </SettingsSection>
 
