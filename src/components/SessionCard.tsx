@@ -145,7 +145,7 @@ export function SessionCard({
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
                 >
                   <Play className="w-4 h-4" />
-                  <span className="font-medium">Resume Session</span>
+                  <span className="text-xs">Resume Session</span>
                 </button>
               ) : (
                 <button
@@ -153,7 +153,7 @@ export function SessionCard({
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors"
                 >
                   <Pause className="w-4 h-4" />
-                  <span className="font-medium">Pause Session</span>
+                  <span className="text-xs">Pause Session</span>
                 </button>
               )}
               <button
@@ -161,14 +161,14 @@ export function SessionCard({
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
               >
                 <Save className="w-4 h-4" />
-                <span className="font-medium">End & Save</span>
+                <span className="text-xs">End & Save</span>
               </button>
               <button
                 onClick={() => setShowDiscardConfirm(true)}
                 className="flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-                <span className="font-medium">Discard</span>
+                <span className="text-xs">Discard</span>
               </button>
             </div>
           )}
