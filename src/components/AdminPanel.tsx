@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../utils/db';
-import { Shield, Trash2, UserCog, Mail, Calendar, AlertCircle } from 'lucide-react';
+import { Shield, Trash2, UserCog, Mail, Calendar, AlertCircle, Edit2 } from 'lucide-react';
 import { ConfirmDialog } from './ConfirmDialog';
+import { EditUserDialog } from './EditUserDialog';
 
 interface UserProfile {
   id: string;
@@ -23,6 +24,7 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [roleChangeConfirm, setRoleChangeConfirm] = useState<{ userId: string; newRole: 'user' | 'admin' } | null>(null);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -76,6 +78,23 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
     } catch (err) {
       console.error('Error deleting user:', err);
       setError('Failed to delete user. You may need service role permissions.');
+    }
+  }
+
+  async function handleUpdateUser(userId: string, updates: Partial<UserProfile>) {
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      setUsers(users.map(u => u.id === userId ? { ...u, ...updates } : u));
+      setEditingUser(null);
+    } catch (err) {
+      console.error('Error updating user:', err);
+      throw new Error('Failed to update user');
     }
   }
 
@@ -179,15 +198,25 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => setDeleteConfirm(user.id)}
-                      disabled={user.id === currentUserId}
-                      className="inline-flex items-center gap-1 px-3 py-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={user.id === currentUserId ? "Cannot delete yourself" : "Delete user"}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setEditingUser(user)}
+                        className="inline-flex items-center gap-1 px-3 py-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        title="Edit user"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(user.id)}
+                        disabled={user.id === currentUserId}
+                        className="inline-flex items-center gap-1 px-3 py-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={user.id === currentUserId ? "Cannot delete yourself" : "Delete user"}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -221,6 +250,14 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
           confirmText="Change Role"
           onConfirm={() => handleRoleChange(roleChangeConfirm.userId, roleChangeConfirm.newRole)}
           onCancel={() => setRoleChangeConfirm(null)}
+        />
+      )}
+
+      {editingUser && (
+        <EditUserDialog
+          user={editingUser}
+          onSave={handleUpdateUser}
+          onCancel={() => setEditingUser(null)}
         />
       )}
     </div>
