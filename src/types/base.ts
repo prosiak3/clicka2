@@ -89,6 +89,7 @@ export interface AppSettings {
     showMapRadius: boolean;
     mapRadiusSize: number;
     mapType: 'standard' | 'satellite';
+    hideScrollbar: boolean;
   };
   tracking: {
     interval: number;

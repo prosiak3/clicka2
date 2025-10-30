@@ -234,7 +234,8 @@ const DEFAULT_SETTINGS: AppSettings = {
     showTimeOfDay: true,
     showMapRadius: true,
     mapRadiusSize: 30,
-    mapType: 'standard'
+    mapType: 'standard',
+    hideScrollbar: true
   },
   tracking: {
     interval: 15,
@@ -380,7 +381,7 @@ export const useSettings = create<SettingsState>()(
     }),
     {
       name: 'clicka-better-fishing-settings',
-      version: 3,
+      version: 4,
       migrate: (persistedState: any, version: number) => {
         if (version === 1) {
           return {
@@ -397,6 +398,15 @@ export const useSettings = create<SettingsState>()(
             session: {
               autoEndTimeout: 30,
               autoEndEnabled: true
+            }
+          };
+        }
+        if (version === 3) {
+          return {
+            ...persistedState,
+            display: {
+              ...persistedState.display,
+              hideScrollbar: true
             }
           };
         }

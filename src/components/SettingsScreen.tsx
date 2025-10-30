@@ -782,6 +782,22 @@ export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-dark-600"
               />
             </label>
+            <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
+              <div>
+                <span className="font-medium text-gray-900 dark:text-dark-50">Hide Scrollbar</span>
+                <p className="text-xs text-gray-500 dark:text-dark-300 mt-1">Hide scrollbar for cleaner interface</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.display.hideScrollbar}
+                onChange={(e) =>
+                  settings.updateDisplaySettings({
+                    hideScrollbar: e.target.checked,
+                  })
+                }
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-dark-600"
+              />
+            </label>
           </div>
         </div>
       </SettingsSection>

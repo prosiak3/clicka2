@@ -103,6 +103,14 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (settings.display.hideScrollbar) {
+      document.body.classList.add('hide-scrollbar');
+    } else {
+      document.body.classList.remove('hide-scrollbar');
+    }
+  }, [settings.display.hideScrollbar]);
+
+  useEffect(() => {
     let isMounted = true;
 
     const initializeData = async () => {
