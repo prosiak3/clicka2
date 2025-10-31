@@ -61,16 +61,16 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             <p className="text-sm text-blue-100">Better Fishing</p>
           </div>
 
-          <div className="p-8">
+          <div className="p-6">
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-600 text-sm">{error}</p>
               </div>
             )}
 
-            <form onSubmit={handleEmailAuth} className="space-y-4">
+            <form onSubmit={handleEmailAuth} className="space-y-3">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
                 <div className="relative">
@@ -81,7 +81,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="your@email.com"
                     disabled={isLoading}
                   />
@@ -89,7 +89,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-2">
+                <div className="flex justify-between items-center mb-1">
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                     Password
                   </label>
@@ -113,7 +113,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="••••••••"
                     disabled={isLoading}
                   />
@@ -123,14 +123,14 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-blue-600 text-white rounded-lg py-3 font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
                 {isLogin ? 'Sign In' : 'Create Account'}
               </button>
             </form>
 
-            <div className="relative my-6">
+            <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
               </div>
@@ -186,31 +186,22 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               </button>
             </div>
 
-            <div className="mt-6 text-center space-y-3">
+            <div className="mt-4 text-center">
               <button
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setError(null);
                 }}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium block w-full"
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 disabled={isLoading}
               >
                 {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-              </button>
-
-              <button
-                onClick={() => navigate('/roadmap')}
-                className="flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium w-full"
-                disabled={isLoading}
-              >
-                <Map className="w-4 h-4" />
-                View Roadmap & Changelog
               </button>
             </div>
           </div>
         </div>
 
-        <p className="text-center text-white text-sm mt-6 opacity-90">
+        <p className="text-center text-white text-xs mt-4 opacity-80">
           Track your fishing sessions, analyze patterns, and improve your catches
         </p>
       </div>
