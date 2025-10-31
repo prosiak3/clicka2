@@ -5,7 +5,6 @@ import {
   Languages,
   FileDown,
   FileUp,
-  Fish,
   Bell,
   Ruler,
   Eye,
@@ -217,41 +216,6 @@ export function SettingsScreen({ user, onLogout, setUser }: SettingsScreenProps 
               {isLoggingOut ? 'Signing out...' : 'Sign Out'}
             </span>
           </button>
-        </div>
-      )}
-
-      {user && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Fish className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900">Quick Count Mode</h3>
-              <p className="text-sm text-gray-500">Enable fast catch counting without details</p>
-            </div>
-          </div>
-          <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer">
-            <div>
-              <span className="font-medium text-gray-900">Enable Quick Count</span>
-              <p className="text-sm text-gray-500">Show "Just Count" button on home screen</p>
-            </div>
-            <input
-              type="checkbox"
-              checked={user.enable_quick_count || false}
-              onChange={async (e) => {
-                const { error } = await supabase
-                  .from('user_profiles')
-                  .update({ enable_quick_count: e.target.checked })
-                  .eq('id', user.id);
-
-                if (!error && setUser) {
-                  setUser({ ...user, enable_quick_count: e.target.checked });
-                }
-              }}
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-            />
-          </label>
         </div>
       )}
 

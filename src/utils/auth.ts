@@ -94,7 +94,7 @@ export async function getCurrentUser(): Promise<User | null> {
 
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('role, enable_quick_count')
+        .select('role')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -105,8 +105,7 @@ export async function getCurrentUser(): Promise<User | null> {
         full_name: user.user_metadata?.full_name || user.user_metadata?.name,
         avatar_url: user.user_metadata?.avatar_url,
         provider: provider as 'email' | 'google' | 'apple',
-        role: profile?.role || 'user',
-        enable_quick_count: profile?.enable_quick_count || false
+        role: profile?.role || 'user'
       };
     });
   } catch (error) {

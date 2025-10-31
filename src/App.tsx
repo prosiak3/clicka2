@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, Plus, ArrowLeft } from 'lucide-react';
+import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, ArrowLeft } from 'lucide-react';
 import { CatchForm } from './components/CatchForm';
 import { SessionList } from './components/SessionList';
 import { SessionCard } from './components/SessionCard';
@@ -266,109 +266,6 @@ function App() {
     }
   };
 
-  const startJustCount = async () => {
-    if (!user) return;
-    if (isStartingSession) return;
-
-    try {
-      await playClickSound();
-      setIsStartingSession(true);
-      setError(null);
-      setLoadingStep('checkingGPS');
-
-      if (locationPermission === 'denied') {
-        throw new Error('Location access is required. Please enable it in your browser settings and refresh the page.');
-      }
-
-      setLoadingStep('gettingLocation');
-      if (!currentLocation || locationStatus === 'error') {
-        throw new Error('Could not get your location. Please check your GPS settings and try again.');
-      }
-
-      setLoadingStep('gettingWeather');
-      let currentWeather;
-      try {
-        currentWeather = await getWeatherData(
-          currentLocation.latitude,
-          currentLocation.longitude
-        );
-      } catch (weatherError) {
-        console.error('Weather fetch failed:', weatherError);
-        currentWeather = {
-          temperature: 20,
-          pressure: 1013,
-          pressureTrend: 'stable',
-          windSpeed: 0,
-          windDirection: 'N',
-          cloudCover: 0,
-          precipitation: 0,
-          precipitationType: 'none',
-          precipitationProbability: 0
-        };
-      }
-
-      setLoadingStep('startingSession');
-      const now = new Date().toISOString();
-      const newSession: FishingSession = {
-        id: crypto.randomUUID(),
-        userId: user.id,
-        startTime: now,
-        initialWeather: currentWeather,
-        weather: currentWeather,
-        locations: [{
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude,
-          timestamp: now,
-          source: currentLocation.source,
-          accuracy: currentLocation.accuracy
-        }],
-        catches: [{
-          id: crypto.randomUUID(),
-          sessionId: '',
-          species: 'Count',
-          length: 0,
-          weight: 0,
-          location: {
-            latitude: currentLocation.latitude,
-            longitude: currentLocation.longitude,
-            timestamp: now,
-            source: currentLocation.source,
-            accuracy: currentLocation.accuracy
-          },
-          weather: currentWeather,
-          timestamp: now
-        }],
-        synced: false,
-        tracking_enabled: true,
-        tracking_interval: settings.tracking.interval
-      };
-
-      newSession.catches[0].sessionId = newSession.id;
-
-      setSessions(prev => [newSession, ...prev]);
-      setActiveSession(newSession);
-      setActiveTab('sessions');
-
-      try {
-        await saveSession(newSession);
-      } catch (saveError) {
-        console.error('Failed to save new session:', saveError);
-      }
-
-      setLoadingStep('ready');
-      setTimeout(async () => {
-        setLoadingStep(null);
-        await playReelSound();
-      }, 500);
-    } catch (error) {
-      console.error('Failed to start just count:', error);
-      setError(error instanceof Error ? error.message : 'Failed to start just count. Please check your connection.');
-      setLoadingStep(null);
-    } finally {
-      setIsStartingSession(false);
-    }
-  };
-
   const startNewSession = async () => {
     if (!user) return;
     if (isStartingSession) return;
@@ -619,7 +516,6 @@ function App() {
                 handleAddWaypoint={handleAddWaypoint}
                 startNewSession={startNewSession}
                 startQuickCatch={startQuickCatch}
-                startJustCount={startJustCount}
                 isStartingSession={isStartingSession}
                 loadingStep={loadingStep}
                 settings={settings}
@@ -664,7 +560,6 @@ interface MainAppProps {
   handleAddWaypoint: (location: Location) => void;
   startNewSession: () => void;
   startQuickCatch: () => void;
-  startJustCount: () => void;
   isStartingSession: boolean;
   loadingStep: string | null;
   settings: any;
@@ -731,7 +626,6 @@ function MainApp({
   handleAddWaypoint,
   startNewSession,
   startQuickCatch,
-  startJustCount,
   isStartingSession,
   loadingStep,
   settings,
@@ -822,46 +716,6 @@ function MainApp({
                       </div>
                     </button>
                   </div>
-
-                  {user?.enable_quick_count && (
-                    <div className="flex flex-col items-center gap-3">
-                      <button
-                        onClick={startJustCount}
-                        disabled={isStartingSession}
-                        className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl transform transition-all ${
-                          isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-blue-500/50 active:scale-95'
-                        }`}
-                      >
-                        <div className="relative flex flex-col items-center justify-center h-full text-white">
-                          {isStartingSession && loadingStep ? (
-                            <div className="flex flex-col items-center gap-2">
-                              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
-                              <span className="text-sm font-medium">
-                                {loadingStep === 'checkingGPS' && 'GPS...'}
-                                {loadingStep === 'gettingLocation' && 'Location...'}
-                                {loadingStep === 'gettingWeather' && 'Weather...'}
-                                {loadingStep === 'startingSession' && 'Starting...'}
-                                {loadingStep === 'ready' && 'Ready!'}
-                              </span>
-                            </div>
-                          ) : (
-                            <>
-                              <Plus className="w-12 h-12" />
-                              <span className="text-base font-bold mt-2">Just</span>
-                              <span className="text-sm font-medium">Count</span>
-                            </>
-                          )}
-                        </div>
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Divider */}
-                <div className="flex items-center gap-3 py-2">
-                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-gray-300" />
-                  <p className="text-sm text-gray-500 font-medium">or</p>
-                  <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gray-300 to-gray-300" />
                 </div>
 
                 {/* Hero Section with Start Fishing Button */}
