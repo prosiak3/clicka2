@@ -8,6 +8,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { AnalysisSection } from './components/AnalysisSection';
 import { StatusBar } from './components/StatusBar';
 import { InactivityWarning } from './components/InactivityWarning';
+import { ConfirmDialog } from './components/ConfirmDialog';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthCallback } from './components/AuthCallback';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -21,7 +22,7 @@ import { AdminWeatherApiScreen } from './screens/AdminWeatherApiScreen';
 import { AdminFishSpeciesScreen } from './screens/AdminFishSpeciesScreen';
 import { RoadmapScreen } from './screens/RoadmapScreen';
 import { FishCatch, FishingSession, User as UserType, Location } from './types';
-import { saveSession, loadSessions, syncPendingSessions } from './utils/db';
+import { saveSession, loadSessions, syncPendingSessions, deleteSessions } from './utils/db';
 import { getCurrentUser, signIn, signUp } from './utils/auth';
 import { useSettings } from './utils/settings';
 import { getWeatherData } from './utils/weather';
@@ -44,11 +45,48 @@ function App() {
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [showCatchForm, setShowCatchForm] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const settings = useSettings();
   const t = useTranslation();
   const locationPermission = useLocationPermission();
   const { coords: currentLocation, status: locationStatus } = useGpsTracking();
   const { session: activeSession, setSession: setActiveSession } = useActiveSession();
+
+  const handleDeleteSessions = useCallback(async () => {
+    if (selectedSessions.length === 0) return;
+
+    try {
+      setError(null);
+      await deleteSessions(selectedSessions);
+      setSessions(prev => prev.filter(s => !selectedSessions.includes(s.id)));
+      setSelectedSessions([]);
+      setSelectionMode(false);
+      setShowDeleteConfirm(false);
+    } catch (err) {
+      console.error('Failed to delete sessions:', err);
+      setError('Failed to delete sessions. Please try again.');
+    }
+  }, [selectedSessions]);
+
+  const handleToggleSelection = useCallback((sessionId: string) => {
+    setSelectedSessions(prev =>
+      prev.includes(sessionId)
+        ? prev.filter(id => id !== sessionId)
+        : [...prev, sessionId]
+    );
+  }, []);
+
+  const handleEnterSelectionMode = useCallback((sessionId: string) => {
+    setSelectionMode(true);
+    setSelectedSessions([sessionId]);
+  }, []);
+
+  const handleCancelSelection = useCallback(() => {
+    setSelectionMode(false);
+    setSelectedSessions([]);
+  }, []);
 
   const handleEndSession = useCallback(async () => {
     if (!activeSession) return;
@@ -485,6 +523,15 @@ function App() {
                 remainingSeconds={remainingSeconds}
                 resetTimer={resetTimer}
                 setUser={setUser}
+                selectionMode={selectionMode}
+                selectedSessions={selectedSessions}
+                onToggleSelection={handleToggleSelection}
+                onEnterSelectionMode={handleEnterSelectionMode}
+                onCancelSelection={handleCancelSelection}
+                onDeleteSessions={() => setShowDeleteConfirm(true)}
+                showDeleteConfirm={showDeleteConfirm}
+                onConfirmDelete={handleDeleteSessions}
+                onCancelDelete={() => setShowDeleteConfirm(false)}
               />
             )}
           </ProtectedRoute>
@@ -520,6 +567,15 @@ interface MainAppProps {
   remainingSeconds: number;
   resetTimer: () => void;
   setUser: (user: UserType | null) => void;
+  selectionMode: boolean;
+  selectedSessions: string[];
+  onToggleSelection: (sessionId: string) => void;
+  onEnterSelectionMode: (sessionId: string) => void;
+  onCancelSelection: () => void;
+  onDeleteSessions: () => void;
+  showDeleteConfirm: boolean;
+  onConfirmDelete: () => void;
+  onCancelDelete: () => void;
 }
 
 interface AdminAppProps {
@@ -577,6 +633,15 @@ function MainApp({
   remainingSeconds,
   resetTimer,
   setUser,
+  selectionMode,
+  selectedSessions,
+  onToggleSelection,
+  onEnterSelectionMode,
+  onCancelSelection,
+  onDeleteSessions,
+  showDeleteConfirm,
+  onConfirmDelete,
+  onCancelDelete,
 }: MainAppProps) {
   const t = useTranslation();
 
@@ -774,12 +839,35 @@ function MainApp({
                       </div>
                     )}
                     <div>
-                      {sessions.length > 0 && sessions[0].endTime && (
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">All Sessions</h2>
-                      )}
+                      <div className="flex items-center justify-between mb-4">
+                        {sessions.length > 0 && sessions[0].endTime && (
+                          <h2 className="text-xl font-semibold text-gray-900">All Sessions</h2>
+                        )}
+                        {selectionMode && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={onCancelSelection}
+                              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={onDeleteSessions}
+                              disabled={selectedSessions.length === 0}
+                              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                            >
+                              Delete ({selectedSessions.length})
+                            </button>
+                          </div>
+                        )}
+                      </div>
                       <SessionList
                         sessions={sessions.filter(s => s.endTime)}
                         onSessionSelect={setSelectedSession}
+                        selectionMode={selectionMode}
+                        selectedSessions={selectedSessions}
+                        onToggleSelection={onToggleSelection}
+                        onEnterSelectionMode={onEnterSelectionMode}
                       />
                     </div>
                   </>
@@ -880,6 +968,16 @@ function MainApp({
 
         <PwaInstallPrompt />
         <IosInstallPrompt />
+
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          onClose={onCancelDelete}
+          onConfirm={onConfirmDelete}
+          title="Delete Sessions"
+          message={`Are you sure you want to delete ${selectedSessions.length} session${selectedSessions.length > 1 ? 's' : ''}? This action cannot be undone and will delete all associated catches.`}
+          confirmText="Delete"
+          confirmColor="red"
+        />
       </div>
   );
 }

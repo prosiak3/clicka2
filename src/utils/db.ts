@@ -329,3 +329,27 @@ export const syncPendingSessions = async () => {
     }
   }
 };
+
+export const deleteSessions = async (sessionIds: string[]): Promise<void> => {
+  await retryOperation(async () => {
+    const { error: catchesError } = await supabase
+      .from('fish_catches')
+      .delete()
+      .in('session_id', sessionIds);
+
+    if (catchesError) throw catchesError;
+
+    const { error: sessionsError } = await supabase
+      .from('fishing_sessions')
+      .delete()
+      .in('id', sessionIds);
+
+    if (sessionsError) throw sessionsError;
+
+    const sessions = getSessions();
+    const updatedSessions = sessions.filter(s => !sessionIds.includes(s.id));
+    saveToStorage(SESSIONS_KEY, updatedSessions);
+
+    sessionIds.forEach(id => removePendingSync(id));
+  });
+};
