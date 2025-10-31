@@ -28,8 +28,8 @@ const translations: Record<string, Translation> = {
     },
     home: {
       startFishing: 'Start Fishing',
-      readyToFish: 'Ready to Fish?',
-      trackingDescription: 'Track your catches, monitor conditions, and improve your success rate.',
+      readyToFish: 'Ready to Click?',
+      trackingDescription: 'Add your catches, monitor situation, and catch more fish.',
       totalCatches: 'Total Catches',
       bestCatch: 'Best Catch',
       lastSession: 'Last Session',
@@ -212,8 +212,8 @@ const translations: Record<string, Translation> = {
     },
     home: {
       startFishing: 'Rozpocznij Połów',
-      readyToFish: 'Gotowy do Połowu?',
-      trackingDescription: 'Śledź połowy, monitoruj warunki i popraw swoje wyniki.',
+      readyToFish: 'Gotowy do Kliknięcia?',
+      trackingDescription: 'Dodawaj połowy, monitoruj sytuację i łów więcej ryb.',
       totalCatches: 'Wszystkie Połowy',
       bestCatch: 'Najlepszy Połów',
       lastSession: 'Ostatnia Sesja',
@@ -396,8 +396,8 @@ const translations: Record<string, Translation> = {
     },
     home: {
       startFishing: 'Angeln Starten',
-      readyToFish: 'Bereit zum Angeln?',
-      trackingDescription: 'Verfolge deine Fänge, überwache Bedingungen und verbessere deine Erfolgsquote.',
+      readyToFish: 'Bereit zum Klicken?',
+      trackingDescription: 'Füge deine Fänge hinzu, überwache die Situation und fange mehr Fische.',
       totalCatches: 'Gesamtfänge',
       bestCatch: 'Bester Fang',
       lastSession: 'Letzte Session',
