@@ -64,10 +64,17 @@ export interface FishCatch {
 
 export interface FishSpecies {
   id: string;
-  code: string;
-  name: string;
+  code?: string;
+  name: {
+    en: string;
+    pl: string;
+    de: string;
+  } | string;
   enabled: boolean;
   group?: string;
+  minLength?: number;
+  maxLength?: number;
+  maxWeight?: number;
 }
 
 export interface AppSettings {

@@ -208,20 +208,62 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
                   )}
                 </div>
 
-                {/* Location Map */}
+                {/* Location Details */}
                 <div className="px-4 pb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Location Details</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <div className="flex items-center gap-2 text-blue-600 mb-1">
+                        <MapPin className="w-4 h-4" />
+                        <span className="text-sm font-medium">Latitude</span>
+                      </div>
+                      <p className="text-base font-medium text-blue-900">
+                        {catch_.location.latitude.toFixed(6)}°
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      <div className="flex items-center gap-2 text-green-600 mb-1">
+                        <MapPin className="w-4 h-4" />
+                        <span className="text-sm font-medium">Longitude</span>
+                      </div>
+                      <p className="text-base font-medium text-green-900">
+                        {catch_.location.longitude.toFixed(6)}°
+                      </p>
+                    </div>
+
+                    {catch_.location.accuracy && (
+                      <div className="p-3 bg-purple-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-purple-600 mb-1">
+                          <Satellite className="w-4 h-4" />
+                          <span className="text-sm font-medium">Accuracy</span>
+                        </div>
+                        <p className="text-base font-medium text-purple-900">
+                          ±{Math.round(catch_.location.accuracy)}m
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="p-3 bg-orange-50 rounded-lg">
+                      <div className="flex items-center gap-2 text-orange-600 mb-1">
+                        {catch_.location.source === 'gps' ? <Satellite className="w-4 h-4" /> :
+                         catch_.location.source === 'network' ? <Antenna className="w-4 h-4" /> :
+                         <MapPin className="w-4 h-4" />}
+                        <span className="text-sm font-medium">Source</span>
+                      </div>
+                      <p className="text-base font-medium text-orange-900 capitalize">
+                        {catch_.location.source === 'gps' ? 'GPS' :
+                         catch_.location.source === 'network' ? 'Network' : 'IP'}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="rounded-lg overflow-hidden border border-gray-100">
                     <Map
                       center={[catch_.location.latitude, catch_.location.longitude]}
                       catches={[{ location: catch_.location, species: catch_.species }]}
                       showRadius={true}
                     />
-                  </div>
-                  <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-                    <MapPin className="w-4 h-4" />
-                    <span>
-                      {catch_.location.latitude.toFixed(6)}, {catch_.location.longitude.toFixed(6)}
-                    </span>
                   </div>
                 </div>
 
