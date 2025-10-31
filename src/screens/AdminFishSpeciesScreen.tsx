@@ -153,6 +153,37 @@ export function AdminFishSpeciesScreen() {
     }
   };
 
+  const handleImageDelete = async () => {
+    if (!formData.image_url) return;
+
+    try {
+      setError(null);
+
+      const urlParts = formData.image_url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+
+      if (fileName && formData.image_url.includes('fish-images')) {
+        const { error: deleteError } = await supabase.storage
+          .from('fish-images')
+          .remove([fileName]);
+
+        if (deleteError) {
+          console.error('Failed to delete from storage:', deleteError);
+        }
+      }
+
+      setFormData({
+        ...formData,
+        image_url: '',
+        thumbnail_url: '',
+      });
+
+    } catch (err: any) {
+      console.error('Failed to delete image:', err);
+      setError(err.message || 'Failed to delete image');
+    }
+  };
+
   const fetchDataFromUrl = async () => {
     if (!importUrl.trim()) {
       setError('Please enter a URL');
@@ -591,7 +622,7 @@ export function AdminFishSpeciesScreen() {
                     placeholder="https://example.com/fish-image.jpg"
                   />
                   {formData.image_url && (
-                    <div className="mt-2">
+                    <div className="mt-2 space-y-2">
                       <img
                         src={formData.image_url}
                         alt="Preview"
@@ -600,6 +631,14 @@ export function AdminFishSpeciesScreen() {
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
+                      <button
+                        type="button"
+                        onClick={handleImageDelete}
+                        className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete Image
+                      </button>
                     </div>
                   )}
                 </div>
