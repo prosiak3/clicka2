@@ -219,46 +219,67 @@ export function useOnboarding(userId: string | null): UseOnboardingReturn {
       setError(null);
 
       if (onboarding?.id) {
-        const { error: deleteError } = await supabase
+        const { data, error: updateError } = await supabase
           .from('user_onboarding')
-          .delete()
-          .eq('id', onboarding.id);
+          .update({
+            completed: false,
+            current_step: 0,
+            skipped: false,
+            last_seen_step: 0,
+            completed_at: null,
+          })
+          .eq('id', onboarding.id)
+          .select()
+          .single();
 
-        if (deleteError) {
-          throw deleteError;
+        if (updateError) {
+          throw updateError;
         }
-      }
 
-      const newOnboarding = {
-        user_id: userId,
-        completed: false,
-        current_step: 0,
-        total_steps: TOTAL_STEPS,
-        skipped: false,
-        last_seen_step: 0,
-      };
+        if (data) {
+          setOnboarding({
+            id: data.id,
+            userId: data.user_id,
+            completed: data.completed,
+            currentStep: data.current_step,
+            totalSteps: data.total_steps,
+            skipped: data.skipped,
+            completedAt: data.completed_at,
+            lastSeenStep: data.last_seen_step,
+          });
+        }
+      } else {
+        const newOnboarding = {
+          user_id: userId,
+          completed: false,
+          current_step: 0,
+          total_steps: TOTAL_STEPS,
+          skipped: false,
+          last_seen_step: 0,
+        };
 
-      const { data, error: insertError } = await supabase
-        .from('user_onboarding')
-        .insert(newOnboarding)
-        .select()
-        .single();
+        const { data, error: insertError } = await supabase
+          .from('user_onboarding')
+          .insert(newOnboarding)
+          .select()
+          .single();
 
-      if (insertError) {
-        throw insertError;
-      }
+        if (insertError) {
+          throw insertError;
+        }
 
-      if (data) {
-        setOnboarding({
-          id: data.id,
-          userId: data.user_id,
-          completed: data.completed,
-          currentStep: data.current_step,
-          totalSteps: data.total_steps,
-          skipped: data.skipped,
-          completedAt: data.completed_at,
-          lastSeenStep: data.last_seen_step,
-        });
+        if (data) {
+          setOnboarding({
+            id: data.id,
+            userId: data.user_id,
+            completed: data.completed,
+            currentStep: data.current_step,
+            totalSteps: data.total_steps,
+            skipped: data.skipped,
+            completedAt: data.completed_at,
+            lastSeenStep: data.last_seen_step,
+          });
+        }
       }
     } catch (err) {
       console.error('Failed to restart onboarding:', err);
