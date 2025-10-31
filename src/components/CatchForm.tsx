@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Camera, X } from 'lucide-react';
-import { Map } from './Map';
-import { WeatherDisplay } from './WeatherDisplay';
 import { getWeatherData } from '../utils/weather';
 import { FishCatch, WeatherData, FishSpecies } from '../types';
 import { useSettings } from '../utils/settings';
@@ -299,6 +297,57 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
             </div>
           </div>
 
+          {/* Photos Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Photos (optional)</label>
+
+            {photos.length === 0 ? (
+              <label className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white text-blue-600 rounded-lg border-2 border-blue-300 border-dashed cursor-pointer hover:bg-blue-50 transition-colors">
+                <Camera className="h-5 w-5" />
+                <span className="text-sm font-medium">Add photos</span>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*,video/*"
+                  multiple
+                  onChange={handlePhotoCapture}
+                />
+              </label>
+            ) : (
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  {photos.map((photo, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={photo}
+                        alt={`Catch photo ${index + 1}`}
+                        className="w-full h-20 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePhoto(index)}
+                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <label className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors">
+                  <Camera className="h-4 w-4" />
+                  <span className="text-xs font-medium">Add more</span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*,video/*"
+                    multiple
+                    onChange={handlePhotoCapture}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+
           {/* Action Buttons */}
           <div className="flex gap-3 pt-2">
             <button
@@ -321,78 +370,6 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
             </button>
           </div>
         </>
-      )}
-
-      {/* Photos Section */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">Photos</label>
-
-        {photos.length === 0 ? (
-          <label className="w-full flex flex-col items-center justify-center px-6 py-12 bg-white text-blue-500 rounded-xl border-2 border-blue-300 border-dashed cursor-pointer hover:bg-blue-50 transition-colors">
-            <Camera className="h-12 w-12 mb-3" />
-            <span className="text-base font-medium text-blue-600">Add photos</span>
-            <span className="text-sm text-gray-500 mt-1">Tap to capture</span>
-            <input
-              type="file"
-              className="hidden"
-              accept="image/*,video/*"
-              multiple
-              onChange={handlePhotoCapture}
-            />
-          </label>
-        ) : (
-          <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-3">
-              {photos.map((photo, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={photo}
-                    alt={`Catch photo ${index + 1}`}
-                    className="w-full h-24 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemovePhoto(index)}
-                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <label className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors">
-              <Camera className="h-5 w-5" />
-              <span className="text-sm font-medium">Add more photos</span>
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*,video/*"
-                multiple
-                onChange={handlePhotoCapture}
-              />
-            </label>
-          </div>
-        )}
-      </div>
-
-      {/* Map */}
-      {currentLocation && (
-        <div className="rounded-lg overflow-hidden border border-gray-100">
-          <Map
-            center={[currentLocation.latitude, currentLocation.longitude]}
-            catches={[{ location: currentLocation, species }]}
-            showRadius={true}
-            height="150px"
-            currentLocation={currentLocation}
-          />
-        </div>
-      )}
-
-      {/* Weather Information */}
-      {weather && (
-        <div>
-          <WeatherDisplay weather={weather} />
-        </div>
       )}
     </form>
   );
