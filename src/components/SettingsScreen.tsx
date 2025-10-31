@@ -127,6 +127,7 @@ export function SettingsScreen({ user, onLogout, setUser }: SettingsScreenProps 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isUpdatingQuickCount, setIsUpdatingQuickCount] = useState(false);
 
   const handleLanguageChange = (newLanguage: string) => {
     settings.updateLanguage(newLanguage);
@@ -239,17 +240,31 @@ export function SettingsScreen({ user, onLogout, setUser }: SettingsScreenProps 
             <input
               type="checkbox"
               checked={user.enable_quick_count || false}
+              disabled={isUpdatingQuickCount}
               onChange={async (e) => {
-                const { error } = await supabase
-                  .from('user_profiles')
-                  .update({ enable_quick_count: e.target.checked })
-                  .eq('id', user.id);
+                const newValue = e.target.checked;
+                setIsUpdatingQuickCount(true);
 
-                if (!error && setUser) {
-                  setUser({ ...user, enable_quick_count: e.target.checked });
+                try {
+                  setUser?.({ ...user, enable_quick_count: newValue });
+
+                  const { error } = await supabase
+                    .from('user_profiles')
+                    .update({ enable_quick_count: newValue })
+                    .eq('id', user.id);
+
+                  if (error) {
+                    console.error('Failed to update quick count setting:', error);
+                    setUser?.({ ...user, enable_quick_count: !newValue });
+                  }
+                } catch (err) {
+                  console.error('Error updating quick count setting:', err);
+                  setUser?.({ ...user, enable_quick_count: !newValue });
+                } finally {
+                  setIsUpdatingQuickCount(false);
                 }
               }}
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </label>
         </div>
