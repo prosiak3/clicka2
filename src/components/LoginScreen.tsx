@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Fish, Mail, Lock, Loader2, Map } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
 import { signIn, signUp, signInWithOAuth } from '../utils/auth';
 import { ForgotPasswordDialog } from './ForgotPasswordDialog';
 import { useNavigate } from 'react-router-dom';
@@ -50,15 +50,18 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-600 via-blue-500 to-blue-400 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-white rounded-full mb-2">
-              <Fish className="w-7 h-7 text-blue-600" />
+          <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-8 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-[url('/images/clicka-logo.png')] bg-center bg-no-repeat opacity-5 bg-contain"></div>
+            <div className="relative z-10">
+              <img
+                src="/images/clicka-logo.png"
+                alt="Clicka Logo"
+                className="w-32 h-auto mx-auto mb-2 drop-shadow-lg"
+              />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-1">Clicka</h1>
-            <p className="text-sm text-blue-100">Better Fishing</p>
           </div>
 
           <div className="p-6">
