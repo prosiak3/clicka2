@@ -340,7 +340,8 @@ function App() {
         }],
         synced: false,
         tracking_enabled: true,
-        tracking_interval: settings.tracking.interval
+        tracking_interval: settings.tracking.interval,
+        just_count_mode: true
       };
 
       newSession.catches[0].sessionId = newSession.id;
@@ -902,58 +903,111 @@ function MainApp({
 
             {activeTab === 'sessions' && activeSession && (
               <div className="space-y-6">
-                {/* Add Catch Button and Catch Counter */}
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute left-0 flex items-center justify-center" style={{ width: 'calc(50% - 80px)' }}>
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-lg border border-blue-200">
-                      <div className="flex flex-col items-center">
-                        <div className="text-6xl font-bold text-blue-900">
-                          {activeSession.catches?.length || 0}
-                        </div>
-                        <div className="text-xs font-semibold text-blue-700 mt-2">
-                          {t.session.catchesInSession}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center gap-2">
+                {/* Just Count Mode - Large Counter Button */}
+                {activeSession.just_count_mode ? (
+                  <div className="flex justify-center items-center py-8">
                     <button
                       onClick={async () => {
                         await playReelSound();
-                        setShowCatchForm(!showCatchForm);
+                        const now = new Date().toISOString();
+                        const newCatch: FishCatch = {
+                          id: crypto.randomUUID(),
+                          sessionId: activeSession.id,
+                          species: 'Count',
+                          length: 0,
+                          weight: 0,
+                          location: currentLocation ? {
+                            latitude: currentLocation.latitude,
+                            longitude: currentLocation.longitude,
+                            timestamp: now,
+                            source: currentLocation.source,
+                            accuracy: currentLocation.accuracy
+                          } : activeSession.locations[activeSession.locations.length - 1],
+                          weather: activeSession.weather,
+                          timestamp: now
+                        };
+
+                        const updatedSession = {
+                          ...activeSession,
+                          catches: [...activeSession.catches, newCatch]
+                        };
+
+                        setActiveSession(updatedSession);
+                        setSessions(prev => prev.map(s => s.id === activeSession.id ? updatedSession : s));
+
+                        try {
+                          await saveSession(updatedSession);
+                        } catch (error) {
+                          console.error('Failed to save catch:', error);
+                        }
+                        resetTimer();
                       }}
-                      disabled={showCatchForm}
-                      className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 ${
-                        showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-2xl hover:shadow-green-500/50 active:scale-95 animate-pulse-slow'
-                      }`}
-                      style={{
-                        animation: showCatchForm ? 'none' : 'pulse-glow 2s ease-in-out infinite'
-                      }}
+                      className="relative w-48 h-48 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl transform transition-all hover:scale-105 hover:shadow-blue-500/50 active:scale-95"
                     >
-                      <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" style={{ animationDuration: '3s' }} />
+                      <div className="absolute inset-0 rounded-full bg-blue-400/20 animate-ping" style={{ animationDuration: '3s' }} />
                       <div className="relative flex flex-col items-center justify-center h-full text-white">
-                        <Fish className="w-14 h-14" />
-                        <span className="text-base font-bold mt-3">{t.session.addCatch.split(' ')[0]}</span>
-                        <span className="text-sm font-medium">{t.session.addCatch.split(' ')[1] || 'Catch'}</span>
+                        <Fish className="w-12 h-12 mb-2" />
+                        <span className="text-6xl font-bold">{activeSession.catches?.length || 0}</span>
+                        <span className="text-base font-medium mt-2">Just Count</span>
                       </div>
                     </button>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    {/* Normal Mode - Add Catch Button and Catch Counter */}
+                    <div className="relative flex items-center justify-center">
+                      <div className="absolute left-0 flex items-center justify-center" style={{ width: 'calc(50% - 80px)' }}>
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-lg border border-blue-200">
+                          <div className="flex flex-col items-center">
+                            <div className="text-6xl font-bold text-blue-900">
+                              {activeSession.catches?.length || 0}
+                            </div>
+                            <div className="text-xs font-semibold text-blue-700 mt-2">
+                              Catches
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-                {/* Add Catch Form */}
-                {showCatchForm && (
-                  <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
-                    <CatchForm
-                      onSave={handleCatchSave}
-                      onCancel={() => setShowCatchForm(false)}
-                      selectedSpecies={settings.fishSpecies.filter(s => s.enabled)}
-                    />
-                  </div>
+                      <div className="flex flex-col items-center gap-2">
+                        <button
+                          onClick={async () => {
+                            await playReelSound();
+                            setShowCatchForm(!showCatchForm);
+                          }}
+                          disabled={showCatchForm}
+                          className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 ${
+                            showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-2xl hover:shadow-green-500/50 active:scale-95 animate-pulse-slow'
+                          }`}
+                          style={{
+                            animation: showCatchForm ? 'none' : 'pulse-glow 2s ease-in-out infinite'
+                          }}
+                        >
+                          <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" style={{ animationDuration: '3s' }} />
+                          <div className="relative flex flex-col items-center justify-center h-full text-white">
+                            <Fish className="w-14 h-14" />
+                            <span className="text-base font-bold mt-3">Add</span>
+                            <span className="text-sm font-medium">Catch</span>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Add Catch Form */}
+                    {showCatchForm && (
+                      <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
+                        <CatchForm
+                          onSave={handleCatchSave}
+                          onCancel={() => setShowCatchForm(false)}
+                          selectedSpecies={settings.fishSpecies.filter(s => s.enabled)}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
 
-                <SessionCard 
-                  session={activeSession} 
+                <SessionCard
+                  session={activeSession}
                   isActive={true}
                   onEndSession={handleEndSession}
                   onDiscardSession={handleDiscardSession}
