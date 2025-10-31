@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Fish, Plus, Edit, Trash2, Save, X, Image, AlertCircle } from 'lucide-react';
+import { Fish, Plus, Edit, Trash2, Save, X, Image, AlertCircle, Download, Loader } from 'lucide-react';
 import { supabase } from '../utils/db';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 
@@ -17,12 +17,26 @@ interface FishSpecies {
   description_pl?: string;
   description_en?: string;
   description_de?: string;
+  habitat_pl?: string;
+  habitat_en?: string;
+  habitat_de?: string;
+  feeding_pl?: string;
+  feeding_en?: string;
+  feeding_de?: string;
+  spawning_pl?: string;
+  spawning_en?: string;
+  spawning_de?: string;
   image_url?: string;
   thumbnail_url?: string;
   legal_size?: number;
+  protected_period_start?: string;
+  protected_period_end?: string;
   created_at: string;
   updated_at: string;
 }
+
+type InputMode = 'manual' | 'import';
+type LanguageTab = 'pl' | 'en' | 'de';
 
 export function AdminFishSpeciesScreen() {
   const [species, setSpecies] = useState<FishSpecies[]>([]);
@@ -32,6 +46,11 @@ export function AdminFishSpeciesScreen() {
   const [isCreating, setIsCreating] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<FishSpecies>>({});
+  const [inputMode, setInputMode] = useState<InputMode>('manual');
+  const [importUrl, setImportUrl] = useState('');
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchSuccess, setFetchSuccess] = useState(false);
+  const [languageTab, setLanguageTab] = useState<LanguageTab>('pl');
 
   useEffect(() => {
     loadSpecies();
@@ -69,12 +88,106 @@ export function AdminFishSpeciesScreen() {
       description_pl: '',
       description_en: '',
       description_de: '',
+      habitat_pl: '',
+      habitat_en: '',
+      habitat_de: '',
+      feeding_pl: '',
+      feeding_en: '',
+      feeding_de: '',
+      spawning_pl: '',
+      spawning_en: '',
+      spawning_de: '',
       image_url: '',
       thumbnail_url: '',
-      legal_size: 0
+      legal_size: 0,
+      protected_period_start: '',
+      protected_period_end: ''
     });
     setIsCreating(true);
     setEditingId(null);
+    setInputMode('manual');
+    setImportUrl('');
+    setFetchSuccess(false);
+  };
+
+  const fetchDataFromUrl = async () => {
+    if (!importUrl.trim()) {
+      setError('Please enter a URL');
+      return;
+    }
+
+    try {
+      setIsFetching(true);
+      setError(null);
+      setFetchSuccess(false);
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-fish-data`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: importUrl }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch data');
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        const fetchedData = result.data;
+
+        const code = fetchedData.name_pl
+          ? fetchedData.name_pl.toLowerCase()
+              .replace(/ą/g, 'a').replace(/ć/g, 'c').replace(/ę/g, 'e')
+              .replace(/ł/g, 'l').replace(/ń/g, 'n').replace(/ó/g, 'o')
+              .replace(/ś/g, 's').replace(/ź/g, 'z').replace(/ż/g, 'z')
+              .replace(/[^a-z0-9]/g, '')
+          : '';
+
+        setFormData({
+          code: code || formData.code || '',
+          name_en: fetchedData.name_en || formData.name_en || '',
+          name_pl: fetchedData.name_pl || formData.name_pl || '',
+          name_de: fetchedData.name_de || formData.name_de || '',
+          latin_name: fetchedData.latin_name || formData.latin_name || '',
+          group_name: fetchedData.group_name || formData.group_name || 'freshwater',
+          min_length: fetchedData.min_length || formData.min_length || 10,
+          max_length: fetchedData.max_length || formData.max_length || 100,
+          max_weight: fetchedData.max_weight || formData.max_weight || 10,
+          description_pl: fetchedData.description_pl || formData.description_pl || '',
+          description_en: fetchedData.description_en || formData.description_en || '',
+          description_de: fetchedData.description_de || formData.description_de || '',
+          habitat_pl: fetchedData.habitat_pl || formData.habitat_pl || '',
+          habitat_en: fetchedData.habitat_en || formData.habitat_en || '',
+          habitat_de: fetchedData.habitat_de || formData.habitat_de || '',
+          feeding_pl: fetchedData.feeding_pl || formData.feeding_pl || '',
+          feeding_en: fetchedData.feeding_en || formData.feeding_en || '',
+          feeding_de: fetchedData.feeding_de || '',
+          spawning_pl: fetchedData.spawning_pl || formData.spawning_pl || '',
+          spawning_en: fetchedData.spawning_en || formData.spawning_en || '',
+          spawning_de: fetchedData.spawning_de || formData.spawning_de || '',
+          image_url: fetchedData.image_url || formData.image_url || '',
+          thumbnail_url: fetchedData.thumbnail_url || formData.thumbnail_url || '',
+          legal_size: fetchedData.legal_size || formData.legal_size || 0,
+          protected_period_start: fetchedData.protected_period_start || formData.protected_period_start || '',
+          protected_period_end: fetchedData.protected_period_end || formData.protected_period_end || ''
+        });
+
+        setFetchSuccess(true);
+      } else {
+        throw new Error('No data returned from URL');
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch data:', err);
+      setError(err.message || 'Failed to fetch data from URL');
+    } finally {
+      setIsFetching(false);
+    }
   };
 
   const startEdit = (sp: FishSpecies) => {
@@ -87,6 +200,9 @@ export function AdminFishSpeciesScreen() {
     setFormData({});
     setEditingId(null);
     setIsCreating(false);
+    setInputMode('manual');
+    setImportUrl('');
+    setFetchSuccess(false);
   };
 
   const saveSpecies = async () => {
@@ -176,9 +292,74 @@ export function AdminFishSpeciesScreen() {
 
         {(isCreating || editingId) && (
           <div className="mb-6 p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-            <h2 className="text-xl font-semibold mb-4">
-              {isCreating ? 'Create New Species' : 'Edit Species'}
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">
+                {isCreating ? 'Create New Species' : 'Edit Species'}
+              </h2>
+              {isCreating && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setInputMode('manual')}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      inputMode === 'manual'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Manual Entry
+                  </button>
+                  <button
+                    onClick={() => setInputMode('import')}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      inputMode === 'import'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Import from URL
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {inputMode === 'import' && isCreating && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Website URL (RTW, Wikipedia, or other fish database)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={importUrl}
+                    onChange={(e) => setImportUrl(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://www.rtw.org.pl/atlas/szczupak.html"
+                  />
+                  <button
+                    onClick={fetchDataFromUrl}
+                    disabled={isFetching || !importUrl.trim()}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                  >
+                    {isFetching ? (
+                      <>
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Fetching...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        Fetch Data
+                      </>
+                    )}
+                  </button>
+                </div>
+                {fetchSuccess && (
+                  <p className="mt-2 text-sm text-green-600">
+                    Data fetched successfully! Review and edit fields below before saving.
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -307,6 +488,32 @@ export function AdminFishSpeciesScreen() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Protection Start (YYYY-MM-DD)
+                </label>
+                <input
+                  type="text"
+                  value={formData.protected_period_start || ''}
+                  onChange={(e) => setFormData({ ...formData, protected_period_start: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="2024-01-01"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Protection End (YYYY-MM-DD)
+                </label>
+                <input
+                  type="text"
+                  value={formData.protected_period_end || ''}
+                  onChange={(e) => setFormData({ ...formData, protected_period_end: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="2024-04-30"
+                />
+              </div>
+
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Image URL
@@ -332,17 +539,90 @@ export function AdminFishSpeciesScreen() {
                   placeholder="https://example.com/fish-thumbnail.jpg"
                 />
               </div>
+            </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description (Polish)
-                </label>
-                <textarea
-                  value={formData.description_pl || ''}
-                  onChange={(e) => setFormData({ ...formData, description_pl: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                />
+            <div className="mt-6">
+              <div className="flex gap-2 border-b border-gray-200">
+                <button
+                  onClick={() => setLanguageTab('pl')}
+                  className={`px-4 py-2 font-medium transition-colors ${
+                    languageTab === 'pl'
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Polish
+                </button>
+                <button
+                  onClick={() => setLanguageTab('en')}
+                  className={`px-4 py-2 font-medium transition-colors ${
+                    languageTab === 'en'
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  English
+                </button>
+                <button
+                  onClick={() => setLanguageTab('de')}
+                  className={`px-4 py-2 font-medium transition-colors ${
+                    languageTab === 'de'
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  German
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description ({languageTab.toUpperCase()})
+                  </label>
+                  <textarea
+                    value={formData[`description_${languageTab}` as keyof FishSpecies] as string || ''}
+                    onChange={(e) => setFormData({ ...formData, [`description_${languageTab}`]: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Habitat ({languageTab.toUpperCase()})
+                  </label>
+                  <textarea
+                    value={formData[`habitat_${languageTab}` as keyof FishSpecies] as string || ''}
+                    onChange={(e) => setFormData({ ...formData, [`habitat_${languageTab}`]: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Feeding ({languageTab.toUpperCase()})
+                  </label>
+                  <textarea
+                    value={formData[`feeding_${languageTab}` as keyof FishSpecies] as string || ''}
+                    onChange={(e) => setFormData({ ...formData, [`feeding_${languageTab}`]: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Spawning ({languageTab.toUpperCase()})
+                  </label>
+                  <textarea
+                    value={formData[`spawning_${languageTab}` as keyof FishSpecies] as string || ''}
+                    onChange={(e) => setFormData({ ...formData, [`spawning_${languageTab}`]: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    rows={2}
+                  />
+                </div>
               </div>
             </div>
 
