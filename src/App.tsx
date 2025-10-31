@@ -23,7 +23,7 @@ import { AdminWeatherApiScreen } from './screens/AdminWeatherApiScreen';
 import { AdminFishSpeciesScreen } from './screens/AdminFishSpeciesScreen';
 import { RoadmapScreen } from './screens/RoadmapScreen';
 import { FishCatch, FishingSession, User as UserType, Location } from './types';
-import { saveSession, loadSessions, syncPendingSessions, deleteSessions } from './utils/db';
+import { saveSession, loadSessions, syncPendingSessions, deleteSessions, updateCatch } from './utils/db';
 import { getCurrentUser, signIn, signUp } from './utils/auth';
 import { useSettings } from './utils/settings';
 import { getWeatherData } from './utils/weather';
@@ -54,6 +54,36 @@ function App() {
   const locationPermission = useLocationPermission();
   const { coords: currentLocation, status: locationStatus } = useGpsTracking();
   const { session: activeSession, setSession: setActiveSession } = useActiveSession();
+
+  const handleEditCatch = useCallback(async (catchId: string, photos: string[], description: string) => {
+    try {
+      setError(null);
+      await updateCatch(catchId, photos, description);
+
+      setSessions(prev => prev.map(session => ({
+        ...session,
+        catches: session.catches.map(catch_ =>
+          catch_.id === catchId
+            ? { ...catch_, photoUrls: photos, description }
+            : catch_
+        )
+      })));
+
+      if (activeSession) {
+        setActiveSession({
+          ...activeSession,
+          catches: activeSession.catches.map(catch_ =>
+            catch_.id === catchId
+              ? { ...catch_, photoUrls: photos, description }
+              : catch_
+          )
+        });
+      }
+    } catch (err) {
+      console.error('Failed to update catch:', err);
+      setError('Failed to update catch. Please try again.');
+    }
+  }, [activeSession, setActiveSession]);
 
   const handleDeleteSessions = useCallback(async () => {
     if (selectedSessions.length === 0) return;
@@ -809,14 +839,15 @@ function MainApp({
                   </div>
                 )}
 
-                <SessionCard 
-                  session={activeSession} 
+                <SessionCard
+                  session={activeSession}
                   isActive={true}
                   onEndSession={handleEndSession}
                   onDiscardSession={handleDiscardSession}
                   onPauseSession={handlePauseSession}
                   onResumeSession={handleResumeSession}
                   onAddWaypoint={handleAddWaypoint}
+                  onEditCatch={handleEditCatch}
                 />
               </div>
             )}
@@ -827,6 +858,7 @@ function MainApp({
                   <SessionCard
                     session={selectedSession}
                     isActive={false}
+                    onEditCatch={handleEditCatch}
                   />
                 ) : (
                   <>
@@ -836,6 +868,7 @@ function MainApp({
                         <SessionCard
                           session={sessions[0]}
                           isActive={false}
+                          onEditCatch={handleEditCatch}
                         />
                       </div>
                     )}

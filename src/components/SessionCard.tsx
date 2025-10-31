@@ -22,6 +22,7 @@ interface SessionCardProps {
   onPauseSession?: () => void;
   onResumeSession?: () => void;
   onDeleteCatch?: (catchId: string) => void;
+  onEditCatch?: (catchId: string, photos: string[], description: string) => void;
   onToggleTracking?: (enabled: boolean) => void;
   onAddWaypoint?: (location: Location) => void;
 }
@@ -34,14 +35,15 @@ function getTimeOfDay(date: Date) {
   return { name: 'Night', icon: <Moon className="w-5 h-5 text-indigo-500" /> };
 }
 
-export function SessionCard({ 
-  session, 
-  isActive, 
-  onEndSession, 
+export function SessionCard({
+  session,
+  isActive,
+  onEndSession,
   onDiscardSession,
   onPauseSession,
   onResumeSession,
   onDeleteCatch,
+  onEditCatch,
   onToggleTracking,
   onAddWaypoint
 }: SessionCardProps) {
@@ -334,9 +336,10 @@ export function SessionCard({
           {session.catches.length > 0 && (
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-700 mb-3">Catches</h4>
-              <CatchList 
-                catches={session.catches} 
+              <CatchList
+                catches={session.catches}
                 onDeleteCatch={onDeleteCatch}
+                onEditCatch={onEditCatch}
               />
             </div>
           )}

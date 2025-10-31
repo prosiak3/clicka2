@@ -18,22 +18,26 @@ import {
   Sunset,
   Moon,
   Satellite,
-  Antenna
+  Antenna,
+  Edit
 } from 'lucide-react';
 import { WeatherDisplay } from './WeatherDisplay';
 import { Map } from './Map';
 import { FishCatch } from '../types';
 import { useState } from 'react';
 import { ConfirmDialog } from './ConfirmDialog';
+import { EditCatchDialog } from './EditCatchDialog';
 
 interface CatchListProps {
   catches: FishCatch[];
   onDeleteCatch?: (catchId: string) => void;
+  onEditCatch?: (catchId: string, photos: string[], description: string) => void;
 }
 
-export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
+export function CatchList({ catches, onDeleteCatch, onEditCatch }: CatchListProps) {
   const [expandedCatchId, setExpandedCatchId] = useState<string | null>(null);
   const [catchToDelete, setCatchToDelete] = useState<string | null>(null);
+  const [catchToEdit, setCatchToEdit] = useState<FishCatch | null>(null);
 
   const getTimeOfDay = (date: Date) => {
     const hour = date.getHours();
@@ -115,14 +119,24 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
                   </div>
                 </div>
               </button>
-              {onDeleteCatch && (
-                <button
-                  onClick={() => handleDelete(catch_.id)}
-                  className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              )}
+              <div className="flex items-center gap-2 ml-4">
+                {onEditCatch && (
+                  <button
+                    onClick={() => setCatchToEdit(catch_)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
+                  >
+                    <Edit className="w-5 h-5" />
+                  </button>
+                )}
+                {onDeleteCatch && (
+                  <button
+                    onClick={() => handleDelete(catch_.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Expanded Details */}
@@ -262,6 +276,16 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
                   </div>
                 )}
 
+                {/* Description */}
+                {catch_.description && (
+                  <div className="px-4 pb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Description</h4>
+                    <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                      {catch_.description}
+                    </p>
+                  </div>
+                )}
+
                 {/* Photos */}
                 {catch_.photoUrls && catch_.photoUrls.length > 0 && (
                   <div className="px-4 pb-4">
@@ -321,6 +345,19 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
         confirmText="Delete"
         confirmColor="red"
       />
+
+      {/* Edit Catch Dialog */}
+      {catchToEdit && onEditCatch && (
+        <EditCatchDialog
+          catch_={catchToEdit}
+          isOpen={!!catchToEdit}
+          onClose={() => setCatchToEdit(null)}
+          onSave={(catchId, photos, description) => {
+            onEditCatch(catchId, photos, description);
+            setCatchToEdit(null);
+          }}
+        />
+      )}
     </div>
   );
 }

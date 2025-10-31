@@ -330,6 +330,31 @@ export const syncPendingSessions = async () => {
   }
 };
 
+export const updateCatch = async (catchId: string, photoUrls: string[], description: string): Promise<void> => {
+  await retryOperation(async () => {
+    const { error } = await supabase
+      .from('fish_catches')
+      .update({
+        photo_urls: photoUrls,
+        description: description
+      })
+      .eq('id', catchId);
+
+    if (error) throw error;
+
+    const sessions = getSessions();
+    const updatedSessions = sessions.map(session => ({
+      ...session,
+      catches: session.catches.map(catch_ =>
+        catch_.id === catchId
+          ? { ...catch_, photoUrls, description }
+          : catch_
+      )
+    }));
+    saveToStorage(SESSIONS_KEY, updatedSessions);
+  });
+};
+
 export const deleteSessions = async (sessionIds: string[]): Promise<void> => {
   await retryOperation(async () => {
     const { error: catchesError } = await supabase
