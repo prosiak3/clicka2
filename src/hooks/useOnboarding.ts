@@ -164,13 +164,24 @@ export function useOnboarding(userId: string | null): UseOnboardingReturn {
   }, [userId, onboarding?.id]);
 
   const nextStep = useCallback(async () => {
-    if (!onboarding) return;
+    console.log('[Onboarding] nextStep called, current:', onboarding?.currentStep);
+    if (!onboarding) {
+      console.log('[Onboarding] No onboarding data, skipping');
+      return;
+    }
 
     const newStep = Math.min(onboarding.currentStep + 1, TOTAL_STEPS - 1);
-    await updateOnboarding({
-      currentStep: newStep,
-      lastSeenStep: Math.max(onboarding.lastSeenStep, newStep),
-    });
+    console.log('[Onboarding] Moving from', onboarding.currentStep, 'to', newStep);
+
+    try {
+      await updateOnboarding({
+        currentStep: newStep,
+        lastSeenStep: Math.max(onboarding.lastSeenStep, newStep),
+      });
+      console.log('[Onboarding] Successfully moved to step', newStep);
+    } catch (err) {
+      console.error('[Onboarding] Failed to update step:', err);
+    }
   }, [onboarding, updateOnboarding]);
 
   const previousStep = useCallback(async () => {

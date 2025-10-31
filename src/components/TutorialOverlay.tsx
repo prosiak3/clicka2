@@ -260,7 +260,10 @@ export function TutorialOverlay({
               if (targetElement) {
                 targetElement.click();
                 if (stepConfig?.action === 'click') {
-                  setTimeout(() => onNext(), 300);
+                  setTimeout(() => {
+                    console.log('[Tutorial] Auto-advancing after click');
+                    onNext();
+                  }, 100);
                 }
               }
             }}
