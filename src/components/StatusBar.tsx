@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Signal, Antenna, Database, MapPin, Satellite, User, Shield, Cloud, CloudOff } from 'lucide-react';
 import { supabase } from '../utils/db';
 import { GpsPermissionDialog } from './GpsPermissionDialog';
+import { ConfirmDialog } from './ConfirmDialog';
+import { signOut } from '../utils/auth';
 import { useGpsTracking } from '../hooks/useGpsTracking';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useDatabaseStatus } from '../hooks/useDatabaseStatus';
@@ -10,9 +12,10 @@ import { useWeatherStatus } from '../hooks/useWeatherStatus';
 interface StatusBarProps {
   isSessionActive?: boolean;
   isPaused?: boolean;
+  onLogout?: () => void;
 }
 
-export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
+export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProps) {
   const {
     status: gpsStatus,
     satelliteCount,
@@ -27,6 +30,8 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
   const { status: weatherStatus, lastSuccessfulFetch } = useWeatherStatus();
 
   const [userInfo, setUserInfo] = useState<{ email: string; role: string } | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -106,9 +111,10 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
       <div className="flex items-center gap-3">
         {/* User Info */}
         {userInfo && (
-          <div
-            className="flex items-center gap-1.5 cursor-help text-gray-700 bg-gray-100 px-2 py-1 rounded"
-            title={`Logged in as: ${userInfo.email}\nRole: ${userInfo.role}`}
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            className="flex items-center gap-1.5 cursor-pointer text-gray-700 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
+            title="Click to logout"
           >
             {userInfo.role === 'admin' ? (
               <Shield className="w-4 h-4 text-red-600" />
@@ -119,7 +125,7 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
             {userInfo.role === 'admin' && (
               <span className="text-[10px] font-bold text-red-600 uppercase">Admin</span>
             )}
-          </div>
+          </button>
         )}
 
         {/* Location Status with Source Indicator */}
@@ -209,6 +215,30 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
         isOpen={showPermissionDialog}
         onClose={hidePermissionDialog}
         onRequestPermission={requestPermission}
+      />
+
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={async () => {
+          if (isLoggingOut) return;
+          setIsLoggingOut(true);
+          try {
+            await signOut();
+            if (onLogout) {
+              onLogout();
+            } else {
+              window.location.href = '/login';
+            }
+          } catch (error) {
+            console.error('Logout error:', error);
+            setIsLoggingOut(false);
+          }
+        }}
+        title="Logout"
+        message="Are you sure you want to logout?"
+        confirmText={isLoggingOut ? 'Logging out...' : 'Logout'}
+        confirmColor="blue"
       />
     </>
   );

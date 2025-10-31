@@ -666,7 +666,10 @@ function MainApp({
                     <p className="text-[9px] text-blue-600 leading-none">Better Fishing</p>
                   </div>
                 </div>
-                <StatusBar />
+                <StatusBar onLogout={() => {
+                  setUser(null);
+                  window.location.href = '/login';
+                }} />
               </div>
             </div>
           </div>
