@@ -106,27 +106,19 @@ export function TutorialSettings({ userId, onNavigateHome }: TutorialSettingsPro
 
       <button
         onClick={handleRestart}
-        disabled={isRestarting}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
+        disabled={true}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed transition-colors font-medium shadow-sm opacity-50"
+        title="Tutorial temporarily disabled"
       >
-        {isRestarting ? (
+        {onboarding?.completed ? (
           <>
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-            Starting...
+            <RotateCcw className="w-4 h-4" />
+            Restart Tutorial
           </>
         ) : (
           <>
-            {onboarding?.completed ? (
-              <>
-                <RotateCcw className="w-4 h-4" />
-                Restart Tutorial
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4" />
-                {onboarding ? 'Start from Beginning' : 'Start Tutorial'}
-              </>
-            )}
+            <Play className="w-4 h-4" />
+            {onboarding ? 'Start from Beginning' : 'Start Tutorial'}
           </>
         )}
       </button>

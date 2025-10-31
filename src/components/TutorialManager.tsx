@@ -24,9 +24,10 @@ export function TutorialManager({ userId, isAuthenticated }: TutorialManagerProp
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && shouldShowOnboarding && !onboarding) {
-      setShowWelcome(true);
-    }
+    // Tutorial temporarily disabled
+    // if (!isLoading && isAuthenticated && shouldShowOnboarding && !onboarding) {
+    //   setShowWelcome(true);
+    // }
   }, [isLoading, isAuthenticated, shouldShowOnboarding, onboarding]);
 
   const handleStartTutorial = async () => {
@@ -59,9 +60,10 @@ export function TutorialManager({ userId, isAuthenticated }: TutorialManagerProp
   };
 
   useEffect(() => {
-    if (onboarding && !onboarding.completed && !onboarding.skipped) {
-      setShowTutorial(true);
-    }
+    // Tutorial temporarily disabled
+    // if (onboarding && !onboarding.completed && !onboarding.skipped) {
+    //   setShowTutorial(true);
+    // }
   }, [onboarding]);
 
   if (isLoading || !isAuthenticated) {
