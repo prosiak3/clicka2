@@ -35,6 +35,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   const [error, setError] = useState<string | null>(null);
   const [fishSpeciesData, setFishSpeciesData] = useState<FishSpeciesDetails[]>([]);
   const [manualWeightEdit, setManualWeightEdit] = useState(false);
+  const [initialSpeciesSet, setInitialSpeciesSet] = useState(false);
 
   const selectedSpeciesData = selectedSpecies.find(s => s.name[language] === species);
 
@@ -44,14 +45,15 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   );
 
   useEffect(() => {
-    console.log('Initial species useEffect - topSpeciesList:', topSpeciesList.length, 'lastSpecies:', lastSpecies);
-    if (topSpeciesList.length > 0) {
+    console.log('Initial species useEffect - topSpeciesList:', topSpeciesList.length, 'lastSpecies:', lastSpecies, 'initialSpeciesSet:', initialSpeciesSet);
+    if (topSpeciesList.length > 0 && !initialSpeciesSet) {
       if (lastSpecies) {
         const lastUsedSpecies = topSpeciesList.find(s => s.name[language] === lastSpecies);
         if (lastUsedSpecies && lastUsedSpecies.minLength) {
           console.log('Setting species to last used:', lastSpecies, 'length:', lastUsedSpecies.minLength);
           setSpecies(lastSpecies);
           setLength(lastUsedSpecies.minLength);
+          setInitialSpeciesSet(true);
           return;
         }
       }
@@ -61,9 +63,10 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
         console.log('Setting species to default:', defaultSpecies.name[language], 'length:', defaultSpecies.minLength);
         setSpecies(defaultSpecies.name[language]);
         setLength(defaultSpecies.minLength);
+        setInitialSpeciesSet(true);
       }
     }
-  }, [topSpeciesList, language, lastSpecies]);
+  }, [topSpeciesList, language, lastSpecies, initialSpeciesSet]);
 
   useEffect(() => {
     const loadFishData = async () => {
@@ -195,6 +198,8 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
     setWeight(MIN_WEIGHT);
     setPhotos([]);
     setError(null);
+    setManualWeightEdit(false);
+    setInitialSpeciesSet(false);
   };
 
   if (loading && !currentLocation) {
