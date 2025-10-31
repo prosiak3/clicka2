@@ -476,17 +476,32 @@ export function AdminWeatherApiScreen() {
                             </button>
                           </div>
                           {oauthConfig?.is_configured && (
-                            <div className="pt-2 border-t border-gray-200">
+                            <div className="pt-2 border-t border-gray-200 space-y-1">
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-gray-600">Status:</span>
                                 <span className="text-green-600 font-medium">Connected</span>
                               </div>
                               {oauthConfig.token_expires_at && (
-                                <div className="flex items-center justify-between text-xs mt-1">
+                                <div className="flex items-center justify-between text-xs">
                                   <span className="text-gray-600">Token expires:</span>
                                   <span className="text-gray-700">{new Date(oauthConfig.token_expires_at).toLocaleString()}</span>
                                 </div>
                               )}
+                              {oauthConfig.last_token_refresh && (
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-gray-600">Last refresh:</span>
+                                  <span className="text-gray-700">{formatTimeAgo(oauthConfig.last_token_refresh)}</span>
+                                </div>
+                              )}
+                              <div className="pt-2 border-t border-blue-200 mt-2">
+                                <div className="flex items-center gap-1 text-xs text-blue-700">
+                                  <Clock className="w-3 h-3" />
+                                  <span className="font-medium">Auto-refresh: Active</span>
+                                </div>
+                                <p className="text-xs text-gray-600 mt-0.5">
+                                  Token refreshes automatically every hour
+                                </p>
+                              </div>
                             </div>
                           )}
                           {oauthConfig && !oauthConfig.is_configured && (
