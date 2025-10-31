@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, Plus, ArrowLeft, Clock } from 'lucide-react';
+import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, Plus, ArrowLeft } from 'lucide-react';
 import { CatchForm } from './components/CatchForm';
 import { SessionList } from './components/SessionList';
 import { SessionCard } from './components/SessionCard';
@@ -340,8 +340,7 @@ function App() {
         }],
         synced: false,
         tracking_enabled: true,
-        tracking_interval: settings.tracking.interval,
-        just_count_mode: true
+        tracking_interval: settings.tracking.interval
       };
 
       newSession.catches[0].sessionId = newSession.id;
@@ -608,7 +607,6 @@ function App() {
                 selectedSession={selectedSession}
                 setSelectedSession={setSelectedSession}
                 error={error}
-                setError={setError}
                 user={user!}
                 activeSession={activeSession}
                 showCatchForm={showCatchForm}
@@ -629,7 +627,6 @@ function App() {
                 remainingSeconds={remainingSeconds}
                 resetTimer={resetTimer}
                 setUser={setUser}
-                currentLocation={currentLocation}
                 selectionMode={selectionMode}
                 selectedSessions={selectedSessions}
                 onToggleSelection={handleToggleSelection}
@@ -655,7 +652,6 @@ interface MainAppProps {
   selectedSession: FishingSession | null;
   setSelectedSession: (session: FishingSession | null) => void;
   error: string | null;
-  setError: (error: string | null) => void;
   user: UserType;
   activeSession: FishingSession | null;
   showCatchForm: boolean;
@@ -676,7 +672,6 @@ interface MainAppProps {
   remainingSeconds: number;
   resetTimer: () => void;
   setUser: (user: UserType | null) => void;
-  currentLocation: Location | null;
   selectionMode: boolean;
   selectedSessions: string[];
   onToggleSelection: (sessionId: string) => void;
@@ -724,7 +719,6 @@ function MainApp({
   selectedSession,
   setSelectedSession,
   error,
-  setError,
   user,
   activeSession,
   showCatchForm,
@@ -745,7 +739,6 @@ function MainApp({
   remainingSeconds,
   resetTimer,
   setUser,
-  currentLocation,
   selectionMode,
   selectedSessions,
   onToggleSelection,
@@ -762,7 +755,7 @@ function MainApp({
       <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${settings.theme === 'dark' ? 'dark' : ''}`}>
         <div className="max-w-lg mx-auto pb-11">
           {/* Header */}
-          <div className="sticky top-0 bg-white border-b z-10 shadow-sm">
+          <div className="sticky top-0 bg-white backdrop-blur-sm border-b z-10 shadow-sm">
             <div className="px-3 py-1.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -798,16 +791,47 @@ function MainApp({
               <div className="space-y-6">
                 {/* Quick Catch and Just Count Buttons */}
                 <div className="flex justify-center items-center gap-4 pt-2">
-                  {user?.enable_quick_count ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <button
+                      onClick={startQuickCatch}
+                      disabled={isStartingSession}
+                      className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
+                        isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-green-500/50 active:scale-95'
+                      } ${!isStartingSession ? 'animate-pulse' : ''}`}
+                    >
+                      <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
+                      <div className="relative flex flex-col items-center justify-center h-full text-white">
+                        {isStartingSession && loadingStep ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
+                            <span className="text-sm font-medium">
+                              {loadingStep === 'checkingGPS' && 'GPS...'}
+                              {loadingStep === 'gettingLocation' && 'Location...'}
+                              {loadingStep === 'gettingWeather' && 'Weather...'}
+                              {loadingStep === 'startingSession' && 'Starting...'}
+                              {loadingStep === 'ready' && 'Ready!'}
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <Fish className="w-12 h-12" />
+                            <span className="text-base font-bold mt-2">Quick</span>
+                            <span className="text-sm font-medium">Catch</span>
+                          </>
+                        )}
+                      </div>
+                    </button>
+                  </div>
+
+                  {user?.enable_quick_count && (
                     <div className="flex flex-col items-center gap-3">
                       <button
                         onClick={startJustCount}
                         disabled={isStartingSession}
                         className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl transform transition-all ${
                           isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-blue-500/50 active:scale-95'
-                        } ${!isStartingSession ? 'animate-pulse' : ''}`}
+                        }`}
                       >
-                        <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
                         <div className="relative flex flex-col items-center justify-center h-full text-white">
                           {isStartingSession && loadingStep ? (
                             <div className="flex flex-col items-center gap-2">
@@ -825,38 +849,6 @@ function MainApp({
                               <Plus className="w-12 h-12" />
                               <span className="text-base font-bold mt-2">Just</span>
                               <span className="text-sm font-medium">Count</span>
-                            </>
-                          )}
-                        </div>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-3">
-                      <button
-                        onClick={startQuickCatch}
-                        disabled={isStartingSession}
-                        className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
-                          isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-green-500/50 active:scale-95'
-                        } ${!isStartingSession ? 'animate-pulse' : ''}`}
-                      >
-                        <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
-                        <div className="relative flex flex-col items-center justify-center h-full text-white">
-                          {isStartingSession && loadingStep ? (
-                            <div className="flex flex-col items-center gap-2">
-                              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
-                              <span className="text-sm font-medium">
-                                {loadingStep === 'checkingGPS' && 'GPS...'}
-                                {loadingStep === 'gettingLocation' && 'Location...'}
-                                {loadingStep === 'gettingWeather' && 'Weather...'}
-                                {loadingStep === 'startingSession' && 'Starting...'}
-                                {loadingStep === 'ready' && 'Ready!'}
-                              </span>
-                            </div>
-                          ) : (
-                            <>
-                              <Fish className="w-12 h-12" />
-                              <span className="text-base font-bold mt-2">Quick</span>
-                              <span className="text-sm font-medium">Catch</span>
                             </>
                           )}
                         </div>
@@ -910,166 +902,58 @@ function MainApp({
 
             {activeTab === 'sessions' && activeSession && (
               <div className="space-y-6">
-                {/* Just Count Mode - Large Counter Button */}
-                {activeSession.just_count_mode ? (
-                  <div className="flex justify-center items-center py-8">
+                {/* Add Catch Button and Catch Counter */}
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute left-0 flex items-center justify-center" style={{ width: 'calc(50% - 80px)' }}>
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-lg border border-blue-200">
+                      <div className="flex flex-col items-center">
+                        <div className="text-6xl font-bold text-blue-900">
+                          {activeSession.catches?.length || 0}
+                        </div>
+                        <div className="text-xs font-semibold text-blue-700 mt-2">
+                          {t.session.catchesInSession}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-2">
                     <button
                       onClick={async () => {
-                        try {
-                          await playReelSound();
-                          const now = new Date().toISOString();
-                          const newCatch: FishCatch = {
-                            id: crypto.randomUUID(),
-                            sessionId: activeSession.id,
-                            species: 'Count',
-                            length: 0,
-                            weight: 0,
-                            location: currentLocation ? {
-                              latitude: currentLocation.latitude,
-                              longitude: currentLocation.longitude,
-                              timestamp: now,
-                              source: currentLocation.source,
-                              accuracy: currentLocation.accuracy
-                            } : activeSession.locations[activeSession.locations.length - 1],
-                            weather: activeSession.weather,
-                            timestamp: now
-                          };
-
-                          const updatedSession = {
-                            ...activeSession,
-                            catches: [...(activeSession.catches || []), newCatch]
-                          };
-
-                          setActiveSession(updatedSession);
-                          setSessions(prev => prev.map(s => s.id === activeSession.id ? updatedSession : s));
-
-                          await saveSession(updatedSession);
-                          resetTimer();
-                        } catch (error) {
-                          console.error('Failed to save catch:', error);
-                          setError('Failed to save catch. Please try again.');
-                        }
+                        await playReelSound();
+                        setShowCatchForm(!showCatchForm);
                       }}
-                      className="relative w-48 h-48 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl transform transition-all hover:scale-105 hover:shadow-blue-500/50 active:scale-95"
+                      disabled={showCatchForm}
+                      className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 ${
+                        showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-2xl hover:shadow-green-500/50 active:scale-95 animate-pulse-slow'
+                      }`}
+                      style={{
+                        animation: showCatchForm ? 'none' : 'pulse-glow 2s ease-in-out infinite'
+                      }}
                     >
-                      <div className="absolute inset-0 rounded-full bg-blue-400/20 animate-ping" style={{ animationDuration: '3s' }} />
+                      <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" style={{ animationDuration: '3s' }} />
                       <div className="relative flex flex-col items-center justify-center h-full text-white">
-                        <Fish className="w-12 h-12 mb-2" />
-                        <span className="text-6xl font-bold">{activeSession.catches?.length || 0}</span>
-                        <span className="text-base font-medium mt-2">Just Count</span>
+                        <Fish className="w-14 h-14" />
+                        <span className="text-base font-bold mt-3">{t.session.addCatch.split(' ')[0]}</span>
+                        <span className="text-sm font-medium">{t.session.addCatch.split(' ')[1] || 'Catch'}</span>
                       </div>
                     </button>
                   </div>
-                ) : (
-                  <>
-                    {/* Normal Mode - Add Catch Button and Catch Counter */}
-                    <div className="relative flex items-center justify-center">
-                      <div className="absolute left-0 flex items-center justify-center" style={{ width: 'calc(50% - 80px)' }}>
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-lg border border-blue-200">
-                          <div className="flex flex-col items-center">
-                            <div className="text-6xl font-bold text-blue-900">
-                              {activeSession.catches?.length || 0}
-                            </div>
-                            <div className="text-xs font-semibold text-blue-700 mt-2">
-                              Catches
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                </div>
 
-                      <div className="flex flex-col items-center gap-2">
-                        <button
-                          onClick={async () => {
-                            await playReelSound();
-                            setShowCatchForm(!showCatchForm);
-                          }}
-                          disabled={showCatchForm}
-                          className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 ${
-                            showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-2xl hover:shadow-green-500/50 active:scale-95 animate-pulse-slow'
-                          }`}
-                          style={{
-                            animation: showCatchForm ? 'none' : 'pulse-glow 2s ease-in-out infinite'
-                          }}
-                        >
-                          <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" style={{ animationDuration: '3s' }} />
-                          <div className="relative flex flex-col items-center justify-center h-full text-white">
-                            <Fish className="w-14 h-14" />
-                            <span className="text-base font-bold mt-3">Add</span>
-                            <span className="text-sm font-medium">Catch</span>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Add Catch Form */}
-                    {showCatchForm && (
-                      <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
-                        <CatchForm
-                          onSave={handleCatchSave}
-                          onCancel={() => setShowCatchForm(false)}
-                          selectedSpecies={settings.fishSpecies.filter(s => s.enabled)}
-                        />
-                      </div>
-                    )}
-                  </>
+                {/* Add Catch Form */}
+                {showCatchForm && (
+                  <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
+                    <CatchForm
+                      onSave={handleCatchSave}
+                      onCancel={() => setShowCatchForm(false)}
+                      selectedSpecies={settings.fishSpecies.filter(s => s.enabled)}
+                    />
+                  </div>
                 )}
 
-                {/* Time Between Catches Stats for Just Count Mode */}
-                {activeSession.just_count_mode && activeSession.catches && activeSession.catches.length > 1 && (() => {
-                  const timeBetweenCatches = activeSession.catches.slice(1).map((catch_, index) => {
-                    const prevCatch = activeSession.catches[index];
-                    return Math.floor((new Date(catch_.timestamp).getTime() - new Date(prevCatch.timestamp).getTime()) / 60000);
-                  });
-                  const avgTime = Math.round(timeBetweenCatches.reduce((sum, time) => sum + time, 0) / timeBetweenCatches.length);
-                  const shortestTime = Math.min(...timeBetweenCatches);
-                  const longestTime = Math.max(...timeBetweenCatches);
-
-                  return (
-                    <div className="grid grid-cols-3 gap-3 mb-4">
-                      <div className="flex items-center gap-3 bg-green-50 p-4 rounded-xl">
-                        <div className="p-2.5 bg-green-100 rounded-lg">
-                          <Clock className="w-6 h-6 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-green-900 font-medium">{t.session.avgTimeBetweenCatches}</p>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-xl font-bold text-green-600">{avgTime}</span>
-                            <span className="text-xs text-green-700">min</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 bg-purple-50 p-4 rounded-xl">
-                        <div className="p-2.5 bg-purple-100 rounded-lg">
-                          <Clock className="w-6 h-6 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-purple-900 font-medium">{t.session.shortestTimeBetweenCatches}</p>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-xl font-bold text-purple-600">{shortestTime}</span>
-                            <span className="text-xs text-purple-700">min</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 bg-orange-50 p-4 rounded-xl">
-                        <div className="p-2.5 bg-orange-100 rounded-lg">
-                          <Clock className="w-6 h-6 text-orange-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-orange-900 font-medium">{t.session.longestTimeBetweenCatches}</p>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-xl font-bold text-orange-600">{longestTime}</span>
-                            <span className="text-xs text-orange-700">min</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                <SessionCard
-                  session={activeSession}
+                <SessionCard 
+                  session={activeSession} 
                   isActive={true}
                   onEndSession={handleEndSession}
                   onDiscardSession={handleDiscardSession}
