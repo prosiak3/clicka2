@@ -25,6 +25,8 @@ import {
   Satellite,
   LogOut,
   User as UserIcon,
+  Fish,
+  BookOpen,
 } from 'lucide-react';
 import { useSettings } from '../utils/settings';
 import { FishSpecies, User } from '../types';
@@ -34,6 +36,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { ExportDialog } from './ExportDialog';
 import { StatsCleanupDialog } from './StatsCleanupDialog';
 import { InstallPwaButton } from './InstallPwaButton';
+import { TutorialSettings } from './TutorialSettings';
 import { signOut } from '../utils/auth';
 import { useNotifications } from '../hooks/useNotifications';
 import { supabase } from '../utils/db';
@@ -843,6 +846,15 @@ export function SettingsScreen({ user, onLogout, setUser }: SettingsScreenProps 
             <span>Clean Up Statistics</span>
           </button>
         </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Tutorial"
+        icon={<BookOpen className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+        isExpanded={expandedSection === 'tutorial'}
+        onToggle={() => setExpandedSection(expandedSection === 'tutorial' ? null : 'tutorial')}
+      >
+        <TutorialSettings userId={user?.id || null} />
       </SettingsSection>
 
       <SettingsSection
