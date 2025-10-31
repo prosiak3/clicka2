@@ -713,7 +713,7 @@ function MainApp({
 
           <div className="p-4">
             {activeTab === 'home' && !activeSession && (
-              <div className="space-y-6" data-tutorial="home-screen">
+              <div className="space-y-12" data-tutorial="home-screen">
                 {/* Quick Catch and Just Count Buttons */}
                 <div className="flex justify-center items-center gap-4 pt-2">
                   <div className="flex flex-col items-center gap-3">
