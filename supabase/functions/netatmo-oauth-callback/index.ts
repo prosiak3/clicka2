@@ -7,6 +7,12 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req: Request) => {
+  console.log('[Netatmo OAuth] Function invoked', {
+    method: req.method,
+    url: req.url,
+    hasAuth: req.headers.has('Authorization')
+  });
+
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,
@@ -48,6 +54,8 @@ Deno.serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    console.log('[Netatmo OAuth] Fetching Netatmo provider...');
+
     const { data: provider, error: providerError } = await supabase
       .from('weather_api_providers')
       .select('id')
@@ -64,6 +72,8 @@ Deno.serve(async (req: Request) => {
         }
       );
     }
+
+    console.log('[Netatmo OAuth] Fetching OAuth config...');
 
     const { data: oauthConfig, error: configError } = await supabase
       .from('weather_oauth_config')
