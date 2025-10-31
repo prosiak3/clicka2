@@ -71,20 +71,6 @@ export function TutorialOverlay({
     };
   }, [stepConfig?.targetElement, currentStep]);
 
-  useEffect(() => {
-    if (!targetElement || !stepConfig?.action) return;
-
-    const handleAction = (e: Event) => {
-      if (stepConfig.action === 'click') {
-        setTimeout(() => onNext(), 300);
-      }
-    };
-
-    if (stepConfig.action === 'click') {
-      targetElement.addEventListener('click', handleAction);
-      return () => targetElement.removeEventListener('click', handleAction);
-    }
-  }, [targetElement, stepConfig?.action, onNext]);
 
   const handleSkipClick = () => {
     setShowSkipConfirm(true);
@@ -270,6 +256,9 @@ export function TutorialOverlay({
               e.stopPropagation();
               if (targetElement) {
                 targetElement.click();
+                if (stepConfig?.action === 'click') {
+                  setTimeout(() => onNext(), 300);
+                }
               }
             }}
           />
