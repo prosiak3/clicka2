@@ -24,14 +24,29 @@ export function PwaInstallPrompt() {
       return (
         window.matchMedia('(display-mode: standalone)').matches ||
         (window.navigator as any).standalone === true ||
-        document.referrer.includes('android-app://')
+        document.referrer.includes('android-app://') ||
+        document.referrer.includes('windows-app://')
       );
     };
+
+    const checkPlatform = () => {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      const platform = window.navigator.platform?.toLowerCase() || '';
+      return {
+        isWindows: /win/.test(platform) || /windows/.test(userAgent),
+        isAndroid: /android/.test(userAgent),
+        isMac: /mac/.test(platform),
+        isLinux: /linux/.test(platform) && !/android/.test(userAgent)
+      };
+    };
+
+    const platformInfo = checkPlatform();
+    console.log('Platform detected:', platformInfo);
 
     setIsStandalone(isInStandaloneMode());
 
     const handler = (e: BeforeInstallPromptEvent) => {
-      console.log('beforeinstallprompt event fired');
+      console.log('🎉 beforeinstallprompt event fired!', platformInfo);
       e.preventDefault();
       setDeferredPrompt(e);
 
@@ -55,7 +70,7 @@ export function PwaInstallPrompt() {
     window.addEventListener('beforeinstallprompt', handler);
 
     const appInstalledHandler = () => {
-      console.log('PWA was installed');
+      console.log('✅ PWA was installed successfully!');
       setShowPrompt(false);
       setDeferredPrompt(null);
       localStorage.removeItem('pwa-install-dismissed');
