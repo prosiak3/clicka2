@@ -191,7 +191,7 @@ export function TutorialOverlay({
         className="fixed inset-0 z-[9999]"
         style={{ isolation: 'isolate', pointerEvents: 'none' }}
       >
-        {(highlightRect || !stepConfig?.targetElement) && (
+        {highlightRect ? (
           <svg
             className="absolute inset-0 w-full h-full"
             style={{ pointerEvents: 'none' }}
@@ -199,16 +199,14 @@ export function TutorialOverlay({
             <defs>
               <mask id="tutorial-mask">
                 <rect x="0" y="0" width="100%" height="100%" fill="white" />
-                {highlightRect && (
-                  <rect
-                    x={highlightRect.left - 8}
-                    y={highlightRect.top - 8}
-                    width={highlightRect.width + 16}
-                    height={highlightRect.height + 16}
-                    rx="12"
-                    fill="black"
-                  />
-                )}
+                <rect
+                  x={highlightRect.left - 8}
+                  y={highlightRect.top - 8}
+                  width={highlightRect.width + 16}
+                  height={highlightRect.height + 16}
+                  rx="12"
+                  fill="black"
+                />
               </mask>
             </defs>
             <rect
@@ -220,7 +218,12 @@ export function TutorialOverlay({
               mask="url(#tutorial-mask)"
             />
           </svg>
-        )}
+        ) : !stepConfig?.targetElement ? (
+          <div
+            className="absolute inset-0 w-full h-full bg-black/70"
+            style={{ pointerEvents: 'none' }}
+          />
+        ) : null}
 
         {highlightRect && (
           <div
