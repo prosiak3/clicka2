@@ -545,6 +545,7 @@ function App() {
                 handlePauseSession={handlePauseSession}
                 handleResumeSession={handleResumeSession}
                 handleAddWaypoint={handleAddWaypoint}
+                handleEditCatch={handleEditCatch}
                 startNewSession={startNewSession}
                 startQuickCatch={startQuickCatch}
                 isStartingSession={isStartingSession}
@@ -589,6 +590,7 @@ interface MainAppProps {
   handlePauseSession: () => void;
   handleResumeSession: () => void;
   handleAddWaypoint: (location: Location) => void;
+  handleEditCatch: (catchId: string, photos: string[], description: string) => Promise<void>;
   startNewSession: () => void;
   startQuickCatch: () => void;
   isStartingSession: boolean;
@@ -655,6 +657,7 @@ function MainApp({
   handlePauseSession,
   handleResumeSession,
   handleAddWaypoint,
+  handleEditCatch,
   startNewSession,
   startQuickCatch,
   isStartingSession,
