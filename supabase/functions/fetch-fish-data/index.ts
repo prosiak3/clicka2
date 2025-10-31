@@ -37,15 +37,21 @@ interface FishData {
 }
 
 function extractSectionContent(html: string, sectionTitle: string): string {
-  const sectionRegex = new RegExp(`<h[34][^>]*>\\s*${sectionTitle}[^<]*<\\/h[34]>([\\s\\S]*?)(?=<h[234][^>]*>|$)`, 'i');
+  const escapedTitle = sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const sectionRegex = new RegExp(`<h[34][^>]*>\\s*${escapedTitle}\\s*<\\/h[34]>([\\s\\S]*?)(?=<h[234][^>]*>|<div[^>]*class="[^"]*margin-top|$)`, 'i');
   const match = html.match(sectionRegex);
 
   if (match && match[1]) {
     const content = match[1];
-    const paragraphRegex = /<p[^>]*>([\\s\\S]*?)<\\/p>/gi;
+    const paragraphRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
     const paragraphs = content.match(paragraphRegex) || [];
     const cleanedParagraphs = paragraphs
-      .map(p => p.replace(/<[^>]+>/g, '').trim())
+      .map(p => {
+        let text = p.replace(/<[^>]+>/g, '').trim();
+        text = text.replace(/&nbsp;/g, ' ');
+        text = text.replace(/\s+/g, ' ');
+        return text;
+      })
       .filter(p => p.length > 10);
 
     return cleanedParagraphs.join(' ');
@@ -78,73 +84,60 @@ function extractRTWData(html: string, url: string): FishData {
       }
     }
 
-    const budowaContent = extractSectionContent(html, 'Budowa zewn\u0119trzna');
+    const budowaContent = extractSectionContent(html, 'Budowa zewnętrzna');
     if (budowaContent) {
-      data.description_pl = budowaContent.substring(0, 1000);
+      data.description_pl = budowaContent;
 
-      const lengthMatch = budowaContent.match(/(\d+)\s*cm/i);
-      if (lengthMatch) {
-        data.max_length = parseInt(lengthMatch[1]);
-        data.min_length = Math.round(parseInt(lengthMatch[1]) * 0.2);
+      const lengthMatches = budowaContent.match(/(\d+)\s*cm/gi);
+      if (lengthMatches && lengthMatches.length > 0) {
+        const lengths = lengthMatches.map(m => parseInt(m));
+        data.max_length = Math.max(...lengths);
+        data.min_length = Math.min(...lengths);
       }
 
-      const weightMatch = budowaContent.match(/(\d+(?:[.,]\d+)?)\s*kg/i);
-      if (weightMatch) {
-        data.max_weight = parseFloat(weightMatch[1].replace(',', '.'));
+      const weightMatches = budowaContent.match(/(\d+(?:[.,]\d+)?)\s*kg/gi);
+      if (weightMatches && weightMatches.length > 0) {
+        const weights = weightMatches.map(m => parseFloat(m.replace(',', '.')));
+        data.max_weight = Math.max(...weights);
       }
     }
 
-    const wystepowanieContent = extractSectionContent(html, 'Wyst\u0119powanie');
+    const wystepowanieContent = extractSectionContent(html, 'Występowanie');
     if (wystepowanieContent) {
-      data.habitat_pl = wystepowanieContent.substring(0, 500);
+      data.habitat_pl = wystepowanieContent;
     }
 
-    const trybZyciaContent = extractSectionContent(html, 'Tryb \u017cycia');
+    const trybZyciaContent = extractSectionContent(html, 'Tryb życia');
     if (trybZyciaContent) {
-      if (!data.habitat_pl) {
-        data.habitat_pl = trybZyciaContent.substring(0, 500);
-      } else {
-        data.habitat_pl += ' ' + trybZyciaContent.substring(0, 300);
-        data.habitat_pl = data.habitat_pl.substring(0, 800);
-      }
+      data.spawning_pl = trybZyciaContent;
     }
 
-    const odzywianieContent = extractSectionContent(html, 'Od\u017cywianie');
+    const odzywianieContent = extractSectionContent(html, 'Odżywianie');
     if (odzywianieContent) {
-      data.feeding_pl = odzywianieContent.substring(0, 500);
+      data.feeding_pl = odzywianieContent;
     }
 
-    const tarloContent = extractSectionContent(html, 'Tar\u0142o');
-    if (tarloContent) {
-      data.spawning_pl = tarloContent.substring(0, 500);
+    const legalSizeRegex = /Wymiar ochronny:\s*(?:do\s*)?(\d+)\s*cm/i;
+    const legalSizeMatch = html.match(legalSizeRegex);
+    if (legalSizeMatch) {
+      data.legal_size = parseInt(legalSizeMatch[1]);
     }
 
-    const wedkarstwoContent = extractSectionContent(html, 'W\u0119dkarstwo');
-    if (wedkarstwoContent) {
-      if (!data.spawning_pl) {
-        data.spawning_pl = wedkarstwoContent.substring(0, 500);
-      }
+    const protectionPeriodRegex = /Okres ochronny:\s*od\s*(\d+)\s+(stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|września|października|listopada|grudnia)\s*do\s*(\d+)\s+(stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|września|października|listopada|grudnia)/i;
+    const protectionPeriodMatch = html.match(protectionPeriodRegex);
+    if (protectionPeriodMatch) {
+      const monthMap: { [key: string]: string } = {
+        'stycznia': '01', 'lutego': '02', 'marca': '03', 'kwietnia': '04',
+        'maja': '05', 'czerwca': '06', 'lipca': '07', 'sierpnia': '08',
+        'września': '09', 'października': '10', 'listopada': '11', 'grudnia': '12'
+      };
 
-      const legalSizeMatch = wedkarstwoContent.match(/(?:wymiar ochronny|do)\s*(\d+)\s*cm/i);
-      if (legalSizeMatch) {
-        data.legal_size = parseInt(legalSizeMatch[1]);
-      }
+      const startMonth = monthMap[protectionPeriodMatch[2].toLowerCase()];
+      const endMonth = monthMap[protectionPeriodMatch[4].toLowerCase()];
 
-      const protectionPeriodMatch = wedkarstwoContent.match(/(\d+)\s+(stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|wrze\u015bnia|pa\u017adziernika|listopada|grudnia)\s*[-\u2013]\s*(\d+)\s+(stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|wrze\u015bnia|pa\u017adziernika|listopada|grudnia)/i);
-      if (protectionPeriodMatch) {
-        const monthMap: { [key: string]: string } = {
-          'stycznia': '01', 'lutego': '02', 'marca': '03', 'kwietnia': '04',
-          'maja': '05', 'czerwca': '06', 'lipca': '07', 'sierpnia': '08',
-          'wrze\u015bnia': '09', 'pa\u017adziernika': '10', 'listopada': '11', 'grudnia': '12'
-        };
-
-        const startMonth = monthMap[protectionPeriodMatch[2].toLowerCase()];
-        const endMonth = monthMap[protectionPeriodMatch[4].toLowerCase()];
-
-        if (startMonth && endMonth) {
-          data.protected_period_start = `2024-${startMonth}-${protectionPeriodMatch[1].padStart(2, '0')}`;
-          data.protected_period_end = `2024-${endMonth}-${protectionPeriodMatch[3].padStart(2, '0')}`;
-        }
+      if (startMonth && endMonth) {
+        data.protected_period_start = `2024-${startMonth}-${protectionPeriodMatch[1].padStart(2, '0')}`;
+        data.protected_period_end = `2024-${endMonth}-${protectionPeriodMatch[3].padStart(2, '0')}`;
       }
     }
 
@@ -161,10 +154,10 @@ function extractRTWData(html: string, url: string): FishData {
 
     if (data.name_pl) {
       const lowercaseName = data.name_pl.toLowerCase();
-      if (lowercaseName.includes('szczupak') || lowercaseName.includes('oko\u0144') ||
+      if (lowercaseName.includes('szczupak') || lowercaseName.includes('okoń') ||
           lowercaseName.includes('sandacz') || lowercaseName.includes('sum')) {
         data.group_name = 'predatory';
-      } else if (lowercaseName.includes('pstr\u0105g') || lowercaseName.includes('lipie\u0144')) {
+      } else if (lowercaseName.includes('pstrąg') || lowercaseName.includes('lipień')) {
         data.group_name = 'salmonid';
       } else {
         data.group_name = 'freshwater';
@@ -419,9 +412,9 @@ Deno.serve(async (req: Request) => {
     if (fishData.image_url) {
       const fishCode = fishData.name_pl
         ? fishData.name_pl.toLowerCase()
-            .replace(/\u0105/g, 'a').replace(/\u0107/g, 'c').replace(/\u0119/g, 'e')
-            .replace(/\u0142/g, 'l').replace(/\u0144/g, 'n').replace(/\u00f3/g, 'o')
-            .replace(/\u015b/g, 's').replace(/\u017a/g, 'z').replace(/\u017c/g, 'z')
+            .replace(/ą/g, 'a').replace(/ć/g, 'c').replace(/ę/g, 'e')
+            .replace(/ł/g, 'l').replace(/ń/g, 'n').replace(/ó/g, 'o')
+            .replace(/ś/g, 's').replace(/ź/g, 'z').replace(/ż/g, 'z')
             .replace(/[^a-z0-9]/g, '')
         : 'fish';
 
