@@ -771,7 +771,7 @@ function MainApp({
                       data-tutorial="start-fishing-button"
                       onClick={startNewSession}
                       disabled={isStartingSession}
-                      className={`w-full bg-white text-blue-600 rounded-xl py-4 px-6 font-bold shadow-lg hover:bg-blue-50 transform transition-all hover:scale-105 focus:ring-4 focus:ring-white/50 ${
+                      className={`w-full bg-white text-blue-600 rounded-xl py-4 px-6 font-bold text-2xl shadow-lg hover:bg-blue-50 transform transition-all hover:scale-105 focus:ring-4 focus:ring-white/50 ${
                         isStartingSession ? 'opacity-75 cursor-not-allowed' : ''
                       }`}
                     >
