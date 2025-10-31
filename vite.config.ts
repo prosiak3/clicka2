@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon-*.png', 'icon-*.svg', 'apple-touch-icon.svg'],
+      includeAssets: ['icon-*.png', 'icon-*.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Clicka - Better Fishing',
         short_name: 'Clicka',
