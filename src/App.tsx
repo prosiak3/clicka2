@@ -766,7 +766,7 @@ function MainApp({
                   </div>
                   <div className="relative">
                     <h2 className="text-2xl font-bold text-white mb-2">Ready to Fish?</h2>
-                    <p className="text-blue-100 mb-6">Track your catches, monitor conditions, and improve your success rate.</p>
+                    <p className="text-blue-100 mb-6">Add catches, improve your success rate in fishing.</p>
                     <button
                       data-tutorial="start-fishing-button"
                       onClick={startNewSession}
