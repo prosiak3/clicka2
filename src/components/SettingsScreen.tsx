@@ -240,13 +240,31 @@ export function SettingsScreen({ user, onLogout, setUser }: SettingsScreenProps 
               type="checkbox"
               checked={user.enable_quick_count || false}
               onChange={async (e) => {
+                const newValue = e.target.checked;
+                console.log('Updating enable_quick_count to:', newValue);
+
                 const { error } = await supabase
                   .from('user_profiles')
-                  .update({ enable_quick_count: e.target.checked })
+                  .update({ enable_quick_count: newValue })
                   .eq('id', user.id);
 
-                if (!error && setUser) {
-                  setUser({ ...user, enable_quick_count: e.target.checked });
+                if (error) {
+                  console.error('Error updating enable_quick_count:', error);
+                  alert('Failed to update setting: ' + error.message);
+                } else {
+                  console.log('Successfully updated enable_quick_count');
+
+                  const { data: updatedUser, error: fetchError } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                  if (!fetchError && updatedUser && setUser) {
+                    setUser({ ...user, enable_quick_count: updatedUser.enable_quick_count });
+                  } else if (setUser) {
+                    setUser({ ...user, enable_quick_count: newValue });
+                  }
                 }
               }}
               className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
