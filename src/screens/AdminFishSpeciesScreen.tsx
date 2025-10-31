@@ -101,8 +101,8 @@ export function AdminFishSpeciesScreen() {
       image_url: '',
       thumbnail_url: '',
       legal_size: 0,
-      protected_period_start: '',
-      protected_period_end: ''
+      protected_period_start: undefined,
+      protected_period_end: undefined
     });
     setIsCreating(true);
     setEditingId(null);
@@ -248,8 +248,8 @@ export function AdminFishSpeciesScreen() {
           image_url: fetchedData.image_url || formData.image_url || '',
           thumbnail_url: fetchedData.thumbnail_url || formData.thumbnail_url || '',
           legal_size: fetchedData.legal_size || formData.legal_size || 0,
-          protected_period_start: fetchedData.protected_period_start || formData.protected_period_start || '',
-          protected_period_end: fetchedData.protected_period_end || formData.protected_period_end || ''
+          protected_period_start: fetchedData.protected_period_start || formData.protected_period_start || undefined,
+          protected_period_end: fetchedData.protected_period_end || formData.protected_period_end || undefined
         });
 
         setFetchSuccess(true);
@@ -288,16 +288,22 @@ export function AdminFishSpeciesScreen() {
         return;
       }
 
+      const dataToSave = {
+        ...formData,
+        protected_period_start: formData.protected_period_start || null,
+        protected_period_end: formData.protected_period_end || null,
+      };
+
       if (isCreating) {
         const { error } = await supabase
           .from('fish_species')
-          .insert([formData]);
+          .insert([dataToSave]);
 
         if (error) throw error;
       } else if (editingId) {
         const { error } = await supabase
           .from('fish_species')
-          .update(formData)
+          .update(dataToSave)
           .eq('id', editingId);
 
         if (error) throw error;
