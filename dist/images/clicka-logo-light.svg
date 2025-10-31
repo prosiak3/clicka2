@@ -1,16 +1,16 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Fish body -->
-  <ellipse cx="512" cy="512" rx="300" ry="350" fill="#2563eb"/>
+  <!-- Fish body - lighter blue for light backgrounds -->
+  <ellipse cx="512" cy="512" rx="300" ry="350" fill="#3b82f6"/>
 
   <!-- Fish head/face area -->
   <ellipse cx="512" cy="400" rx="100" ry="120" fill="white"/>
 
   <!-- Eyes -->
-  <circle cx="490" cy="380" r="15" fill="#2563eb"/>
-  <circle cx="534" cy="380" r="15" fill="#2563eb"/>
+  <circle cx="490" cy="380" r="15" fill="#3b82f6"/>
+  <circle cx="534" cy="380" r="15" fill="#3b82f6"/>
 
   <!-- Smile -->
-  <path d="M 470 430 Q 512 450 554 430" stroke="#2563eb" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M 470 430 Q 512 450 554 430" stroke="#3b82f6" stroke-width="10" fill="none" stroke-linecap="round"/>
 
   <!-- Fishing hook line -->
   <line x1="512" y1="100" x2="512" y2="300" stroke="white" stroke-width="8" stroke-linecap="round"/>
@@ -21,7 +21,7 @@
 
   <!-- Tail fin -->
   <ellipse cx="512" cy="850" rx="180" ry="50" fill="white" opacity="0.9"/>
-  <ellipse cx="512" cy="840" rx="160" ry="45" fill="#2563eb" opacity="0.3"/>
+  <ellipse cx="512" cy="840" rx="160" ry="45" fill="#3b82f6" opacity="0.3"/>
 
   <!-- Side fins -->
   <ellipse cx="280" cy="480" rx="60" ry="100" fill="white" opacity="0.8" transform="rotate(-30 280 480)"/>
