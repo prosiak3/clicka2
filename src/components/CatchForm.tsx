@@ -46,7 +46,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
     if (topSpeciesList.length > 0) {
       if (lastSpecies) {
         const lastUsedSpecies = topSpeciesList.find(s => s.name[language] === lastSpecies);
-        if (lastUsedSpecies) {
+        if (lastUsedSpecies && lastUsedSpecies.minLength) {
           setSpecies(lastSpecies);
           setLength(lastUsedSpecies.minLength);
           return;
@@ -54,8 +54,10 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
       }
 
       const defaultSpecies = topSpeciesList[0];
-      setSpecies(defaultSpecies.name[language]);
-      setLength(defaultSpecies.minLength);
+      if (defaultSpecies.minLength) {
+        setSpecies(defaultSpecies.name[language]);
+        setLength(defaultSpecies.minLength);
+      }
     }
   }, [topSpeciesList, language, lastSpecies]);
 
@@ -110,14 +112,16 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   const handleSpeciesSelect = (selectedSpecies: FishSpecies) => {
     const speciesName = selectedSpecies.name[language];
     setSpecies(speciesName);
-    setLength(selectedSpecies.minLength);
+    if (selectedSpecies.minLength) {
+      setLength(selectedSpecies.minLength);
+    }
     setWeight(MIN_WEIGHT);
     setManualWeightEdit(false);
     setLastSpecies(speciesName);
   };
 
   useEffect(() => {
-    if (!manualWeightEdit && selectedSpeciesData) {
+    if (!manualWeightEdit && selectedSpeciesData && selectedSpeciesData.maxWeight) {
       const fullSpeciesData = fishSpeciesData.find(fs => {
         const nameMatch = fs.name_pl === species || fs.name_en === species || fs.name_de === species;
         return nameMatch;
@@ -129,7 +133,8 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
           fullSpeciesData.length_weight_data,
           MIN_WEIGHT
         );
-        setWeight(suggestedWeight);
+        const clampedWeight = Math.max(MIN_WEIGHT, Math.min(suggestedWeight, selectedSpeciesData.maxWeight));
+        setWeight(clampedWeight);
       }
     }
   }, [length, species, fishSpeciesData, manualWeightEdit, selectedSpeciesData]);
@@ -242,7 +247,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
               min={selectedSpeciesData.minLength}
               max={selectedSpeciesData.maxLength}
               step={1}
-              value={length}
+              value={Math.max(selectedSpeciesData.minLength, Math.min(length, selectedSpeciesData.maxLength))}
               onChange={(e) => setLength(parseFloat(e.target.value))}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
