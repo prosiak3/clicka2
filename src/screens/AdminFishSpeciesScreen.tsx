@@ -51,6 +51,7 @@ export function AdminFishSpeciesScreen() {
   const [isFetching, setIsFetching] = useState(false);
   const [fetchSuccess, setFetchSuccess] = useState(false);
   const [languageTab, setLanguageTab] = useState<LanguageTab>('pl');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
     loadSpecies();
@@ -108,6 +109,48 @@ export function AdminFishSpeciesScreen() {
     setInputMode('manual');
     setImportUrl('');
     setFetchSuccess(false);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      setIsUploadingImage(true);
+      setError(null);
+
+      const fishCode = formData.code || formData.name_pl
+        ?.toLowerCase()
+        .replace(/ą/g, 'a').replace(/ć/g, 'c').replace(/ę/g, 'e')
+        .replace(/ł/g, 'l').replace(/ń/g, 'n').replace(/ó/g, 'o')
+        .replace(/ś/g, 's').replace(/ź/g, 'z').replace(/ż/g, 'z')
+        .replace(/[^a-z0-9]/g, '')
+        || 'fish';
+
+      const fileName = `${fishCode}-${Date.now()}.${file.name.split('.').pop()}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from('fish-images')
+        .upload(fileName, file, {
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('fish-images')
+        .getPublicUrl(fileName);
+
+      setFormData({
+        ...formData,
+        image_url: publicUrlData.publicUrl,
+        thumbnail_url: publicUrlData.publicUrl,
+      });
+
+    } catch (err: any) {
+      console.error('Failed to upload image:', err);
+      setError(err.message || 'Failed to upload image');
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const fetchDataFromUrl = async () => {
@@ -515,29 +558,51 @@ export function AdminFishSpeciesScreen() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Image URL
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fish Image
                 </label>
-                <input
-                  type="text"
-                  value={formData.image_url || ''}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://example.com/fish-image.jpg"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Thumbnail URL
-                </label>
-                <input
-                  type="text"
-                  value={formData.thumbnail_url || ''}
-                  onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://example.com/fish-thumbnail.jpg"
-                />
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageUpload(file);
+                      }}
+                      disabled={isUploadingImage}
+                      className="flex-1 text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+                    />
+                    {isUploadingImage && (
+                      <div className="flex items-center text-blue-600">
+                        <Loader className="w-4 h-4 animate-spin mr-2" />
+                        Uploading...
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Or enter image URL manually:
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.image_url || ''}
+                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value, thumbnail_url: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://example.com/fish-image.jpg"
+                  />
+                  {formData.image_url && (
+                    <div className="mt-2">
+                      <img
+                        src={formData.image_url}
+                        alt="Preview"
+                        className="max-w-xs max-h-48 rounded-lg border border-gray-200"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from 'npm:@supabase/supabase-js@2.39.7';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -173,6 +174,58 @@ function extractGenericData(html: string, url: string): FishData {
   return data;
 }
 
+async function downloadAndUploadImage(imageUrl: string, fishCode: string): Promise<string | null> {
+  try {
+    console.log('[Image Upload] Downloading image from:', imageUrl);
+
+    const imageResponse = await fetch(imageUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; FishDataBot/1.0)',
+      },
+    });
+
+    if (!imageResponse.ok) {
+      console.error('[Image Upload] Failed to download image:', imageResponse.statusText);
+      return null;
+    }
+
+    const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+    const imageBlob = await imageResponse.blob();
+
+    const extension = contentType.split('/')[1] || 'jpg';
+    const fileName = `${fishCode}-${Date.now()}.${extension}`;
+
+    console.log('[Image Upload] Uploading to Supabase Storage:', fileName);
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data, error } = await supabase.storage
+      .from('fish-images')
+      .upload(fileName, imageBlob, {
+        contentType,
+        upsert: false,
+      });
+
+    if (error) {
+      console.error('[Image Upload] Upload error:', error);
+      return null;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('fish-images')
+      .getPublicUrl(fileName);
+
+    console.log('[Image Upload] Successfully uploaded to:', publicUrlData.publicUrl);
+    return publicUrlData.publicUrl;
+
+  } catch (error) {
+    console.error('[Image Upload] Error uploading image:', error);
+    return null;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -240,11 +293,32 @@ Deno.serve(async (req: Request) => {
 
     console.log('[Fetch Fish Data] Extracted data:', fishData);
 
+    if (fishData.image_url) {
+      const fishCode = fishData.name_pl
+        ? fishData.name_pl.toLowerCase()
+            .replace(/ą/g, 'a').replace(/ć/g, 'c').replace(/ę/g, 'e')
+            .replace(/ł/g, 'l').replace(/ń/g, 'n').replace(/ó/g, 'o')
+            .replace(/ś/g, 's').replace(/ź/g, 'z').replace(/ż/g, 'z')
+            .replace(/[^a-z0-9]/g, '')
+        : 'fish';
+
+      console.log('[Fetch Fish Data] Attempting to upload image for:', fishCode);
+      const uploadedImageUrl = await downloadAndUploadImage(fishData.image_url, fishCode);
+
+      if (uploadedImageUrl) {
+        fishData.image_url = uploadedImageUrl;
+        fishData.thumbnail_url = uploadedImageUrl;
+        console.log('[Fetch Fish Data] Image uploaded successfully');
+      } else {
+        console.log('[Fetch Fish Data] Image upload failed, keeping original URL');
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         data: fishData,
-        message: 'Data extracted successfully. Please review and edit before saving.',
+        message: 'Data extracted successfully. Images have been uploaded to your storage. Please review and edit before saving.',
       }),
       {
         status: 200,
