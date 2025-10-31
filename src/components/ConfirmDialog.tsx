@@ -8,7 +8,7 @@ interface ConfirmDialogProps {
   title: string;
   message: string;
   confirmText: string;
-  confirmColor?: 'red' | 'blue' | 'green';
+  confirmColor?: 'red' | 'blue' | 'green' | 'orange';
 }
 
 export function ConfirmDialog({
@@ -25,7 +25,8 @@ export function ConfirmDialog({
   const colorClasses = {
     red: 'bg-red-600 hover:bg-red-700',
     blue: 'bg-blue-600 hover:bg-blue-700',
-    green: 'bg-green-600 hover:bg-green-700'
+    green: 'bg-green-600 hover:bg-green-700',
+    orange: 'bg-orange-600 hover:bg-orange-700'
   };
 
   return (

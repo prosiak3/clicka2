@@ -48,6 +48,8 @@ export function SessionCard({
   const [isTrackingExpanded, setIsTrackingExpanded] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [showPauseConfirm, setShowPauseConfirm] = useState(false);
+  const [showResumeConfirm, setShowResumeConfirm] = useState(false);
   const [showTrackingRecords, setShowTrackingRecords] = useState(false);
   const [isWaypointMode, setIsWaypointMode] = useState(false);
   const settings = useSettings();
@@ -141,7 +143,7 @@ export function SessionCard({
             <div className="flex items-center gap-3 mb-4">
               {isPaused ? (
                 <button
-                  onClick={onResumeSession}
+                  onClick={() => setShowResumeConfirm(true)}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
                 >
                   <Play className="w-4 h-4" />
@@ -149,7 +151,7 @@ export function SessionCard({
                 </button>
               ) : (
                 <button
-                  onClick={onPauseSession}
+                  onClick={() => setShowPauseConfirm(true)}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors"
                 >
                   <Pause className="w-4 h-4" />
@@ -366,6 +368,32 @@ export function SessionCard({
         message="Are you sure you want to discard this session? All data will be lost."
         confirmText="Discard"
         confirmColor="red"
+      />
+
+      <ConfirmDialog
+        isOpen={showPauseConfirm}
+        onClose={() => setShowPauseConfirm(false)}
+        onConfirm={() => {
+          setShowPauseConfirm(false);
+          onPauseSession?.();
+        }}
+        title="Pause Session"
+        message="Are you sure you want to pause this session? The timer will stop until you resume."
+        confirmText="Pause"
+        confirmColor="orange"
+      />
+
+      <ConfirmDialog
+        isOpen={showResumeConfirm}
+        onClose={() => setShowResumeConfirm(false)}
+        onConfirm={() => {
+          setShowResumeConfirm(false);
+          onResumeSession?.();
+        }}
+        title="Resume Session"
+        message="Are you sure you want to resume this session? The timer will continue."
+        confirmText="Resume"
+        confirmColor="green"
       />
     </>
   );
