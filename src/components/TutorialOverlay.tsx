@@ -52,7 +52,7 @@ export function TutorialOverlay({
       }
     };
 
-    const timeout = setTimeout(updateHighlight, 100);
+    const timeout = setTimeout(updateHighlight, 300);
 
     const observer = new MutationObserver(updateHighlight);
     observer.observe(document.body, {
@@ -205,12 +205,11 @@ export function TutorialOverlay({
         className="fixed inset-0 z-[9999]"
         style={{ isolation: 'isolate', pointerEvents: 'none' }}
       >
-        <div
-          className="absolute inset-0 w-full h-full"
-          style={{ pointerEvents: 'auto', zIndex: 9999 }}
-          onClick={handleOverlayClick}
-        >
-          <svg className="absolute inset-0 w-full h-full">
+        {(highlightRect || !stepConfig?.targetElement) && (
+          <svg
+            className="absolute inset-0 w-full h-full"
+            style={{ pointerEvents: 'none' }}
+          >
             <defs>
               <mask id="tutorial-mask">
                 <rect x="0" y="0" width="100%" height="100%" fill="white" />
@@ -235,7 +234,7 @@ export function TutorialOverlay({
               mask="url(#tutorial-mask)"
             />
           </svg>
-        </div>
+        )}
 
         {highlightRect && (
           <div
