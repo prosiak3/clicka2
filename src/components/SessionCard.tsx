@@ -76,6 +76,26 @@ export function SessionCard({
 
   const isPaused = session.pauses?.some(p => !p.endTime);
 
+  // Calculate time between catches for just_count_mode
+  const timeBetweenCatches = session.catches.length > 1
+    ? session.catches.slice(1).map((catch_, index) => {
+        const prevCatch = session.catches[index];
+        return differenceInMinutes(new Date(catch_.timestamp), new Date(prevCatch.timestamp));
+      })
+    : [];
+
+  const avgTimeBetweenCatches = timeBetweenCatches.length > 0
+    ? Math.round(timeBetweenCatches.reduce((sum, time) => sum + time, 0) / timeBetweenCatches.length)
+    : 0;
+
+  const shortestTimeBetweenCatches = timeBetweenCatches.length > 0
+    ? Math.min(...timeBetweenCatches)
+    : 0;
+
+  const longestTimeBetweenCatches = timeBetweenCatches.length > 0
+    ? Math.max(...timeBetweenCatches)
+    : 0;
+
   const moonPhase = getMoonPhase(startTime);
   const timeOfDay = getTimeOfDay(startTime);
 
@@ -276,48 +296,99 @@ export function SessionCard({
               </div>
             </div>
 
-            {bestCatch && (
-              <div className="flex items-center gap-3 bg-green-50 p-4 rounded-xl">
-                <div className="p-2.5 bg-green-100 rounded-lg">
-                  <Trophy className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-green-900 font-medium">Best Catch</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-green-600">{bestCatch.weight}</span>
-                    <span className="text-sm text-green-700">kg</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {totalCatches > 0 && (
+            {session.just_count_mode ? (
               <>
-                <div className="flex items-center gap-3 bg-purple-50 p-4 rounded-xl">
-                  <div className="p-2.5 bg-purple-100 rounded-lg">
-                    <Ruler className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-purple-900 font-medium">Total Weight</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-purple-600">{totalWeight.toFixed(1)}</span>
-                      <span className="text-sm text-purple-700">kg</span>
+                {/* Time Between Catches Stats for Just Count Mode */}
+                {totalCatches > 1 && (
+                  <>
+                    <div className="flex items-center gap-3 bg-green-50 p-4 rounded-xl">
+                      <div className="p-2.5 bg-green-100 rounded-lg">
+                        <Clock className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-green-900 font-medium">Avg. Time</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold text-green-600">{avgTimeBetweenCatches}</span>
+                          <span className="text-sm text-green-700">min</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-3 bg-orange-50 p-4 rounded-xl">
-                  <div className="p-2.5 bg-orange-100 rounded-lg">
-                    <Fish className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-orange-900 font-medium">Average Weight</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-orange-600">{averageWeight.toFixed(1)}</span>
-                      <span className="text-sm text-orange-700">kg</span>
+                    <div className="flex items-center gap-3 bg-purple-50 p-4 rounded-xl">
+                      <div className="p-2.5 bg-purple-100 rounded-lg">
+                        <Clock className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-purple-900 font-medium">Shortest</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold text-purple-600">{shortestTimeBetweenCatches}</span>
+                          <span className="text-sm text-purple-700">min</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 bg-orange-50 p-4 rounded-xl">
+                      <div className="p-2.5 bg-orange-100 rounded-lg">
+                        <Clock className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-orange-900 font-medium">Longest</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold text-orange-600">{longestTimeBetweenCatches}</span>
+                          <span className="text-sm text-orange-700">min</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Weight-based Stats for Normal Mode */}
+                {bestCatch && (
+                  <div className="flex items-center gap-3 bg-green-50 p-4 rounded-xl">
+                    <div className="p-2.5 bg-green-100 rounded-lg">
+                      <Trophy className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-900 font-medium">Best Catch</p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold text-green-600">{bestCatch.weight}</span>
+                        <span className="text-sm text-green-700">kg</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {totalCatches > 0 && (
+                  <>
+                    <div className="flex items-center gap-3 bg-purple-50 p-4 rounded-xl">
+                      <div className="p-2.5 bg-purple-100 rounded-lg">
+                        <Ruler className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-purple-900 font-medium">Total Weight</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold text-purple-600">{totalWeight.toFixed(1)}</span>
+                          <span className="text-sm text-purple-700">kg</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 bg-orange-50 p-4 rounded-xl">
+                      <div className="p-2.5 bg-orange-100 rounded-lg">
+                        <Fish className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-orange-900 font-medium">Average Weight</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold text-orange-600">{averageWeight.toFixed(1)}</span>
+                          <span className="text-sm text-orange-700">kg</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>

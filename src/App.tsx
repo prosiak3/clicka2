@@ -756,7 +756,7 @@ function MainApp({
       <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${settings.theme === 'dark' ? 'dark' : ''}`}>
         <div className="max-w-lg mx-auto pb-11">
           {/* Header */}
-          <div className="sticky top-0 bg-white backdrop-blur-sm border-b z-10 shadow-sm">
+          <div className="sticky top-0 bg-white border-b z-10 shadow-sm">
             <div className="px-3 py-1.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
