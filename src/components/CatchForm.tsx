@@ -28,7 +28,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
 
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [species, setSpecies] = useState('');
-  const [length, setLength] = useState(0);
+  const [length, setLength] = useState(25);
   const [weight, setWeight] = useState(MIN_WEIGHT);
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,6 +68,14 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
     };
     loadFishData();
   }, []);
+
+  useEffect(() => {
+    if (selectedSpeciesData && selectedSpeciesData.minLength && selectedSpeciesData.maxLength) {
+      if (length < selectedSpeciesData.minLength || length > selectedSpeciesData.maxLength) {
+        setLength(selectedSpeciesData.minLength);
+      }
+    }
+  }, [selectedSpeciesData]);
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -247,7 +255,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
               min={selectedSpeciesData.minLength}
               max={selectedSpeciesData.maxLength}
               step={1}
-              value={Math.max(selectedSpeciesData.minLength, Math.min(length, selectedSpeciesData.maxLength))}
+              value={length}
               onChange={(e) => setLength(parseFloat(e.target.value))}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
