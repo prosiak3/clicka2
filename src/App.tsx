@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, Plus, ArrowLeft } from 'lucide-react';
+import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, Plus, ArrowLeft, Clock } from 'lucide-react';
 import { CatchForm } from './components/CatchForm';
 import { SessionList } from './components/SessionList';
 import { SessionCard } from './components/SessionCard';
@@ -608,6 +608,7 @@ function App() {
                 selectedSession={selectedSession}
                 setSelectedSession={setSelectedSession}
                 error={error}
+                setError={setError}
                 user={user!}
                 activeSession={activeSession}
                 showCatchForm={showCatchForm}
@@ -628,6 +629,7 @@ function App() {
                 remainingSeconds={remainingSeconds}
                 resetTimer={resetTimer}
                 setUser={setUser}
+                currentLocation={currentLocation}
                 selectionMode={selectionMode}
                 selectedSessions={selectedSessions}
                 onToggleSelection={handleToggleSelection}
@@ -653,6 +655,7 @@ interface MainAppProps {
   selectedSession: FishingSession | null;
   setSelectedSession: (session: FishingSession | null) => void;
   error: string | null;
+  setError: (error: string | null) => void;
   user: UserType;
   activeSession: FishingSession | null;
   showCatchForm: boolean;
@@ -673,6 +676,7 @@ interface MainAppProps {
   remainingSeconds: number;
   resetTimer: () => void;
   setUser: (user: UserType | null) => void;
+  currentLocation: Location | null;
   selectionMode: boolean;
   selectedSessions: string[];
   onToggleSelection: (sessionId: string) => void;
@@ -720,6 +724,7 @@ function MainApp({
   selectedSession,
   setSelectedSession,
   error,
+  setError,
   user,
   activeSession,
   showCatchForm,
@@ -740,6 +745,7 @@ function MainApp({
   remainingSeconds,
   resetTimer,
   setUser,
+  currentLocation,
   selectionMode,
   selectedSessions,
   onToggleSelection,
