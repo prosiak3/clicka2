@@ -723,15 +723,16 @@ function MainApp({
                     <button
                       onClick={startQuickCatch}
                       disabled={isStartingSession}
-                      className={`relative w-28 h-28 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transition-opacity ${
+                      className={`relative rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transition-opacity ${
                         isStartingSession ? 'opacity-75 cursor-not-allowed' : 'hover:opacity-90 active:opacity-80'
                       }`}
+                      style={{ width: '280px', height: '280px' }}
                     >
                       <div className="relative flex flex-col items-center justify-center h-full text-white">
                         {isStartingSession && loadingStep ? (
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
-                            <span className="text-xs font-medium">
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="animate-spin rounded-full border-b-2 border-white" style={{ width: '80px', height: '80px' }} />
+                            <span className="text-lg font-medium">
                               {loadingStep === 'checkingGPS' && 'GPS...'}
                               {loadingStep === 'gettingLocation' && 'Location...'}
                               {loadingStep === 'gettingWeather' && 'Weather...'}
@@ -741,9 +742,9 @@ function MainApp({
                           </div>
                         ) : (
                           <>
-                            <Fish className="w-10 h-10" />
-                            <span className="text-xs font-bold mt-1">Quick</span>
-                            <span className="text-xs font-medium">Catch</span>
+                            <Fish style={{ width: '100px', height: '100px' }} />
+                            <span className="text-2xl font-bold mt-2">Quick</span>
+                            <span className="text-xl font-medium">Catch</span>
                           </>
                         )}
                       </div>
