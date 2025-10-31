@@ -1,6 +1,5 @@
 import { format } from 'date-fns';
 import {
-  Fish,
   MapPin,
   ChevronDown,
   ChevronUp,
@@ -91,11 +90,8 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
                 className="flex-1 flex items-center justify-between hover:bg-gray-50 transition-colors rounded-lg"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="p-2.5 bg-blue-50 rounded-lg flex-shrink-0">
-                    <Fish className="w-5 h-5 text-blue-600" />
-                  </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-medium text-gray-900 truncate">{catch_.species}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 truncate">{catch_.species}</h3>
                     <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
                       <span>{format(catchDate, 'dd.MM.yyyy HH:mm')}</span>
                       <span className="text-gray-300">•</span>
