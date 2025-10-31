@@ -27,6 +27,7 @@ import {
   User as UserIcon,
   Fish,
   BookOpen,
+  Play,
 } from 'lucide-react';
 import { useSettings } from '../utils/settings';
 import { FishSpecies, User } from '../types';
