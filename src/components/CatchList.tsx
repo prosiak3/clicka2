@@ -282,6 +282,16 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
                   </div>
                 )}
 
+                {/* Description */}
+                {catch_.description && (
+                  <div className="px-4 pb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Catch Notes</h4>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{catch_.description}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Detailed Measurements */}
                 <div className="px-4 pb-4">
                   <div className="grid grid-cols-2 gap-3">

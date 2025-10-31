@@ -159,6 +159,7 @@ export const loadSessions = async (): Promise<FishingSession[]> => {
           location: catch_.location,
           weather: catch_.weather,
           photoUrls: catch_.photo_urls,
+          description: catch_.description,
           timestamp: catch_.timestamp,
         })),
       synced: true,
@@ -283,6 +284,7 @@ async function syncSessionToSupabase(session: FishingSession) {
             location: catch_.location,
             weather: catch_.weather,
             photo_urls: catch_.photoUrls,
+            description: catch_.description,
             timestamp: catch_.timestamp
           }))
         );

@@ -60,6 +60,7 @@ export interface FishCatch {
   location: Location;
   weather: WeatherData | null;
   photoUrls?: string[];
+  description?: string;
   timestamp: string;
 }
 

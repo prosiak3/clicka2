@@ -36,6 +36,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   const [fishSpeciesData, setFishSpeciesData] = useState<FishSpeciesDetails[]>([]);
   const [manualWeightEdit, setManualWeightEdit] = useState(false);
   const [initialSpeciesSet, setInitialSpeciesSet] = useState(false);
+  const [description, setDescription] = useState('');
 
   const selectedSpeciesData = selectedSpecies.find(s => s.name[language] === species);
 
@@ -189,6 +190,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
       },
       weather: weather || null,
       photoUrls: photos,
+      description: description.trim() || undefined,
       timestamp: new Date().toISOString()
     };
 
@@ -197,6 +199,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
     setLength(selectedSpeciesData.minLength);
     setWeight(MIN_WEIGHT);
     setPhotos([]);
+    setDescription('');
     setError(null);
     setManualWeightEdit(false);
     setInitialSpeciesSet(false);
@@ -373,6 +376,25 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
             </label>
           </div>
         )}
+      </div>
+
+      {/* Description Section */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Catch Description
+        </label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Add notes about this catch... (e.g., lure used, weather conditions, location details)"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          rows={4}
+          maxLength={500}
+        />
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-xs text-gray-500">Optional - Add details about this specific catch</span>
+          <span className="text-xs text-gray-400">{description.length}/500</span>
+        </div>
       </div>
 
       {/* Map */}

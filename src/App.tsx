@@ -792,47 +792,16 @@ function MainApp({
               <div className="space-y-6">
                 {/* Quick Catch and Just Count Buttons */}
                 <div className="flex justify-center items-center gap-4 pt-2">
-                  <div className="flex flex-col items-center gap-3">
-                    <button
-                      onClick={startQuickCatch}
-                      disabled={isStartingSession}
-                      className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
-                        isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-green-500/50 active:scale-95'
-                      } ${!isStartingSession ? 'animate-pulse' : ''}`}
-                    >
-                      <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
-                      <div className="relative flex flex-col items-center justify-center h-full text-white">
-                        {isStartingSession && loadingStep ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
-                            <span className="text-sm font-medium">
-                              {loadingStep === 'checkingGPS' && 'GPS...'}
-                              {loadingStep === 'gettingLocation' && 'Location...'}
-                              {loadingStep === 'gettingWeather' && 'Weather...'}
-                              {loadingStep === 'startingSession' && 'Starting...'}
-                              {loadingStep === 'ready' && 'Ready!'}
-                            </span>
-                          </div>
-                        ) : (
-                          <>
-                            <Fish className="w-12 h-12" />
-                            <span className="text-base font-bold mt-2">Quick</span>
-                            <span className="text-sm font-medium">Catch</span>
-                          </>
-                        )}
-                      </div>
-                    </button>
-                  </div>
-
-                  {user?.enable_quick_count && (
+                  {user?.enable_quick_count ? (
                     <div className="flex flex-col items-center gap-3">
                       <button
                         onClick={startJustCount}
                         disabled={isStartingSession}
                         className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl transform transition-all ${
                           isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-blue-500/50 active:scale-95'
-                        }`}
+                        } ${!isStartingSession ? 'animate-pulse' : ''}`}
                       >
+                        <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
                         <div className="relative flex flex-col items-center justify-center h-full text-white">
                           {isStartingSession && loadingStep ? (
                             <div className="flex flex-col items-center gap-2">
@@ -850,6 +819,38 @@ function MainApp({
                               <Plus className="w-12 h-12" />
                               <span className="text-base font-bold mt-2">Just</span>
                               <span className="text-sm font-medium">Count</span>
+                            </>
+                          )}
+                        </div>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-3">
+                      <button
+                        onClick={startQuickCatch}
+                        disabled={isStartingSession}
+                        className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
+                          isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-green-500/50 active:scale-95'
+                        } ${!isStartingSession ? 'animate-pulse' : ''}`}
+                      >
+                        <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
+                        <div className="relative flex flex-col items-center justify-center h-full text-white">
+                          {isStartingSession && loadingStep ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
+                              <span className="text-sm font-medium">
+                                {loadingStep === 'checkingGPS' && 'GPS...'}
+                                {loadingStep === 'gettingLocation' && 'Location...'}
+                                {loadingStep === 'gettingWeather' && 'Weather...'}
+                                {loadingStep === 'startingSession' && 'Starting...'}
+                                {loadingStep === 'ready' && 'Ready!'}
+                              </span>
+                            </div>
+                          ) : (
+                            <>
+                              <Fish className="w-12 h-12" />
+                              <span className="text-base font-bold mt-2">Quick</span>
+                              <span className="text-sm font-medium">Catch</span>
                             </>
                           )}
                         </div>

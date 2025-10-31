@@ -229,13 +229,13 @@ export function SettingsScreen({ user, onLogout, setUser }: SettingsScreenProps 
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900">Quick Count Mode</h3>
-              <p className="text-sm text-gray-500">Enable fast catch counting without details</p>
+              <p className="text-sm text-gray-500">Simplify the home screen for fast counting</p>
             </div>
           </div>
           <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer">
             <div>
-              <span className="font-medium text-gray-900">Enable Quick Count</span>
-              <p className="text-sm text-gray-500">Show "Just Count" button on home screen</p>
+              <span className="font-medium text-gray-900">Enable Quick Count Mode</span>
+              <p className="text-sm text-gray-500">When enabled, show only "Just Count" button on home screen</p>
             </div>
             <input
               type="checkbox"
