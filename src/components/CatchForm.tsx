@@ -147,6 +147,11 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
       return;
     }
 
+    if (!selectedSpeciesData.minLength || !selectedSpeciesData.maxLength || !selectedSpeciesData.maxWeight) {
+      setError('Species data is incomplete');
+      return;
+    }
+
     if (length < selectedSpeciesData.minLength || length > selectedSpeciesData.maxLength) {
       setError(`Length must be between ${selectedSpeciesData.minLength} and ${selectedSpeciesData.maxLength} cm`);
       return;
@@ -225,7 +230,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
         </div>
       )}
 
-      {selectedSpeciesData && (
+      {selectedSpeciesData && selectedSpeciesData.minLength && selectedSpeciesData.maxLength && selectedSpeciesData.maxWeight && (
         <>
           {/* Length Slider */}
           <div>
@@ -275,6 +280,28 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
               </div>
               <span className="text-sm text-gray-500">{selectedSpeciesData.maxWeight} kg</span>
             </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex-1 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!currentLocation || !selectedSpeciesData}
+              className={`flex-1 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors ${
+                !currentLocation || !selectedSpeciesData
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+              }`}
+            >
+              {!currentLocation ? 'Waiting for location...' : t.catch.saveButton}
+            </button>
           </div>
         </>
       )}
@@ -350,28 +377,6 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
           <WeatherDisplay weather={weather} />
         </div>
       )}
-
-      {/* Action Buttons */}
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="flex-1 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={!currentLocation || !selectedSpeciesData}
-          className={`flex-1 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors ${
-            !currentLocation || !selectedSpeciesData
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-          }`}
-        >
-          {!currentLocation ? 'Waiting for location...' : t.catch.saveButton}
-        </button>
-      </div>
     </form>
   );
 }

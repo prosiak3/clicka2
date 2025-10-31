@@ -1,10 +1,10 @@
 import { format } from 'date-fns';
-import { 
-  Fish, 
-  MapPin, 
-  ChevronDown, 
-  ChevronUp, 
-  Ruler, 
+import {
+  Fish,
+  MapPin,
+  ChevronDown,
+  ChevronUp,
+  Ruler,
   Scale,
   Clock,
   Calendar,
@@ -17,7 +17,9 @@ import {
   Trash2,
   Sunrise,
   Sunset,
-  Moon
+  Moon,
+  Satellite,
+  Antenna
 } from 'lucide-react';
 import { WeatherDisplay } from './WeatherDisplay';
 import { Map } from './Map';
