@@ -65,7 +65,7 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /^https:\/\/api\.openweathermap\.org\/.*/i,
+            urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'weather-api-cache',

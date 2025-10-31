@@ -27,7 +27,7 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
 
   const internetStatus = useOnlineStatus();
   const dbStatus = useDatabaseStatus();
-  const { status: weatherStatus, lastSuccessfulFetch } = useWeatherStatus();
+  const { status: weatherStatus, lastSuccessfulFetch, lastError } = useWeatherStatus();
 
   const [userInfo, setUserInfo] = useState<{ email: string; role: string } | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -83,12 +83,14 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
         return 'Database Connection Error';
       case 'weather':
         if (weatherStatus === 'available') {
-          return 'Weather API Available - Live data';
+          const lastFetchTime = lastSuccessfulFetch ? ` (Last: ${lastSuccessfulFetch.toLocaleTimeString()})` : '';
+          return `Weather API Available - Live data${lastFetchTime}`;
         }
         if (weatherStatus === 'checking') {
           return 'Checking Weather API...';
         }
-        return 'Weather API Unavailable - Using estimated data';
+        const errorInfo = lastError ? ` - ${lastError}` : '';
+        return `Weather API Unavailable${errorInfo} - Using estimated data`;
     }
   };
 

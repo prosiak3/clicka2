@@ -84,53 +84,89 @@ const getEnabledProviders = async () => {
 };
 
 const fetchFromOpenMeteo = async (lat: number, lon: number, apiUrl: string) => {
-  const response = await fetch(
-    `${apiUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,precipitation,precipitation_probability&wind_speed_unit=ms`
-  );
+  const requestUrl = `${apiUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,precipitation,precipitation_probability&wind_speed_unit=ms`;
+
+  console.log(`[Weather API] Fetching from Open-Meteo: ${requestUrl}`);
+
+  const response = await fetch(requestUrl, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+
+  console.log(`[Weather API] Response status: ${response.status} ${response.statusText}`);
 
   if (!response.ok) {
-    throw new Error(`Weather API request failed: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`[Weather API] Request failed with status ${response.status}: ${errorText}`);
+    throw new Error(`Weather API request failed: ${response.status} ${response.statusText}`);
   }
 
-  return await response.json();
+  const data = await response.json();
+  console.log(`[Weather API] Successfully fetched weather data:`, data);
+  return data;
 };
 
 export const getWeatherData = async (lat: number, lon: number): Promise<WeatherData> => {
+  const timestamp = new Date().toISOString();
+  console.log(`[Weather API] ${timestamp} - Starting weather data fetch for coordinates: ${lat}, ${lon}`);
+
   try {
     // Check cache first
     const cachedData = getFromCache(lat, lon);
     if (cachedData) {
+      console.log(`[Weather API] Returning cached data (age: ${Date.now() - weatherCache.get(getCacheKey(lat, lon))!.timestamp}ms)`);
       return cachedData;
     }
+
+    console.log(`[Weather API] No cached data found, fetching from API...`);
 
     // Rate limiting
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTime;
     if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-      await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+      const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+      console.log(`[Weather API] Rate limiting: waiting ${waitTime}ms before next request`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
     }
 
     lastRequestTime = Date.now();
 
     const providers = await getEnabledProviders();
+    console.log(`[Weather API] Found ${providers.length} enabled provider(s):`, providers.map(p => p.display_name));
+
     let data = null;
     let lastError = null;
 
     for (const provider of providers) {
       try {
+        console.log(`[Weather API] Trying provider: ${provider.display_name} (${provider.name})`);
+
         if (provider.name === 'open-meteo') {
           data = await fetchFromOpenMeteo(lat, lon, provider.api_url);
+          console.log(`[Weather API] Successfully fetched data from ${provider.display_name}`);
           break;
+        } else {
+          console.warn(`[Weather API] Unknown provider type: ${provider.name}`);
         }
       } catch (error) {
-        console.warn(`Provider ${provider.display_name} failed:`, error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`[Weather API] Provider ${provider.display_name} failed:`, {
+          error: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+          provider: provider.name,
+          apiUrl: provider.api_url
+        });
         lastError = error;
         continue;
       }
     }
 
     if (!data) {
-      throw lastError || new Error('All weather providers failed');
+      const errorMsg = lastError instanceof Error ? lastError.message : 'Unknown error';
+      console.error(`[Weather API] All ${providers.length} provider(s) failed. Last error:`, errorMsg);
+      throw lastError || new Error(`All weather providers failed. Tried ${providers.length} provider(s)`);
     }
 
     if (!data.current) {
@@ -200,10 +236,51 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
 
     // Save to cache
     saveToCache(lat, lon, weatherData);
+
+    // Save to localStorage as fallback
+    try {
+      localStorage.setItem('lastWeatherData', JSON.stringify({
+        data: weatherData,
+        timestamp: Date.now(),
+        location: { lat, lon }
+      }));
+      console.log(`[Weather API] Saved weather data to localStorage fallback`);
+    } catch (e) {
+      console.warn(`[Weather API] Failed to save to localStorage:`, e);
+    }
+
+    console.log(`[Weather API] Successfully completed weather data fetch`);
     return weatherData;
   } catch (error) {
-    console.error('Failed to fetch weather data:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`[Weather API] Failed to fetch weather data:`, {
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      coordinates: { lat, lon },
+      timestamp: new Date().toISOString()
+    });
+
+    // Try to use localStorage fallback
+    try {
+      const fallbackData = localStorage.getItem('lastWeatherData');
+      if (fallbackData) {
+        const parsed = JSON.parse(fallbackData);
+        const age = Date.now() - parsed.timestamp;
+        const ageMinutes = Math.floor(age / 60000);
+
+        if (age < 3600000) { // Less than 1 hour old
+          console.log(`[Weather API] Using localStorage fallback data (${ageMinutes} minutes old)`);
+          return parsed.data;
+        } else {
+          console.log(`[Weather API] localStorage fallback data too old (${ageMinutes} minutes), using estimation`);
+        }
+      }
+    } catch (e) {
+      console.warn(`[Weather API] Failed to retrieve localStorage fallback:`, e);
+    }
+
     // Return estimated weather data based on location and current time
+    console.log(`[Weather API] Falling back to estimated weather data`);
     return estimateWeather(new Date(), lat, lon);
   }
 };
