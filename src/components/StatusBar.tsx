@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Signal, Antenna, Database, MapPin, Satellite, User, Shield } from 'lucide-react';
+import { Signal, Antenna, Database, MapPin, Satellite, User, Shield, Cloud, CloudOff } from 'lucide-react';
 import { supabase } from '../utils/db';
 import { GpsPermissionDialog } from './GpsPermissionDialog';
 import { useGpsTracking } from '../hooks/useGpsTracking';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useDatabaseStatus } from '../hooks/useDatabaseStatus';
+import { useWeatherStatus } from '../hooks/useWeatherStatus';
 
 interface StatusBarProps {
   isSessionActive?: boolean;
@@ -23,6 +24,7 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
 
   const internetStatus = useOnlineStatus();
   const dbStatus = useDatabaseStatus();
+  const { status: weatherStatus, lastSuccessfulFetch } = useWeatherStatus();
 
   const [userInfo, setUserInfo] = useState<{ email: string; role: string } | null>(null);
 
@@ -49,13 +51,13 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
   }, []);
 
   // Helper function to get tooltip text based on status
-  const getTooltip = (type: 'gps' | 'internet' | 'database') => {
+  const getTooltip = (type: 'gps' | 'internet' | 'database' | 'weather') => {
     switch (type) {
       case 'gps':
         if (gpsStatus === 'connected' && coords) {
-          const sourceText = coords.source === 'gps' 
+          const sourceText = coords.source === 'gps'
             ? `GPS (${satelliteCount} satellites)`
-            : coords.source === 'network' 
+            : coords.source === 'network'
               ? 'Network Location'
               : 'IP Location';
           return `Location via ${sourceText} - Accuracy: ${Math.round(coords.accuracy)}m`;
@@ -74,6 +76,14 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
           return 'Connecting to Database...';
         }
         return 'Database Connection Error';
+      case 'weather':
+        if (weatherStatus === 'available') {
+          return 'Weather API Available - Live data';
+        }
+        if (weatherStatus === 'checking') {
+          return 'Checking Weather API...';
+        }
+        return 'Weather API Unavailable - Using estimated data';
     }
   };
 
@@ -155,7 +165,7 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
         </div>
 
         {/* Database Status */}
-        <div 
+        <div
           className={`flex items-center gap-1 cursor-help ${
             dbStatus === 'connected' ? 'text-green-600' :
             dbStatus === 'connecting' ? 'text-yellow-600' :
@@ -168,6 +178,29 @@ export function StatusBar({ isSessionActive, isPaused }: StatusBarProps) {
           }`} />
           {dbStatus === 'error' && (
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
+          )}
+        </div>
+
+        {/* Weather Status */}
+        <div
+          className={`flex items-center gap-1 cursor-help ${
+            weatherStatus === 'available' ? 'text-green-600' :
+            weatherStatus === 'checking' ? 'text-yellow-600' :
+            'text-orange-600'
+          }`}
+          title={getTooltip('weather')}
+        >
+          {weatherStatus === 'available' ? (
+            <Cloud className={`w-5 h-5 ${
+              weatherStatus === 'checking' ? 'animate-pulse' : ''
+            }`} />
+          ) : (
+            <CloudOff className={`w-5 h-5 ${
+              weatherStatus === 'checking' ? 'animate-pulse' : ''
+            }`} />
+          )}
+          {weatherStatus === 'unavailable' && (
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-ping" />
           )}
         </div>
       </div>

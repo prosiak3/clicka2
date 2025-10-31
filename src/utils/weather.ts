@@ -1,5 +1,6 @@
 import { WeatherData, CloudType, CloudLayers } from '../types';
 import { supabase } from './db';
+import { estimateWeather } from './weatherEstimation';
 
 const WEATHER_API_URL = 'https://api.open-meteo.com/v1/forecast';
 
@@ -202,8 +203,8 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
     return weatherData;
   } catch (error) {
     console.error('Failed to fetch weather data:', error);
-    // Return default weather data if fetch fails
-    return getDefaultWeatherData();
+    // Return estimated weather data based on location and current time
+    return estimateWeather(new Date(), lat, lon);
   }
 };
 
