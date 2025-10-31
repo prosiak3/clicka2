@@ -137,8 +137,8 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!currentLocation || !weather) {
-      setError('Location or weather data not available');
+    if (!currentLocation) {
+      setError('Location data not available');
       return;
     }
 
@@ -168,7 +168,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
         source: currentLocation.source,
         accuracy: currentLocation.accuracy
       },
-      weather,
+      weather: weather || null,
       photoUrls: photos,
       timestamp: new Date().toISOString()
     };
@@ -362,14 +362,14 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
         </button>
         <button
           type="submit"
-          disabled={!currentLocation || !weather || !selectedSpeciesData}
+          disabled={!currentLocation || !selectedSpeciesData}
           className={`flex-1 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors ${
-            !currentLocation || !weather || !selectedSpeciesData
+            !currentLocation || !selectedSpeciesData
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
           }`}
         >
-          {!currentLocation || !weather ? 'Waiting for location...' : t.catch.saveButton}
+          {!currentLocation ? 'Waiting for location...' : t.catch.saveButton}
         </button>
       </div>
     </form>

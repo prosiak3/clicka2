@@ -106,6 +106,7 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
   // Calculate cloud cover distribution
   const cloudCoverStats = filteredSessions.reduce((stats, session) => {
     session.catches.forEach(catch_ => {
+      if (!catch_.weather) return;
       const cover = catch_.weather.cloudCover;
       if (cover <= 25) stats.clear++;
       else if (cover <= 50) stats.partlyCloudy++;
@@ -118,6 +119,7 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
   // Calculate cloud type distribution
   const cloudTypeStats = filteredSessions.reduce((stats, session) => {
     session.catches.forEach(catch_ => {
+      if (!catch_.weather) return;
       const cloudType = catch_.weather.dominantCloudType || 'clear';
       stats[cloudType] = (stats[cloudType] || 0) + 1;
     });
@@ -127,6 +129,7 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
   // Calculate temperature distribution
   const tempStats = filteredSessions.reduce((stats, session) => {
     session.catches.forEach(catch_ => {
+      if (!catch_.weather) return;
       const temp = catch_.weather.temperature;
       const hour = new Date(catch_.timestamp).getHours();
       const month = new Date(catch_.timestamp).getMonth();

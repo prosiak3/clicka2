@@ -166,42 +166,46 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
                     </p>
                   </div>
 
-                  <div className="p-3 bg-purple-50 rounded-lg">
-                    <div className="flex items-center gap-2 text-purple-600 mb-1">
-                      <Thermometer className="w-4 h-4" />
-                      <span className="text-sm font-medium">Temperature</span>
-                    </div>
-                    <p className="text-lg font-medium text-purple-900">
-                      {catch_.weather.temperature}°C
-                    </p>
-                  </div>
+                  {catch_.weather && (
+                    <>
+                      <div className="p-3 bg-purple-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-purple-600 mb-1">
+                          <Thermometer className="w-4 h-4" />
+                          <span className="text-sm font-medium">Temperature</span>
+                        </div>
+                        <p className="text-lg font-medium text-purple-900">
+                          {catch_.weather.temperature}°C
+                        </p>
+                      </div>
 
-                  <div className="p-3 bg-orange-50 rounded-lg">
-                    <div className="flex items-center gap-2 text-orange-600 mb-1">
-                      <Wind className="w-4 h-4" />
-                      <span className="text-sm font-medium">Wind</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-medium text-orange-900">
-                        {catch_.weather.windSpeed} m/s
-                      </span>
-                      <Navigation 
-                        className="w-4 h-4 text-orange-600" 
-                        style={{ 
-                          transform: `rotate(${
-                            catch_.weather.windDirection === 'N' ? 0 :
-                            catch_.weather.windDirection === 'NE' ? 45 :
-                            catch_.weather.windDirection === 'E' ? 90 :
-                            catch_.weather.windDirection === 'SE' ? 135 :
-                            catch_.weather.windDirection === 'S' ? 180 :
-                            catch_.weather.windDirection === 'SW' ? 225 :
-                            catch_.weather.windDirection === 'W' ? 270 :
-                            catch_.weather.windDirection === 'NW' ? 315 : 0
-                          }deg)`
-                        }} 
-                      />
-                    </div>
-                  </div>
+                      <div className="p-3 bg-orange-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-orange-600 mb-1">
+                          <Wind className="w-4 h-4" />
+                          <span className="text-sm font-medium">Wind</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-medium text-orange-900">
+                            {catch_.weather.windSpeed} m/s
+                          </span>
+                          <Navigation
+                            className="w-4 h-4 text-orange-600"
+                            style={{
+                              transform: `rotate(${
+                                catch_.weather.windDirection === 'N' ? 0 :
+                                catch_.weather.windDirection === 'NE' ? 45 :
+                                catch_.weather.windDirection === 'E' ? 90 :
+                                catch_.weather.windDirection === 'SE' ? 135 :
+                                catch_.weather.windDirection === 'S' ? 180 :
+                                catch_.weather.windDirection === 'SW' ? 225 :
+                                catch_.weather.windDirection === 'W' ? 270 :
+                                catch_.weather.windDirection === 'NW' ? 315 : 0
+                              }deg)`
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Location Map */}
@@ -222,10 +226,12 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
                 </div>
 
                 {/* Weather Details */}
-                <div className="px-4 pb-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Weather Conditions</h4>
-                  <WeatherDisplay weather={catch_.weather} />
-                </div>
+                {catch_.weather && (
+                  <div className="px-4 pb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Weather Conditions</h4>
+                    <WeatherDisplay weather={catch_.weather} />
+                  </div>
+                )}
 
                 {/* Photos */}
                 {catch_.photoUrls && catch_.photoUrls.length > 0 && (

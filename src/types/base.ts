@@ -57,7 +57,7 @@ export interface FishCatch {
   length: number;
   weight: number;
   location: Location;
-  weather: WeatherData;
+  weather: WeatherData | null;
   photoUrls?: string[];
   timestamp: string;
 }
