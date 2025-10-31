@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, Plus, Trash2, Save, Key, ArrowUp, ArrowDown, Power, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react';
+import { Cloud, Plus, Trash2, Save, Key, ArrowUp, ArrowDown, Power, ExternalLink, CheckCircle, AlertCircle, Clock, Activity, Settings } from 'lucide-react';
 import { supabase } from '../utils/db';
 
 interface WeatherApiProvider {
@@ -10,6 +10,11 @@ interface WeatherApiProvider {
   requires_key: boolean;
   enabled: boolean;
   priority: number;
+  last_sync_at: string | null;
+  last_successful_sync_at: string | null;
+  sync_interval_minutes: number;
+  sync_error_count: number;
+  last_sync_error: string | null;
 }
 
 interface WeatherApiKey {
@@ -26,6 +31,7 @@ interface OAuthConfig {
   is_configured: boolean;
   token_expires_at: string | null;
   last_token_refresh: string | null;
+  last_data_fetch_at: string | null;
   redirect_uri: string;
   scopes: string[];
 }
@@ -37,6 +43,7 @@ export function AdminWeatherApiScreen() {
   const [loading, setLoading] = useState(true);
   const [editingKey, setEditingKey] = useState<{ providerId: string; key: string } | null>(null);
   const [editingOAuth, setEditingOAuth] = useState<{ providerId: string; clientId: string; clientSecret: string; redirectUri: string } | null>(null);
+  const [editingSyncInterval, setEditingSyncInterval] = useState<{ providerId: string; interval: number } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -203,6 +210,44 @@ export function AdminWeatherApiScreen() {
     }, 5000);
   };
 
+  const saveSyncInterval = async (providerId: string, intervalMinutes: number) => {
+    try {
+      if (intervalMinutes < 1) {
+        alert('Sync interval must be at least 1 minute');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('weather_api_providers')
+        .update({ sync_interval_minutes: intervalMinutes })
+        .eq('id', providerId);
+
+      if (error) throw error;
+
+      setEditingSyncInterval(null);
+      await loadData();
+    } catch (error) {
+      console.error('Error saving sync interval:', error);
+    }
+  };
+
+  const formatTimeAgo = (dateString: string | null) => {
+    if (!dateString) return 'Never';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -251,7 +296,11 @@ export function AdminWeatherApiScreen() {
             const oauthConfig = oauthConfigs.find(c => c.provider_id === provider.id);
             const isEditing = editingKey?.providerId === provider.id;
             const isEditingOAuth = editingOAuth?.providerId === provider.id;
+            const isEditingSyncInt = editingSyncInterval?.providerId === provider.id;
             const isNetatmo = provider.name === 'netatmo';
+            const isConnected = isNetatmo ? oauthConfig?.is_configured : !provider.requires_key || !!providerKey;
+            const hasRecentSync = provider.last_successful_sync_at &&
+              (new Date().getTime() - new Date(provider.last_successful_sync_at).getTime()) < provider.sync_interval_minutes * 60000 * 2;
 
             return (
               <div
@@ -272,8 +321,36 @@ export function AdminWeatherApiScreen() {
                           Free
                         </span>
                       )}
+                      {isConnected && (
+                        <span className={`px-2 py-1 text-xs font-medium rounded flex items-center gap-1 ${
+                          hasRecentSync
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          <Activity className="w-3 h-3" />
+                          {hasRecentSync ? 'Active' : 'Idle'}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600">{provider.api_url}</p>
+
+                    <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        <span>Last sync: {formatTimeAgo(provider.last_successful_sync_at)}</span>
+                      </div>
+                      {isNetatmo && oauthConfig?.last_data_fetch_at && (
+                        <div className="flex items-center gap-1">
+                          <Activity className="w-3 h-3" />
+                          <span>Last data: {formatTimeAgo(oauthConfig.last_data_fetch_at)}</span>
+                        </div>
+                      )}
+                      {provider.sync_error_count > 0 && (
+                        <span className="text-red-600 font-medium">
+                          {provider.sync_error_count} error{provider.sync_error_count > 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -473,6 +550,74 @@ export function AdminWeatherApiScreen() {
                         </button>
                       </div>
                     )}
+                  </div>
+                )}
+
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Settings className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700">Sync Frequency</span>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-2">
+                    How often to fetch weather data from this provider (in minutes)
+                  </p>
+                  {isEditingSyncInt ? (
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="number"
+                        min="1"
+                        max="1440"
+                        value={editingSyncInterval.interval}
+                        onChange={(e) =>
+                          setEditingSyncInterval({
+                            providerId: provider.id,
+                            interval: parseInt(e.target.value) || 1
+                          })
+                        }
+                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      />
+                      <span className="text-sm text-gray-600">minutes</span>
+                      <button
+                        onClick={() => saveSyncInterval(provider.id, editingSyncInterval.interval)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm"
+                      >
+                        <Save className="w-4 h-4" />
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingSyncInterval(null)}
+                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">
+                        Every <strong>{provider.sync_interval_minutes}</strong> minute{provider.sync_interval_minutes !== 1 ? 's' : ''}
+                      </span>
+                      <button
+                        onClick={() =>
+                          setEditingSyncInterval({
+                            providerId: provider.id,
+                            interval: provider.sync_interval_minutes
+                          })
+                        }
+                        className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {provider.last_sync_error && (
+                  <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <AlertCircle className="w-4 h-4 text-red-600" />
+                      <span className="text-sm font-medium text-red-900">Last Error</span>
+                    </div>
+                    <p className="text-xs text-red-700">{provider.last_sync_error}</p>
                   </div>
                 )}
               </div>
