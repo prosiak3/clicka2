@@ -644,9 +644,6 @@ function MainApp({
                       )}
                     </div>
                   </button>
-                  <p className="text-xs text-gray-400 text-center max-w-xs">
-                    Tap to quickly add a catch with automatic session start
-                  </p>
                 </div>
 
                 {/* Divider */}
