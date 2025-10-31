@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon-*.png', 'icon-*.svg', 'apple-touch-icon.png'],
+      includeAssets: ['icon-*.png', 'icon-*.svg', 'apple-touch-icon.png', 'images/clicka-logo.png', 'images/clicka-logo-light.png'],
       manifest: {
         name: 'Clicka - Better Fishing',
         short_name: 'Clicka',
@@ -58,7 +58,7 @@ export default defineConfig({
             purpose: 'any'
           },
           {
-            src: '/icon-192x192.png',
+            src: '/icon-192x192-maskable.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'maskable'
@@ -76,7 +76,7 @@ export default defineConfig({
             purpose: 'any'
           },
           {
-            src: '/icon-512x512.png',
+            src: '/icon-512x512-maskable.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
