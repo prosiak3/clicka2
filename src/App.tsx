@@ -322,12 +322,28 @@ function App() {
           source: currentLocation.source,
           accuracy: currentLocation.accuracy
         }],
-        catches: [],
+        catches: [{
+          id: crypto.randomUUID(),
+          sessionId: '',
+          species: 'Count',
+          length: 0,
+          weight: 0,
+          location: {
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+            timestamp: now,
+            source: currentLocation.source,
+            accuracy: currentLocation.accuracy
+          },
+          weather: currentWeather,
+          timestamp: now
+        }],
         synced: false,
         tracking_enabled: true,
-        tracking_interval: settings.tracking.interval,
-        just_count_mode: true
+        tracking_interval: settings.tracking.interval
       };
+
+      newSession.catches[0].sessionId = newSession.id;
 
       setSessions(prev => [newSession, ...prev]);
       setActiveSession(newSession);
@@ -886,123 +902,65 @@ function MainApp({
 
             {activeTab === 'sessions' && activeSession && (
               <div className="space-y-6">
-                {activeSession.just_count_mode ? (
-                  <div className="flex flex-col items-center justify-center space-y-6">
+                {/* Add Catch Button and Catch Counter */}
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute left-0 flex items-center justify-center" style={{ width: 'calc(50% - 80px)' }}>
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-lg border border-blue-200">
+                      <div className="flex flex-col items-center">
+                        <div className="text-6xl font-bold text-blue-900">
+                          {activeSession.catches?.length || 0}
+                        </div>
+                        <div className="text-xs font-semibold text-blue-700 mt-2">
+                          {t.session.catchesInSession}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-2">
                     <button
                       onClick={async () => {
                         await playReelSound();
-                        const now = new Date().toISOString();
-                        const newCatch: FishCatch = {
-                          id: crypto.randomUUID(),
-                          sessionId: activeSession.id,
-                          species: 'Count',
-                          length: 0,
-                          weight: 0,
-                          location: currentLocation || {
-                            latitude: 0,
-                            longitude: 0,
-                            timestamp: now,
-                            source: 'gps'
-                          },
-                          weather: activeSession.weather,
-                          timestamp: now
-                        };
-
-                        const updatedSession = {
-                          ...activeSession,
-                          catches: [...activeSession.catches, newCatch]
-                        };
-
-                        setSessions(prev => prev.map(s => s.id === activeSession.id ? updatedSession : s));
-                        setActiveSession(updatedSession);
-
-                        try {
-                          await saveSession(updatedSession);
-                        } catch (error) {
-                          console.error('Failed to save catch:', error);
-                        }
+                        setShowCatchForm(!showCatchForm);
                       }}
-                      className="relative w-48 h-48 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-blue-500/50 active:scale-95"
+                      disabled={showCatchForm}
+                      className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 ${
+                        showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-2xl hover:shadow-green-500/50 active:scale-95 animate-pulse-slow'
+                      }`}
+                      style={{
+                        animation: showCatchForm ? 'none' : 'pulse-glow 2s ease-in-out infinite'
+                      }}
                     >
-                      <div className="absolute inset-0 rounded-full bg-blue-400/20 animate-ping" style={{ animationDuration: '3s' }} />
+                      <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" style={{ animationDuration: '3s' }} />
                       <div className="relative flex flex-col items-center justify-center h-full text-white">
-                        <Fish className="w-16 h-16" />
-                        <span className="text-4xl font-bold mt-4">{activeSession.catches?.length || 0}</span>
-                        <span className="text-sm font-medium mt-2">Just Count</span>
+                        <Fish className="w-14 h-14" />
+                        <span className="text-base font-bold mt-3">{t.session.addCatch.split(' ')[0]}</span>
+                        <span className="text-sm font-medium">{t.session.addCatch.split(' ')[1] || 'Catch'}</span>
                       </div>
                     </button>
+                  </div>
+                </div>
 
-                    <SessionCard
-                      session={activeSession}
-                      isActive={true}
-                      onEndSession={handleEndSession}
-                      onDiscardSession={handleDiscardSession}
-                      onPauseSession={handlePauseSession}
-                      onResumeSession={handleResumeSession}
-                      onAddWaypoint={handleAddWaypoint}
+                {/* Add Catch Form */}
+                {showCatchForm && (
+                  <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
+                    <CatchForm
+                      onSave={handleCatchSave}
+                      onCancel={() => setShowCatchForm(false)}
+                      selectedSpecies={settings.fishSpecies.filter(s => s.enabled)}
                     />
                   </div>
-                ) : (
-                  <>
-                    <div className="relative flex items-center justify-center">
-                      <div className="absolute left-0 flex items-center justify-center" style={{ width: 'calc(50% - 80px)' }}>
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-lg border border-blue-200">
-                          <div className="flex flex-col items-center">
-                            <div className="text-6xl font-bold text-blue-900">
-                              {activeSession.catches?.length || 0}
-                            </div>
-                            <div className="text-xs font-semibold text-blue-700 mt-2">
-                              {t.session.catchesInSession}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col items-center gap-2">
-                        <button
-                          onClick={async () => {
-                            await playReelSound();
-                            setShowCatchForm(!showCatchForm);
-                          }}
-                          disabled={showCatchForm}
-                          className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 ${
-                            showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-2xl hover:shadow-green-500/50 active:scale-95 animate-pulse-slow'
-                          }`}
-                          style={{
-                            animation: showCatchForm ? 'none' : 'pulse-glow 2s ease-in-out infinite'
-                          }}
-                        >
-                          <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" style={{ animationDuration: '3s' }} />
-                          <div className="relative flex flex-col items-center justify-center h-full text-white">
-                            <Fish className="w-14 h-14" />
-                            <span className="text-base font-bold mt-3">{t.session.addCatch.split(' ')[0]}</span>
-                            <span className="text-sm font-medium">{t.session.addCatch.split(' ')[1] || 'Catch'}</span>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-
-                    {showCatchForm && (
-                      <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
-                        <CatchForm
-                          onSave={handleCatchSave}
-                          onCancel={() => setShowCatchForm(false)}
-                          selectedSpecies={settings.fishSpecies.filter(s => s.enabled)}
-                        />
-                      </div>
-                    )}
-
-                    <SessionCard
-                      session={activeSession}
-                      isActive={true}
-                      onEndSession={handleEndSession}
-                      onDiscardSession={handleDiscardSession}
-                      onPauseSession={handlePauseSession}
-                      onResumeSession={handleResumeSession}
-                      onAddWaypoint={handleAddWaypoint}
-                    />
-                  </>
                 )}
+
+                <SessionCard 
+                  session={activeSession} 
+                  isActive={true}
+                  onEndSession={handleEndSession}
+                  onDiscardSession={handleDiscardSession}
+                  onPauseSession={handlePauseSession}
+                  onResumeSession={handleResumeSession}
+                  onAddWaypoint={handleAddWaypoint}
+                />
               </div>
             )}
 
