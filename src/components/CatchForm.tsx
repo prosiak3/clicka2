@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Camera, X } from 'lucide-react';
+import { Camera, X, Fish } from 'lucide-react';
 import { Map } from './Map';
 import { WeatherDisplay } from './WeatherDisplay';
 import { getWeatherData } from '../utils/weather';
@@ -220,21 +220,19 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
             key={s.id}
             type="button"
             onClick={() => handleSpeciesSelect(s)}
-            className={`p-3 rounded-xl border-2 transition-all ${
+            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
               s.name[language] === species
                 ? 'bg-blue-50 border-blue-500 shadow-md'
                 : 'bg-white border-gray-200 hover:border-blue-300'
             }`}
           >
-            <div className="text-center">
-              <div className={`text-base font-semibold ${
-                s.name[language] === species ? 'text-blue-700' : 'text-gray-700'
-              }`}>
-                {s.name[language]}
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {s.minLength}-{s.maxLength} cm / {s.maxWeight} kg
-              </div>
+            <Fish className={`w-8 h-8 ${
+              s.name[language] === species ? 'text-blue-600' : 'text-gray-400'
+            }`} />
+            <div className={`text-sm font-semibold text-center ${
+              s.name[language] === species ? 'text-blue-700' : 'text-gray-700'
+            }`}>
+              {s.name[language]}
             </div>
           </button>
         ))}

@@ -90,38 +90,26 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
                 onClick={() => toggleCatchDetails(catch_.id)}
                 className="flex-1 flex items-center justify-between hover:bg-gray-50 transition-colors rounded-lg"
               >
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="p-2.5 bg-blue-50 rounded-lg flex-shrink-0">
                     <Fish className="w-5 h-5 text-blue-600" />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">{catch_.species}</h3>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Calendar className="w-4 h-4" />
-                      <span>{format(catchDate, 'dd.MM.yyyy')}</span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-medium text-gray-900 truncate">{catch_.species}</h3>
+                    <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+                      <span>{format(catchDate, 'dd.MM.yyyy HH:mm')}</span>
                       <span className="text-gray-300">•</span>
-                      <Clock className="w-4 h-4" />
-                      <span>{format(catchDate, 'HH:mm')}</span>
-                      <span className="text-gray-300">•</span>
-                      <div className="flex items-center gap-1">
-                        {timeOfDay.icon}
-                        <span>{timeOfDay.name}</span>
-                      </div>
+                      <span className="flex items-center gap-1"><Ruler className="w-3 h-3" />{catch_.length}cm</span>
+                      <span className="flex items-center gap-1"><Scale className="w-3 h-3" />{catch_.weight}kg</span>
+                      {catch_.photoUrls && catch_.photoUrls.length > 0 && (
+                        <>
+                        <span className="text-gray-300">•</span>
+                        <span className="flex items-center gap-1"><Camera className="w-3 h-3" />{catch_.photoUrls.length}</span>
+                        </>
+                      )}
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Scale className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium text-gray-900">{catch_.weight} kg</span>
-                    </div>
-                    <div className="flex items-center justify-end gap-1 mt-1">
-                      <Ruler className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600">{catch_.length} cm</span>
-                    </div>
-                  </div>
-                  <div className="ml-2">
+                  <div className="flex-shrink-0">
                     {isExpanded ? (
                       <ChevronUp className="w-5 h-5 text-gray-400" />
                     ) : (
@@ -133,7 +121,7 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
               {onDeleteCatch && (
                 <button
                   onClick={() => handleDelete(catch_.id)}
-                  className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
