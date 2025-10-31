@@ -70,14 +70,6 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   }, []);
 
   useEffect(() => {
-    if (selectedSpeciesData && selectedSpeciesData.minLength && selectedSpeciesData.maxLength) {
-      if (length < selectedSpeciesData.minLength || length > selectedSpeciesData.maxLength) {
-        setLength(selectedSpeciesData.minLength);
-      }
-    }
-  }, [selectedSpeciesData]);
-
-  useEffect(() => {
     const fetchWeather = async () => {
       try {
         setLoading(true);
