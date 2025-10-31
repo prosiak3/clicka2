@@ -39,14 +39,17 @@ export function TutorialOverlay({
     }
 
     const updateHighlight = () => {
+      console.log('[Tutorial] Looking for element:', stepConfig.targetElement);
       const element = document.querySelector(stepConfig.targetElement!) as HTMLElement;
       if (element) {
+        console.log('[Tutorial] Element found, scrolling into view');
         const rect = element.getBoundingClientRect();
         setHighlightRect(rect);
         setTargetElement(element);
 
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else {
+        console.log('[Tutorial] Element not found');
         setHighlightRect(null);
         setTargetElement(null);
       }
