@@ -909,39 +909,40 @@ function MainApp({
                   <div className="flex justify-center items-center py-8">
                     <button
                       onClick={async () => {
-                        await playReelSound();
-                        const now = new Date().toISOString();
-                        const newCatch: FishCatch = {
-                          id: crypto.randomUUID(),
-                          sessionId: activeSession.id,
-                          species: 'Count',
-                          length: 0,
-                          weight: 0,
-                          location: currentLocation ? {
-                            latitude: currentLocation.latitude,
-                            longitude: currentLocation.longitude,
-                            timestamp: now,
-                            source: currentLocation.source,
-                            accuracy: currentLocation.accuracy
-                          } : activeSession.locations[activeSession.locations.length - 1],
-                          weather: activeSession.weather,
-                          timestamp: now
-                        };
-
-                        const updatedSession = {
-                          ...activeSession,
-                          catches: [...activeSession.catches, newCatch]
-                        };
-
-                        setActiveSession(updatedSession);
-                        setSessions(prev => prev.map(s => s.id === activeSession.id ? updatedSession : s));
-
                         try {
+                          await playReelSound();
+                          const now = new Date().toISOString();
+                          const newCatch: FishCatch = {
+                            id: crypto.randomUUID(),
+                            sessionId: activeSession.id,
+                            species: 'Count',
+                            length: 0,
+                            weight: 0,
+                            location: currentLocation ? {
+                              latitude: currentLocation.latitude,
+                              longitude: currentLocation.longitude,
+                              timestamp: now,
+                              source: currentLocation.source,
+                              accuracy: currentLocation.accuracy
+                            } : activeSession.locations[activeSession.locations.length - 1],
+                            weather: activeSession.weather,
+                            timestamp: now
+                          };
+
+                          const updatedSession = {
+                            ...activeSession,
+                            catches: [...(activeSession.catches || []), newCatch]
+                          };
+
+                          setActiveSession(updatedSession);
+                          setSessions(prev => prev.map(s => s.id === activeSession.id ? updatedSession : s));
+
                           await saveSession(updatedSession);
+                          resetTimer();
                         } catch (error) {
                           console.error('Failed to save catch:', error);
+                          setError('Failed to save catch. Please try again.');
                         }
-                        resetTimer();
                       }}
                       className="relative w-48 h-48 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl transform transition-all hover:scale-105 hover:shadow-blue-500/50 active:scale-95"
                     >
@@ -1006,6 +1007,60 @@ function MainApp({
                     )}
                   </>
                 )}
+
+                {/* Time Between Catches Stats for Just Count Mode */}
+                {activeSession.just_count_mode && activeSession.catches && activeSession.catches.length > 1 && (() => {
+                  const timeBetweenCatches = activeSession.catches.slice(1).map((catch_, index) => {
+                    const prevCatch = activeSession.catches[index];
+                    return Math.floor((new Date(catch_.timestamp).getTime() - new Date(prevCatch.timestamp).getTime()) / 60000);
+                  });
+                  const avgTime = Math.round(timeBetweenCatches.reduce((sum, time) => sum + time, 0) / timeBetweenCatches.length);
+                  const shortestTime = Math.min(...timeBetweenCatches);
+                  const longestTime = Math.max(...timeBetweenCatches);
+
+                  return (
+                    <div className="grid grid-cols-3 gap-3 mb-4">
+                      <div className="flex items-center gap-3 bg-green-50 p-4 rounded-xl">
+                        <div className="p-2.5 bg-green-100 rounded-lg">
+                          <Clock className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-green-900 font-medium">{t.session.avgTimeBetweenCatches}</p>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-xl font-bold text-green-600">{avgTime}</span>
+                            <span className="text-xs text-green-700">min</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 bg-purple-50 p-4 rounded-xl">
+                        <div className="p-2.5 bg-purple-100 rounded-lg">
+                          <Clock className="w-6 h-6 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-purple-900 font-medium">{t.session.shortestTimeBetweenCatches}</p>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-xl font-bold text-purple-600">{shortestTime}</span>
+                            <span className="text-xs text-purple-700">min</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 bg-orange-50 p-4 rounded-xl">
+                        <div className="p-2.5 bg-orange-100 rounded-lg">
+                          <Clock className="w-6 h-6 text-orange-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-orange-900 font-medium">{t.session.longestTimeBetweenCatches}</p>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-xl font-bold text-orange-600">{longestTime}</span>
+                            <span className="text-xs text-orange-700">min</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <SessionCard
                   session={activeSession}
