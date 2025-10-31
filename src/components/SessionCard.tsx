@@ -74,14 +74,6 @@ export function SessionCard({
   const totalWeight = session.catches.reduce((sum, c) => sum + c.weight, 0);
   const averageWeight = totalCatches > 0 ? totalWeight / totalCatches : 0;
 
-  const averageTimeBetweenCatches = session.catches.length > 1
-    ? session.catches.reduce((total, curr, idx) => {
-        if (idx === 0) return 0;
-        const prev = session.catches[idx - 1];
-        return total + differenceInMinutes(new Date(curr.timestamp), new Date(prev.timestamp));
-      }, 0) / (session.catches.length - 1)
-    : 0;
-
   const isPaused = session.pauses?.some(p => !p.endTime);
 
   const moonPhase = getMoonPhase(startTime);
@@ -273,91 +265,62 @@ export function SessionCard({
           )}
 
           {/* Stats Grid */}
-          {session.just_count_mode ? (
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="flex items-center gap-3 bg-blue-50 p-4 rounded-xl">
-                <div className="p-2.5 bg-blue-100 rounded-lg">
-                  <Fish className="w-6 h-6 text-blue-600" />
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="flex items-center gap-3 bg-blue-50 p-4 rounded-xl">
+              <div className="p-2.5 bg-blue-100 rounded-lg">
+                <Fish className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-blue-900 font-medium">Total Catches</p>
+                <p className="text-2xl font-bold text-blue-600">{totalCatches}</p>
+              </div>
+            </div>
+
+            {bestCatch && (
+              <div className="flex items-center gap-3 bg-green-50 p-4 rounded-xl">
+                <div className="p-2.5 bg-green-100 rounded-lg">
+                  <Trophy className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-blue-900 font-medium">Total Catches</p>
-                  <p className="text-2xl font-bold text-blue-600">{totalCatches}</p>
+                  <p className="text-sm text-green-900 font-medium">Best Catch</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-green-600">{bestCatch.weight}</span>
+                    <span className="text-sm text-green-700">kg</span>
+                  </div>
                 </div>
               </div>
+            )}
 
-              {totalCatches > 1 && (
-                <div className="flex items-center gap-3 bg-green-50 p-4 rounded-xl">
-                  <div className="p-2.5 bg-green-100 rounded-lg">
-                    <Clock className="w-6 h-6 text-green-600" />
+            {totalCatches > 0 && (
+              <>
+                <div className="flex items-center gap-3 bg-purple-50 p-4 rounded-xl">
+                  <div className="p-2.5 bg-purple-100 rounded-lg">
+                    <Ruler className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-green-900 font-medium">Avg Time Between</p>
+                    <p className="text-sm text-purple-900 font-medium">Total Weight</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-green-600">{averageTimeBetweenCatches.toFixed(1)}</span>
-                      <span className="text-sm text-green-700">min</span>
+                      <span className="text-2xl font-bold text-purple-600">{totalWeight.toFixed(1)}</span>
+                      <span className="text-sm text-purple-700">kg</span>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="flex items-center gap-3 bg-blue-50 p-4 rounded-xl">
-                <div className="p-2.5 bg-blue-100 rounded-lg">
-                  <Fish className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-blue-900 font-medium">Total Catches</p>
-                  <p className="text-2xl font-bold text-blue-600">{totalCatches}</p>
-                </div>
-              </div>
 
-              {bestCatch && (
-                <div className="flex items-center gap-3 bg-green-50 p-4 rounded-xl">
-                  <div className="p-2.5 bg-green-100 rounded-lg">
-                    <Trophy className="w-6 h-6 text-green-600" />
+                <div className="flex items-center gap-3 bg-orange-50 p-4 rounded-xl">
+                  <div className="p-2.5 bg-orange-100 rounded-lg">
+                    <Fish className="w-6 h-6 text-orange-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-green-900 font-medium">Best Catch</p>
+                    <p className="text-sm text-orange-900 font-medium">Average Weight</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-green-600">{bestCatch.weight}</span>
-                      <span className="text-sm text-green-700">kg</span>
+                      <span className="text-2xl font-bold text-orange-600">{averageWeight.toFixed(1)}</span>
+                      <span className="text-sm text-orange-700">kg</span>
                     </div>
                   </div>
                 </div>
-              )}
-
-              {totalCatches > 0 && (
-                <>
-                  <div className="flex items-center gap-3 bg-purple-50 p-4 rounded-xl">
-                    <div className="p-2.5 bg-purple-100 rounded-lg">
-                      <Ruler className="w-6 h-6 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-purple-900 font-medium">Total Weight</p>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-purple-600">{totalWeight.toFixed(1)}</span>
-                        <span className="text-sm text-purple-700">kg</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 bg-orange-50 p-4 rounded-xl">
-                    <div className="p-2.5 bg-orange-100 rounded-lg">
-                      <Fish className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-orange-900 font-medium">Average Weight</p>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-orange-600">{averageWeight.toFixed(1)}</span>
-                        <span className="text-sm text-orange-700">kg</span>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+              </>
+            )}
+          </div>
 
           {/* Notes */}
           {session.notes && (
@@ -371,39 +334,10 @@ export function SessionCard({
           {session.catches.length > 0 && (
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-700 mb-3">Catches</h4>
-              {session.just_count_mode ? (
-                <div className="space-y-2">
-                  {session.catches.map((catchItem, index) => (
-                    <div
-                      key={catchItem.id}
-                      className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-100"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
-                          <span className="text-sm font-bold text-blue-600">F{index + 1}</span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Fish #{index + 1}</p>
-                          <p className="text-xs text-gray-500">{format(new Date(catchItem.timestamp), 'HH:mm:ss')}</p>
-                        </div>
-                      </div>
-                      {onDeleteCatch && isActive && (
-                        <button
-                          onClick={() => onDeleteCatch(catchItem.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <CatchList
-                  catches={session.catches}
-                  onDeleteCatch={onDeleteCatch}
-                />
-              )}
+              <CatchList 
+                catches={session.catches} 
+                onDeleteCatch={onDeleteCatch}
+              />
             </div>
           )}
         </div>

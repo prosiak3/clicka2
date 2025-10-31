@@ -74,22 +74,13 @@ function extractRTWData(html: string, url: string): FishData {
       if (!data.name_pl) {
         data.name_pl = h2Match[1].trim();
       }
-      const potentialLatinName = h2Match[2].trim();
-      if (/^[A-Z][a-z]+\s+[a-z]+$/.test(potentialLatinName)) {
-        data.latin_name = potentialLatinName;
-      }
+      data.latin_name = h2Match[2].trim();
     }
 
     if (!data.latin_name) {
-      const latinMatches = html.match(/\(([A-Z][a-z]+\s+[a-z]+)\)/gi);
-      if (latinMatches && latinMatches.length > 0) {
-        for (const match of latinMatches) {
-          const extracted = match.replace(/[()]/g, '').trim();
-          if (/^[A-Z][a-z]+\s+[a-z]+$/.test(extracted)) {
-            data.latin_name = extracted;
-            break;
-          }
-        }
+      const latinMatch = html.match(/\(([A-Z][a-z]+\s+[a-z]+)\)/i);
+      if (latinMatch) {
+        data.latin_name = latinMatch[1].trim();
       }
     }
 
