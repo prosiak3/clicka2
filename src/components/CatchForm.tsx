@@ -256,7 +256,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
               value={length}
               onChange={(e) => {
                 const newLength = parseFloat(e.target.value);
-                console.log('Length slider onChange:', newLength, 'current:', length);
+                console.log('Length slider onChange:', newLength, 'current:', length, 'manualWeightEdit:', manualWeightEdit);
                 setLength(newLength);
               }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
@@ -280,7 +280,9 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
               step={0.01}
               value={weight}
               onChange={(e) => {
-                setWeight(parseFloat(e.target.value));
+                const newWeight = parseFloat(e.target.value);
+                console.log('Weight slider onChange:', newWeight, 'setting manualWeightEdit to true');
+                setWeight(newWeight);
                 setManualWeightEdit(true);
               }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
