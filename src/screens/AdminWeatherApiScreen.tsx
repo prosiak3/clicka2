@@ -127,12 +127,29 @@ export function AdminWeatherApiScreen() {
           <h1 className="text-2xl font-bold text-gray-900">Weather API Configuration</h1>
         </div>
 
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg space-y-3">
           <p className="text-sm text-gray-700">
             Configure weather API providers and their priority order. The system will try each enabled provider
             in order until it gets a successful response. This ensures weather data is always available even if
             one provider is down.
           </p>
+          <div className="border-t border-blue-200 pt-3">
+            <h4 className="text-sm font-semibold text-gray-900 mb-2">Available Weather Services:</h4>
+            <ul className="text-sm text-gray-700 space-y-1">
+              <li><strong>Open-Meteo:</strong> Free, open-source weather API. No API key required. Provides temperature, pressure, wind, clouds, and precipitation data.</li>
+            </ul>
+          </div>
+          <div className="border-t border-blue-200 pt-3">
+            <h4 className="text-sm font-semibold text-gray-900 mb-2">Provided Weather Data:</h4>
+            <ul className="text-sm text-gray-700 grid grid-cols-2 gap-1">
+              <li>• Temperature</li>
+              <li>• Atmospheric Pressure</li>
+              <li>• Wind Speed & Direction</li>
+              <li>• Cloud Cover (Low/Mid/High)</li>
+              <li>• Precipitation</li>
+              <li>• Humidity</li>
+            </ul>
+          </div>
         </div>
 
         <div className="space-y-4">
