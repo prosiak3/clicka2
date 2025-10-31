@@ -266,6 +266,109 @@ function App() {
     }
   };
 
+  const startJustCount = async () => {
+    if (!user) return;
+    if (isStartingSession) return;
+
+    try {
+      await playClickSound();
+      setIsStartingSession(true);
+      setError(null);
+      setLoadingStep('checkingGPS');
+
+      if (locationPermission === 'denied') {
+        throw new Error('Location access is required. Please enable it in your browser settings and refresh the page.');
+      }
+
+      setLoadingStep('gettingLocation');
+      if (!currentLocation || locationStatus === 'error') {
+        throw new Error('Could not get your location. Please check your GPS settings and try again.');
+      }
+
+      setLoadingStep('gettingWeather');
+      let currentWeather;
+      try {
+        currentWeather = await getWeatherData(
+          currentLocation.latitude,
+          currentLocation.longitude
+        );
+      } catch (weatherError) {
+        console.error('Weather fetch failed:', weatherError);
+        currentWeather = {
+          temperature: 20,
+          pressure: 1013,
+          pressureTrend: 'stable',
+          windSpeed: 0,
+          windDirection: 'N',
+          cloudCover: 0,
+          precipitation: 0,
+          precipitationType: 'none',
+          precipitationProbability: 0
+        };
+      }
+
+      setLoadingStep('startingSession');
+      const now = new Date().toISOString();
+      const newSession: FishingSession = {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        startTime: now,
+        initialWeather: currentWeather,
+        weather: currentWeather,
+        locations: [{
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+          timestamp: now,
+          source: currentLocation.source,
+          accuracy: currentLocation.accuracy
+        }],
+        catches: [{
+          id: crypto.randomUUID(),
+          sessionId: '',
+          species: 'Count',
+          length: 0,
+          weight: 0,
+          location: {
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+            timestamp: now,
+            source: currentLocation.source,
+            accuracy: currentLocation.accuracy
+          },
+          weather: currentWeather,
+          timestamp: now
+        }],
+        synced: false,
+        tracking_enabled: true,
+        tracking_interval: settings.tracking.interval
+      };
+
+      newSession.catches[0].sessionId = newSession.id;
+
+      setSessions(prev => [newSession, ...prev]);
+      setActiveSession(newSession);
+      setActiveTab('sessions');
+
+      try {
+        await saveSession(newSession);
+      } catch (saveError) {
+        console.error('Failed to save new session:', saveError);
+      }
+
+      setLoadingStep('ready');
+      setTimeout(async () => {
+        setLoadingStep(null);
+        await playReelSound();
+      }, 500);
+    } catch (error) {
+      console.error('Failed to start just count:', error);
+      setError(error instanceof Error ? error.message : 'Failed to start just count. Please check your connection.');
+      setLoadingStep(null);
+    } finally {
+      setIsStartingSession(false);
+    }
+  };
+
   const startNewSession = async () => {
     if (!user) return;
     if (isStartingSession) return;
@@ -683,37 +786,72 @@ function MainApp({
           <div className="p-4">
             {activeTab === 'home' && !activeSession && (
               <div className="space-y-6">
-                {/* Quick Catch Button */}
-                <div className="flex flex-col items-center gap-3 pt-2">
-                  <button
-                    onClick={startQuickCatch}
-                    disabled={isStartingSession}
-                    className={`relative w-44 h-44 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
-                      isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-green-500/50 active:scale-95'
-                    } ${!isStartingSession ? 'animate-pulse' : ''}`}
-                  >
-                    <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
-                    <div className="relative flex flex-col items-center justify-center h-full text-white">
-                      {isStartingSession && loadingStep ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
-                          <span className="text-sm font-medium">
-                            {loadingStep === 'checkingGPS' && 'GPS...'}
-                            {loadingStep === 'gettingLocation' && 'Location...'}
-                            {loadingStep === 'gettingWeather' && 'Weather...'}
-                            {loadingStep === 'startingSession' && 'Starting...'}
-                            {loadingStep === 'ready' && 'Ready!'}
-                          </span>
+                {/* Quick Catch and Just Count Buttons */}
+                <div className="flex justify-center items-center gap-4 pt-2">
+                  <div className="flex flex-col items-center gap-3">
+                    <button
+                      onClick={startQuickCatch}
+                      disabled={isStartingSession}
+                      className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
+                        isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-green-500/50 active:scale-95'
+                      } ${!isStartingSession ? 'animate-pulse' : ''}`}
+                    >
+                      <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
+                      <div className="relative flex flex-col items-center justify-center h-full text-white">
+                        {isStartingSession && loadingStep ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
+                            <span className="text-sm font-medium">
+                              {loadingStep === 'checkingGPS' && 'GPS...'}
+                              {loadingStep === 'gettingLocation' && 'Location...'}
+                              {loadingStep === 'gettingWeather' && 'Weather...'}
+                              {loadingStep === 'startingSession' && 'Starting...'}
+                              {loadingStep === 'ready' && 'Ready!'}
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <Fish className="w-12 h-12" />
+                            <span className="text-base font-bold mt-2">Quick</span>
+                            <span className="text-sm font-medium">Catch</span>
+                          </>
+                        )}
+                      </div>
+                    </button>
+                  </div>
+
+                  {user?.enable_quick_count && (
+                    <div className="flex flex-col items-center gap-3">
+                      <button
+                        onClick={startJustCount}
+                        disabled={isStartingSession}
+                        className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl transform transition-all ${
+                          isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-blue-500/50 active:scale-95'
+                        }`}
+                      >
+                        <div className="relative flex flex-col items-center justify-center h-full text-white">
+                          {isStartingSession && loadingStep ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
+                              <span className="text-sm font-medium">
+                                {loadingStep === 'checkingGPS' && 'GPS...'}
+                                {loadingStep === 'gettingLocation' && 'Location...'}
+                                {loadingStep === 'gettingWeather' && 'Weather...'}
+                                {loadingStep === 'startingSession' && 'Starting...'}
+                                {loadingStep === 'ready' && 'Ready!'}
+                              </span>
+                            </div>
+                          ) : (
+                            <>
+                              <Plus className="w-12 h-12" />
+                              <span className="text-base font-bold mt-2">Just</span>
+                              <span className="text-sm font-medium">Count</span>
+                            </>
+                          )}
                         </div>
-                      ) : (
-                        <>
-                          <Fish className="w-14 h-14" />
-                          <span className="text-base font-bold mt-3">Quick</span>
-                          <span className="text-sm font-medium">Catch</span>
-                        </>
-                      )}
+                      </button>
                     </div>
-                  </button>
+                  )}
                 </div>
 
                 {/* Divider */}

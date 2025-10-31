@@ -6,6 +6,7 @@ export interface User {
   avatar_url?: string;
   provider?: 'email' | 'google' | 'apple';
   role?: 'user' | 'admin';
+  enable_quick_count?: boolean;
 }
 
 export interface CloudLayers {
