@@ -218,6 +218,81 @@ function extractGenericData(html: string, url: string): FishData {
   return data;
 }
 
+async function translateText(text: string, targetLang: string): Promise<string> {
+  if (!text || text.trim().length === 0) {
+    return '';
+  }
+
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=pl&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; FishDataBot/1.0)',
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`[Translation] Failed to translate to ${targetLang}:`, response.statusText);
+      return text;
+    }
+
+    const data = await response.json();
+
+    if (data && data[0] && Array.isArray(data[0])) {
+      const translatedParts = data[0].map((part: any) => part[0]).filter(Boolean);
+      return translatedParts.join('');
+    }
+
+    return text;
+  } catch (error) {
+    console.error(`[Translation] Error translating to ${targetLang}:`, error);
+    return text;
+  }
+}
+
+async function translateFishData(data: FishData): Promise<FishData> {
+  console.log('[Translation] Starting translation process...');
+
+  const fieldsToTranslate = [
+    { field: 'description_pl', enField: 'description_en', deField: 'description_de' },
+    { field: 'habitat_pl', enField: 'habitat_en', deField: 'habitat_de' },
+    { field: 'feeding_pl', enField: 'feeding_en', deField: 'feeding_de' },
+    { field: 'spawning_pl', enField: 'spawning_en', deField: 'spawning_de' },
+  ];
+
+  for (const { field, enField, deField } of fieldsToTranslate) {
+    const polishText = data[field as keyof FishData] as string;
+
+    if (polishText && polishText.trim().length > 0) {
+      console.log(`[Translation] Translating ${field}...`);
+
+      const [englishText, germanText] = await Promise.all([
+        translateText(polishText, 'en'),
+        translateText(polishText, 'de'),
+      ]);
+
+      data[enField as keyof FishData] = englishText as any;
+      data[deField as keyof FishData] = germanText as any;
+
+      console.log(`[Translation] Translated ${field} to EN and DE`);
+    }
+  }
+
+  if (data.name_pl && !data.name_en) {
+    console.log('[Translation] Translating fish name...');
+    const [nameEn, nameDe] = await Promise.all([
+      translateText(data.name_pl, 'en'),
+      translateText(data.name_pl, 'de'),
+    ]);
+    data.name_en = nameEn;
+    data.name_de = nameDe;
+  }
+
+  console.log('[Translation] Translation process completed');
+  return data;
+}
+
 async function downloadAndUploadImage(imageUrl: string, fishCode: string): Promise<string | null> {
   try {
     console.log('[Image Upload] Downloading image from:', imageUrl);
@@ -336,6 +411,10 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log('[Fetch Fish Data] Extracted data:', fishData);
+
+    console.log('[Fetch Fish Data] Starting translation...');
+    fishData = await translateFishData(fishData);
+    console.log('[Fetch Fish Data] Translation completed');
 
     if (fishData.image_url) {
       const fishCode = fishData.name_pl
