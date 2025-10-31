@@ -5,7 +5,7 @@ class SoundManager {
   preloadSound(name: string, path: string): void {
     try {
       const audio = new Audio(path);
-      audio.preload = 'auto';
+      audio.preload = 'metadata';
       this.sounds.set(name, audio);
     } catch (error) {
       console.warn(`Failed to preload sound ${name}:`, error);
