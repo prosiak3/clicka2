@@ -619,6 +619,7 @@ function App() {
                 handleAddWaypoint={handleAddWaypoint}
                 startNewSession={startNewSession}
                 startQuickCatch={startQuickCatch}
+                startJustCount={startJustCount}
                 isStartingSession={isStartingSession}
                 loadingStep={loadingStep}
                 settings={settings}
@@ -663,6 +664,7 @@ interface MainAppProps {
   handleAddWaypoint: (location: Location) => void;
   startNewSession: () => void;
   startQuickCatch: () => void;
+  startJustCount: () => void;
   isStartingSession: boolean;
   loadingStep: string | null;
   settings: any;
@@ -729,6 +731,7 @@ function MainApp({
   handleAddWaypoint,
   startNewSession,
   startQuickCatch,
+  startJustCount,
   isStartingSession,
   loadingStep,
   settings,
