@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Camera, X } from 'lucide-react';
 import { Map } from './Map';
 import { WeatherDisplay } from './WeatherDisplay';
@@ -38,15 +38,18 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
 
   const selectedSpeciesData = selectedSpecies.find(s => s.name[language] === species);
 
-  const topSpeciesList = selectedSpecies.filter(s =>
-    TOP_SPECIES.includes(s.name.en) && s.enabled
+  const topSpeciesList = useMemo(() =>
+    selectedSpecies.filter(s => TOP_SPECIES.includes(s.name.en) && s.enabled),
+    [selectedSpecies]
   );
 
   useEffect(() => {
+    console.log('Initial species useEffect - topSpeciesList:', topSpeciesList.length, 'lastSpecies:', lastSpecies);
     if (topSpeciesList.length > 0) {
       if (lastSpecies) {
         const lastUsedSpecies = topSpeciesList.find(s => s.name[language] === lastSpecies);
         if (lastUsedSpecies && lastUsedSpecies.minLength) {
+          console.log('Setting species to last used:', lastSpecies, 'length:', lastUsedSpecies.minLength);
           setSpecies(lastSpecies);
           setLength(lastUsedSpecies.minLength);
           return;
@@ -55,6 +58,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
 
       const defaultSpecies = topSpeciesList[0];
       if (defaultSpecies.minLength) {
+        console.log('Setting species to default:', defaultSpecies.name[language], 'length:', defaultSpecies.minLength);
         setSpecies(defaultSpecies.name[language]);
         setLength(defaultSpecies.minLength);
       }
@@ -121,6 +125,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   };
 
   useEffect(() => {
+    console.log('Weight calculation useEffect triggered - length:', length, 'species:', species);
     if (!manualWeightEdit && selectedSpeciesData && selectedSpeciesData.maxWeight) {
       const fullSpeciesData = fishSpeciesData.find(fs => {
         const nameMatch = fs.name_pl === species || fs.name_en === species || fs.name_de === species;
@@ -134,6 +139,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
           MIN_WEIGHT
         );
         const clampedWeight = Math.max(MIN_WEIGHT, Math.min(suggestedWeight, selectedSpeciesData.maxWeight));
+        console.log('Setting weight to:', clampedWeight, 'based on length:', length);
         setWeight(clampedWeight);
       }
     }
@@ -248,7 +254,11 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
               max={selectedSpeciesData.maxLength}
               step={1}
               value={length}
-              onChange={(e) => setLength(parseFloat(e.target.value))}
+              onChange={(e) => {
+                const newLength = parseFloat(e.target.value);
+                console.log('Length slider onChange:', newLength, 'current:', length);
+                setLength(newLength);
+              }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
             <div className="flex justify-between items-center mt-2">
