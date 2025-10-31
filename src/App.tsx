@@ -683,7 +683,7 @@ function MainApp({
 
           <div className="p-4">
             {activeTab === 'home' && !activeSession && (
-              <div className="space-y-6">
+              <div className="space-y-6" data-tutorial="home-screen">
                 {/* Quick Catch and Just Count Buttons */}
                 <div className="flex justify-center items-center gap-4 pt-2">
                   <div className="flex flex-col items-center gap-3">
@@ -735,6 +735,7 @@ function MainApp({
                     <h2 className="text-2xl font-bold text-white mb-2">Ready to Fish?</h2>
                     <p className="text-blue-100 mb-6">Track your catches, monitor conditions, and improve your success rate.</p>
                     <button
+                      data-tutorial="start-fishing-button"
                       onClick={startNewSession}
                       disabled={isStartingSession}
                       className={`w-full bg-white text-blue-600 rounded-xl py-4 px-6 font-bold shadow-lg hover:bg-blue-50 transform transition-all hover:scale-105 focus:ring-4 focus:ring-white/50 ${
@@ -756,7 +757,7 @@ function MainApp({
             )}
 
             {activeTab === 'sessions' && activeSession && (
-              <div className="space-y-6">
+              <div className="space-y-6" data-tutorial="active-session">
                 {/* Add Catch Button and Catch Counter */}
                 <div className="relative flex items-center justify-center">
                   <div className="absolute left-0 flex items-center justify-center" style={{ width: 'calc(50% - 80px)' }}>
@@ -774,6 +775,7 @@ function MainApp({
 
                   <div className="flex flex-col items-center gap-2">
                     <button
+                      data-tutorial="add-catch-button"
                       onClick={async () => {
                         await playReelSound();
                         setShowCatchForm(!showCatchForm);
@@ -798,7 +800,7 @@ function MainApp({
 
                 {/* Add Catch Form */}
                 {showCatchForm && (
-                  <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
+                  <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100" data-tutorial="catch-form">
                     <CatchForm
                       onSave={handleCatchSave}
                       onCancel={() => setShowCatchForm(false)}
@@ -927,6 +929,7 @@ function MainApp({
             )}
 
             <button
+              data-tutorial="stats-tab"
               onClick={() => setActiveTab('stats')}
               className={`py-1.5 px-2 flex flex-col items-center ${
                 activeTab === 'stats' ? 'text-blue-600' : 'text-gray-600'
@@ -937,6 +940,7 @@ function MainApp({
             </button>
 
             <button
+              data-tutorial="history-tab"
               onClick={() => setActiveTab('history')}
               className={`py-1.5 px-2 flex flex-col items-center ${
                 activeTab === 'history' ? 'text-blue-600' : 'text-gray-600'
