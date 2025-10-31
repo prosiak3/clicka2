@@ -184,6 +184,73 @@ const translations: Record<string, Translation> = {
       installButton: 'Install',
       laterButton: 'Later',
     },
+    tutorial: {
+      skip: 'Skip Tutorial',
+      next: 'Next',
+      previous: 'Back',
+      finish: 'Get Started',
+      step: 'Step',
+      of: 'of',
+      steps: {
+        0: {
+          title: 'Welcome to Clicka!',
+          description: 'Your smart fishing companion. Track catches, monitor conditions, and improve your fishing success. Let us show you how it works!',
+        },
+        1: {
+          title: 'Home Screen',
+          description: 'This is your main hub. Quick Catch starts a session instantly. Start Fishing button gives you more control before starting.',
+        },
+        2: {
+          title: 'Start a Fishing Session',
+          description: 'Click this button to begin a new fishing session. The app will capture your GPS location and current weather conditions.',
+        },
+        3: {
+          title: 'Active Session',
+          description: 'Once started, your session tracks time, location, and conditions. The counter shows how many fish you\'ve caught.',
+        },
+        4: {
+          title: 'Add Your Catches',
+          description: 'Click the big green button whenever you catch a fish. It\'s quick and easy, even with wet hands!',
+        },
+        5: {
+          title: 'Log Catch Details',
+          description: 'Enter species, length, and weight. The app saves GPS location and weather automatically for each catch.',
+        },
+        6: {
+          title: 'Session Controls',
+          description: 'Pause your session for breaks, add waypoints to mark good spots, or discard if needed.',
+        },
+        7: {
+          title: 'End Your Session',
+          description: 'When done fishing, end the session to save all your data. You can review it anytime in History.',
+        },
+        8: {
+          title: 'View History',
+          description: 'All your past sessions are saved here. Review catches, locations, weather conditions, and patterns.',
+        },
+        9: {
+          title: 'Analyze Statistics',
+          description: 'See charts and insights about your fishing. Learn which conditions work best for different species.',
+        },
+        10: {
+          title: 'You\'re All Set!',
+          description: 'Now you know the basics! Start your first real fishing session and discover what works best for you. Tight lines!',
+        },
+      },
+      welcome: {
+        title: 'Welcome to Clicka!',
+        description: 'Would you like a quick tour of the app? It only takes 2 minutes and will help you get the most out of Clicka.',
+        startButton: 'Start Tutorial',
+        skipButton: 'Skip for Now',
+        skipWarning: 'You can always restart the tutorial from Settings.',
+      },
+      skipConfirm: {
+        title: 'Skip Tutorial?',
+        description: 'Are you sure you want to skip the tutorial? You can always restart it from the Settings page.',
+        confirmButton: 'Yes, Skip',
+        cancelButton: 'Continue Tutorial',
+      },
+    },
   },
   pl: {
     common: {
@@ -368,6 +435,73 @@ const translations: Record<string, Translation> = {
       installButton: 'Zainstaluj',
       laterButton: 'Później',
     },
+    tutorial: {
+      skip: 'Pomiń Samouczek',
+      next: 'Dalej',
+      previous: 'Wstecz',
+      finish: 'Rozpocznij',
+      step: 'Krok',
+      of: 'z',
+      steps: {
+        0: {
+          title: 'Witaj w Clicka!',
+          description: 'Twój inteligentny towarzysz wędkarski. Śledź połowy, monitoruj warunki i poprawiaj swoje wyniki. Pozwól nam pokazać, jak to działa!',
+        },
+        1: {
+          title: 'Ekran Główny',
+          description: 'To jest Twoja główna baza. Szybki Połów rozpoczyna sesję natychmiast. Przycisk Rozpocznij Połów daje Ci więcej kontroli przed startem.',
+        },
+        2: {
+          title: 'Rozpocznij Sesję Wędkarską',
+          description: 'Kliknij ten przycisk, aby rozpocząć nową sesję. Aplikacja automatycznie zapisze Twoją lokalizację GPS i aktualne warunki pogodowe.',
+        },
+        3: {
+          title: 'Aktywna Sesja',
+          description: 'Po rozpoczęciu sesja śledzi czas, lokalizację i warunki. Licznik pokazuje, ile ryb złapałeś.',
+        },
+        4: {
+          title: 'Dodawaj Swoje Połowy',
+          description: 'Kliknij duży zielony przycisk za każdym razem, gdy złapiesz rybę. To szybkie i łatwe, nawet mokrymi rękami!',
+        },
+        5: {
+          title: 'Zapisz Szczegóły Połowu',
+          description: 'Wprowadź gatunek, długość i wagę. Aplikacja automatycznie zapisze lokalizację GPS i pogodę dla każdego połowu.',
+        },
+        6: {
+          title: 'Sterowanie Sesją',
+          description: 'Wstrzymaj sesję na przerwy, dodaj punkty orientacyjne aby oznaczyć dobre miejsca, lub odrzuć sesję jeśli potrzeba.',
+        },
+        7: {
+          title: 'Zakończ Sesję',
+          description: 'Kiedy skończysz łowić, zakończ sesję aby zapisać wszystkie dane. Możesz je później przeglądać w Historii.',
+        },
+        8: {
+          title: 'Przeglądaj Historię',
+          description: 'Wszystkie Twoje wcześniejsze sesje są tu zapisane. Przeglądaj połowy, lokalizacje, warunki pogodowe i wzorce.',
+        },
+        9: {
+          title: 'Analizuj Statystyki',
+          description: 'Zobacz wykresy i analizy dotyczące Twojego wędkowania. Dowiedz się, które warunki działają najlepiej dla różnych gatunków.',
+        },
+        10: {
+          title: 'Wszystko Gotowe!',
+          description: 'Teraz znasz podstawy! Rozpocznij swoją pierwszą prawdziwą sesję wędkarską i odkryj, co działa dla Ciebie najlepiej. Dobrego brania!',
+        },
+      },
+      welcome: {
+        title: 'Witaj w Clicka!',
+        description: 'Czy chciałbyś szybką wycieczkę po aplikacji? Zajmie to tylko 2 minuty i pomoże Ci w pełni wykorzystać Clicka.',
+        startButton: 'Rozpocznij Samouczek',
+        skipButton: 'Pomiń na Razie',
+        skipWarning: 'Zawsze możesz uruchomić samouczek ponownie z Ustawień.',
+      },
+      skipConfirm: {
+        title: 'Pominąć Samouczek?',
+        description: 'Czy na pewno chcesz pominąć samouczek? Zawsze możesz go uruchomić ponownie ze strony Ustawień.',
+        confirmButton: 'Tak, Pomiń',
+        cancelButton: 'Kontynuuj Samouczek',
+      },
+    },
   },
   de: {
     common: {
@@ -551,6 +685,73 @@ const translations: Record<string, Translation> = {
       installDescription: 'Installiere Clicka auf deinem Gerät und nutze es wie eine native App!',
       installButton: 'Installieren',
       laterButton: 'Später',
+    },
+    tutorial: {
+      skip: 'Tutorial Überspringen',
+      next: 'Weiter',
+      previous: 'Zurück',
+      finish: 'Los geht\'s',
+      step: 'Schritt',
+      of: 'von',
+      steps: {
+        0: {
+          title: 'Willkommen bei Clicka!',
+          description: 'Dein intelligenter Angel-Begleiter. Erfasse Fänge, überwache Bedingungen und verbessere deinen Angelerfolg. Lass uns dir zeigen, wie es funktioniert!',
+        },
+        1: {
+          title: 'Startbildschirm',
+          description: 'Das ist deine Hauptzentrale. Schneller Fang startet sofort eine Session. Start Fishing Button gibt dir mehr Kontrolle vor dem Start.',
+        },
+        2: {
+          title: 'Angelsession Starten',
+          description: 'Klicke diesen Button, um eine neue Angelsession zu beginnen. Die App erfasst automatisch deine GPS-Position und aktuelle Wetterbedingungen.',
+        },
+        3: {
+          title: 'Aktive Session',
+          description: 'Sobald gestartet, verfolgt deine Session Zeit, Standort und Bedingungen. Der Zähler zeigt, wie viele Fische du gefangen hast.',
+        },
+        4: {
+          title: 'Füge Deine Fänge Hinzu',
+          description: 'Klicke den großen grünen Button, wann immer du einen Fisch fängst. Schnell und einfach, auch mit nassen Händen!',
+        },
+        5: {
+          title: 'Fangdetails Erfassen',
+          description: 'Gib Art, Länge und Gewicht ein. Die App speichert GPS-Position und Wetter automatisch für jeden Fang.',
+        },
+        6: {
+          title: 'Session-Steuerung',
+          description: 'Pausiere deine Session für Pausen, füge Wegpunkte hinzu um gute Stellen zu markieren, oder verwirf sie bei Bedarf.',
+        },
+        7: {
+          title: 'Session Beenden',
+          description: 'Wenn du fertig bist, beende die Session um alle Daten zu speichern. Du kannst sie jederzeit im Verlauf ansehen.',
+        },
+        8: {
+          title: 'Verlauf Ansehen',
+          description: 'Alle deine vergangenen Sessions sind hier gespeichert. Überprüfe Fänge, Standorte, Wetterbedingungen und Muster.',
+        },
+        9: {
+          title: 'Statistiken Analysieren',
+          description: 'Sieh dir Diagramme und Einblicke über dein Angeln an. Erfahre, welche Bedingungen für verschiedene Arten am besten funktionieren.',
+        },
+        10: {
+          title: 'Alles Bereit!',
+          description: 'Jetzt kennst du die Grundlagen! Starte deine erste echte Angelsession und entdecke, was für dich am besten funktioniert. Petri Heil!',
+        },
+      },
+      welcome: {
+        title: 'Willkommen bei Clicka!',
+        description: 'Möchtest du eine kurze Tour durch die App? Es dauert nur 2 Minuten und hilft dir, das Beste aus Clicka herauszuholen.',
+        startButton: 'Tutorial Starten',
+        skipButton: 'Jetzt Überspringen',
+        skipWarning: 'Du kannst das Tutorial jederzeit in den Einstellungen neu starten.',
+      },
+      skipConfirm: {
+        title: 'Tutorial Überspringen?',
+        description: 'Bist du sicher, dass du das Tutorial überspringen möchtest? Du kannst es jederzeit auf der Einstellungsseite neu starten.',
+        confirmButton: 'Ja, Überspringen',
+        cancelButton: 'Tutorial Fortsetzen',
+      },
     },
   },
 };

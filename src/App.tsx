@@ -15,6 +15,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/AdminLayout';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { IosInstallPrompt } from './components/IosInstallPrompt';
+import { TutorialManager } from './components/TutorialManager';
 import { AdminDashboard } from './screens/AdminDashboard';
 import { AdminUsersScreen } from './screens/AdminUsersScreen';
 import { AdminRoadmapScreen } from './screens/AdminRoadmapScreen';
@@ -967,6 +968,7 @@ function MainApp({
 
         <PwaInstallPrompt />
         <IosInstallPrompt />
+        <TutorialManager userId={user?.id || null} isAuthenticated={!!user} />
 
         <ConfirmDialog
           isOpen={showDeleteConfirm}

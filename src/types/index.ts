@@ -155,6 +155,33 @@ export interface Translation {
     installButton: string;
     laterButton: string;
   };
+  tutorial: {
+    skip: string;
+    next: string;
+    previous: string;
+    finish: string;
+    step: string;
+    of: string;
+    steps: {
+      [key: number]: {
+        title: string;
+        description: string;
+      };
+    };
+    welcome: {
+      title: string;
+      description: string;
+      startButton: string;
+      skipButton: string;
+      skipWarning: string;
+    };
+    skipConfirm: {
+      title: string;
+      description: string;
+      confirmButton: string;
+      cancelButton: string;
+    };
+  };
 }
 
 export interface PauseInterval {
