@@ -720,8 +720,8 @@ function MainApp({
                     <button
                       onClick={startQuickCatch}
                       disabled={isStartingSession}
-                      className={`relative w-64 h-64 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
-                        isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-110 hover:shadow-green-500/50 active:scale-95'
+                      className={`relative w-56 h-56 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transform transition-all ${
+                        isStartingSession ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-green-500/50 active:scale-95'
                       } ${!isStartingSession ? 'animate-pulse' : ''}`}
                     >
                       <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
