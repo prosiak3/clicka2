@@ -62,7 +62,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               <img
                 src="/images/clicka-logo-light.png"
                 alt="Clicka Logo"
-                className="w-48 h-auto mx-auto filter brightness-0 invert"
+                className="w-48 h-auto mx-auto"
               />
             </div>
           </div>
