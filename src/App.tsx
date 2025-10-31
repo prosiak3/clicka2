@@ -888,6 +888,7 @@ function MainApp({
                   setUser(null);
                   window.location.href = '/login';
                 }}
+                onNavigateHome={() => setActiveTab('home')}
               />
             )}
           </div>

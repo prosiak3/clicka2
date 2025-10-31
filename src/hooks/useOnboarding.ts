@@ -219,18 +219,53 @@ export function useOnboarding(userId: string | null): UseOnboardingReturn {
       setError(null);
 
       if (onboarding?.id) {
-        await supabase
+        const { error: deleteError } = await supabase
           .from('user_onboarding')
           .delete()
           .eq('id', onboarding.id);
+
+        if (deleteError) {
+          throw deleteError;
+        }
       }
 
-      await startOnboarding();
+      const newOnboarding = {
+        user_id: userId,
+        completed: false,
+        current_step: 0,
+        total_steps: TOTAL_STEPS,
+        skipped: false,
+        last_seen_step: 0,
+      };
+
+      const { data, error: insertError } = await supabase
+        .from('user_onboarding')
+        .insert(newOnboarding)
+        .select()
+        .single();
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      if (data) {
+        setOnboarding({
+          id: data.id,
+          userId: data.user_id,
+          completed: data.completed,
+          currentStep: data.current_step,
+          totalSteps: data.total_steps,
+          skipped: data.skipped,
+          completedAt: data.completed_at,
+          lastSeenStep: data.last_seen_step,
+        });
+      }
     } catch (err) {
       console.error('Failed to restart onboarding:', err);
       setError(err instanceof Error ? err.message : 'Failed to restart onboarding');
+      throw err;
     }
-  }, [userId, onboarding?.id, startOnboarding]);
+  }, [userId, onboarding?.id]);
 
   const shouldShowOnboarding = !isLoading &&
     (!onboarding || (!onboarding.completed && !onboarding.skipped));

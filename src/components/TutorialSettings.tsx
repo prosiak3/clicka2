@@ -2,26 +2,47 @@ import React, { useState } from 'react';
 import { BookOpen, RotateCcw, CheckCircle, Play } from 'lucide-react';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { useTranslation } from '../hooks/useTranslation';
+import { useNavigate } from 'react-router-dom';
 
 interface TutorialSettingsProps {
   userId: string | null;
+  onNavigateHome?: () => void;
 }
 
-export function TutorialSettings({ userId }: TutorialSettingsProps) {
+export function TutorialSettings({ userId, onNavigateHome }: TutorialSettingsProps) {
   const { onboarding, isLoading, restartOnboarding } = useOnboarding(userId);
   const t = useTranslation();
+  const navigate = useNavigate();
   const [isRestarting, setIsRestarting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleRestart = async () => {
     const confirmMessage = onboarding?.completed
       ? 'Are you sure you want to restart the tutorial? This will guide you through all features again.'
       : 'Are you sure you want to start the tutorial from the beginning?';
 
-    if (window.confirm(confirmMessage)) {
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
       setIsRestarting(true);
+      setError(null);
+
       await restartOnboarding();
 
-      window.location.href = '/';
+      setTimeout(() => {
+        if (onNavigateHome) {
+          onNavigateHome();
+        } else {
+          navigate('/');
+        }
+        window.location.reload();
+      }, 500);
+    } catch (err) {
+      console.error('Failed to restart tutorial:', err);
+      setError('Failed to restart tutorial. Please try again.');
+      setIsRestarting(false);
     }
   };
 
@@ -44,6 +65,12 @@ export function TutorialSettings({ userId }: TutorialSettingsProps) {
           </p>
         </div>
       </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
+        </div>
+      )}
 
       {onboarding && (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">

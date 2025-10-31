@@ -117,9 +117,10 @@ interface SettingsScreenProps {
   user?: User;
   onLogout?: () => void;
   setUser?: (user: User | null) => void;
+  onNavigateHome?: () => void;
 }
 
-export function SettingsScreen({ user, onLogout, setUser }: SettingsScreenProps = {}) {
+export function SettingsScreen({ user, onLogout, setUser, onNavigateHome }: SettingsScreenProps = {}) {
   const settings = useSettings();
   const t = useTranslation();
   const notifications = useNotifications();
@@ -855,7 +856,7 @@ export function SettingsScreen({ user, onLogout, setUser }: SettingsScreenProps 
         isExpanded={expandedSection === 'tutorial'}
         onToggle={() => setExpandedSection(expandedSection === 'tutorial' ? null : 'tutorial')}
       >
-        <TutorialSettings userId={user?.id || null} />
+        <TutorialSettings userId={user?.id || null} onNavigateHome={onNavigateHome} />
       </SettingsSection>
 
       <SettingsSection
