@@ -14,10 +14,10 @@ export default defineConfig({
         short_name: 'Clicka',
         description: 'Track your fishing sessions, catches, and analyze patterns with weather data and location tracking',
         theme_color: '#2563eb',
-        background_color: '#0f172a',
+        background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait-primary',
-        start_url: '/?source=pwa',
+        start_url: '/',
         scope: '/',
         categories: ['sports', 'utilities', 'lifestyle'],
         icons: [
@@ -25,25 +25,13 @@ export default defineConfig({
             src: '/icon-192x192.svg',
             sizes: '192x192',
             type: 'image/svg+xml',
-            purpose: 'any'
-          },
-          {
-            src: '/icon-192x192.svg',
-            sizes: '192x192',
-            type: 'image/svg+xml',
-            purpose: 'maskable'
+            purpose: 'any maskable'
           },
           {
             src: '/icon-512x512.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
-            purpose: 'any'
-          },
-          {
-            src: '/icon-512x512.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'maskable'
+            purpose: 'any maskable'
           }
         ]
       },

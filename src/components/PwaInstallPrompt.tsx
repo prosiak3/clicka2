@@ -40,7 +40,7 @@ export function PwaInstallPrompt() {
 
       if (dismissed && dismissedTime) {
         const daysSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
-        if (daysSinceDismissed < 7) {
+        if (daysSinceDismissed < 3) {
           console.log('User dismissed recently, not showing prompt');
           return;
         }
@@ -49,7 +49,7 @@ export function PwaInstallPrompt() {
       setTimeout(() => {
         setShowPrompt(true);
         console.log('Showing PWA install prompt');
-      }, 2000);
+      }, 1000);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -100,8 +100,8 @@ export function PwaInstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-50 max-w-lg mx-auto">
-      <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-2xl p-4 border border-blue-400/30 backdrop-blur-sm">
+    <div className="fixed inset-x-0 bottom-0 z-[9999] pb-20 px-4">
+      <div className="max-w-lg mx-auto bg-gradient-to-br from-blue-600 to-blue-800 rounded-t-2xl shadow-2xl p-5 border-t-4 border-blue-400 animate-slide-up">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0 p-2 bg-white/10 rounded-lg">
             <Download className="w-6 h-6 text-white" />
