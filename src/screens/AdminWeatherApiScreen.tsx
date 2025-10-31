@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, Plus, Trash2, Save, Key, ArrowUp, ArrowDown, Power } from 'lucide-react';
+import { Cloud, Plus, Trash2, Save, Key, ArrowUp, ArrowDown, Power, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../utils/db';
 
 interface WeatherApiProvider {
@@ -18,11 +18,25 @@ interface WeatherApiKey {
   api_key: string;
 }
 
+interface OAuthConfig {
+  id: string;
+  provider_id: string;
+  client_id: string;
+  client_secret: string;
+  is_configured: boolean;
+  token_expires_at: string | null;
+  last_token_refresh: string | null;
+  redirect_uri: string;
+  scopes: string[];
+}
+
 export function AdminWeatherApiScreen() {
   const [providers, setProviders] = useState<WeatherApiProvider[]>([]);
   const [apiKeys, setApiKeys] = useState<WeatherApiKey[]>([]);
+  const [oauthConfigs, setOauthConfigs] = useState<OAuthConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingKey, setEditingKey] = useState<{ providerId: string; key: string } | null>(null);
+  const [editingOAuth, setEditingOAuth] = useState<{ providerId: string; clientId: string; clientSecret: string; redirectUri: string } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -44,8 +58,15 @@ export function AdminWeatherApiScreen() {
 
       if (keysError) throw keysError;
 
+      const { data: oauthData, error: oauthError } = await supabase
+        .from('weather_oauth_config')
+        .select('*');
+
+      if (oauthError) console.error('Error loading OAuth configs:', oauthError);
+
       setProviders(providersData || []);
       setApiKeys(keysData || []);
+      setOauthConfigs(oauthData || []);
     } catch (error) {
       console.error('Error loading weather API data:', error);
     } finally {
@@ -111,6 +132,59 @@ export function AdminWeatherApiScreen() {
     }
   };
 
+  const saveOAuthConfig = async (providerId: string, clientId: string, clientSecret: string, redirectUri: string) => {
+    try {
+      const existingConfig = oauthConfigs.find(c => c.provider_id === providerId);
+
+      if (existingConfig) {
+        const { error } = await supabase
+          .from('weather_oauth_config')
+          .update({
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uri: redirectUri
+          })
+          .eq('id', existingConfig.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('weather_oauth_config')
+          .insert({
+            provider_id: providerId,
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uri: redirectUri,
+            scopes: ['read_station']
+          });
+
+        if (error) throw error;
+      }
+
+      setEditingOAuth(null);
+      await loadData();
+    } catch (error) {
+      console.error('Error saving OAuth config:', error);
+    }
+  };
+
+  const startOAuthFlow = (provider: WeatherApiProvider) => {
+    const oauthConfig = oauthConfigs.find(c => c.provider_id === provider.id);
+    if (!oauthConfig || !oauthConfig.client_id) {
+      alert('Please configure Client ID and Client Secret first');
+      return;
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const authUrl = `https://api.netatmo.com/oauth2/authorize?client_id=${oauthConfig.client_id}&redirect_uri=${encodeURIComponent(`${supabaseUrl}/functions/v1/netatmo-oauth-callback`)}&scope=read_station&state=auth`;
+
+    window.open(authUrl, '_blank', 'width=600,height=700');
+
+    setTimeout(() => {
+      loadData();
+    }, 5000);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -136,6 +210,7 @@ export function AdminWeatherApiScreen() {
           <div className="border-t border-blue-200 pt-3">
             <h4 className="text-sm font-semibold text-gray-900 mb-2">Available Weather Services:</h4>
             <ul className="text-sm text-gray-700 space-y-1">
+              <li><strong>Netatmo:</strong> Real-time data from nearby public weather stations. Requires OAuth authentication with your Netatmo account.</li>
               <li><strong>Open-Meteo:</strong> Free, open-source weather API. No API key required. Provides temperature, pressure, wind, clouds, and precipitation data.</li>
             </ul>
           </div>
@@ -155,7 +230,10 @@ export function AdminWeatherApiScreen() {
         <div className="space-y-4">
           {providers.map((provider) => {
             const providerKey = apiKeys.find(k => k.provider_id === provider.id);
+            const oauthConfig = oauthConfigs.find(c => c.provider_id === provider.id);
             const isEditing = editingKey?.providerId === provider.id;
+            const isEditingOAuth = editingOAuth?.providerId === provider.id;
+            const isNetatmo = provider.name === 'netatmo';
 
             return (
               <div
@@ -212,7 +290,126 @@ export function AdminWeatherApiScreen() {
                   </div>
                 </div>
 
-                {provider.requires_key && (
+                {isNetatmo && (
+                  <div className="mt-3 space-y-3">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Key className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm font-medium text-gray-900">OAuth Configuration</span>
+                      </div>
+                      <p className="text-xs text-gray-600 mb-3">
+                        Create an app at <a href="https://dev.netatmo.com/apps" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">dev.netatmo.com/apps</a> to get your credentials.
+                      </p>
+                      {isEditingOAuth ? (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={editingOAuth.clientId}
+                            onChange={(e) =>
+                              setEditingOAuth({ ...editingOAuth, clientId: e.target.value })
+                            }
+                            placeholder="Client ID"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          />
+                          <input
+                            type="password"
+                            value={editingOAuth.clientSecret}
+                            onChange={(e) =>
+                              setEditingOAuth({ ...editingOAuth, clientSecret: e.target.value })
+                            }
+                            placeholder="Client Secret"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          />
+                          <input
+                            type="text"
+                            value={editingOAuth.redirectUri}
+                            onChange={(e) =>
+                              setEditingOAuth({ ...editingOAuth, redirectUri: e.target.value })
+                            }
+                            placeholder="Redirect URI (use Edge Function URL)"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          />
+                          <p className="text-xs text-gray-500">
+                            Redirect URI: <code className="bg-gray-100 px-1 py-0.5 rounded">{import.meta.env.VITE_SUPABASE_URL}/functions/v1/netatmo-oauth-callback</code>
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() =>
+                                saveOAuthConfig(provider.id, editingOAuth.clientId, editingOAuth.clientSecret, editingOAuth.redirectUri)
+                              }
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm"
+                            >
+                              <Save className="w-4 h-4" />
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingOAuth(null)}
+                              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">
+                              {oauthConfig?.client_id ? (
+                                <span className="flex items-center gap-2">
+                                  <CheckCircle className="w-4 h-4 text-green-600" />
+                                  Configured
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-2">
+                                  <AlertCircle className="w-4 h-4 text-yellow-600" />
+                                  Not configured
+                                </span>
+                              )}
+                            </span>
+                            <button
+                              onClick={() =>
+                                setEditingOAuth({
+                                  providerId: provider.id,
+                                  clientId: oauthConfig?.client_id || '',
+                                  clientSecret: oauthConfig?.client_secret || '',
+                                  redirectUri: oauthConfig?.redirect_uri || `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/netatmo-oauth-callback`
+                                })
+                              }
+                              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                            >
+                              {oauthConfig ? 'Edit' : 'Configure'}
+                            </button>
+                          </div>
+                          {oauthConfig?.is_configured && (
+                            <div className="pt-2 border-t border-gray-200">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-600">Status:</span>
+                                <span className="text-green-600 font-medium">Connected</span>
+                              </div>
+                              {oauthConfig.token_expires_at && (
+                                <div className="flex items-center justify-between text-xs mt-1">
+                                  <span className="text-gray-600">Token expires:</span>
+                                  <span className="text-gray-700">{new Date(oauthConfig.token_expires_at).toLocaleString()}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {oauthConfig && !oauthConfig.is_configured && (
+                            <button
+                              onClick={() => startOAuthFlow(provider)}
+                              className="w-full mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 text-sm font-medium"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              Connect Netatmo Account
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {provider.requires_key && !isNetatmo && (
                   <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Key className="w-4 h-4 text-gray-600" />

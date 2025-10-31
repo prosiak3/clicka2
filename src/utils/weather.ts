@@ -83,6 +83,35 @@ const getEnabledProviders = async () => {
   }
 };
 
+const fetchFromNetatmo = async (lat: number, lon: number) => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  const requestUrl = `${supabaseUrl}/functions/v1/netatmo-weather-data?lat=${lat}&lon=${lon}`;
+
+  console.log(`[Weather API] Fetching from Netatmo Edge Function: ${requestUrl}`);
+
+  const response = await fetch(requestUrl, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${supabaseAnonKey}`,
+      'Accept': 'application/json'
+    }
+  });
+
+  console.log(`[Weather API] Netatmo response status: ${response.status} ${response.statusText}`);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`[Weather API] Netatmo request failed with status ${response.status}: ${errorText}`);
+    throw new Error(`Netatmo API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  console.log(`[Weather API] Successfully fetched Netatmo data from ${data.stationCount} station(s):`, data);
+  return data;
+};
+
 const fetchFromOpenMeteo = async (lat: number, lon: number, apiUrl: string) => {
   const requestUrl = `${apiUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,precipitation,precipitation_probability&wind_speed_unit=ms`;
 
@@ -143,7 +172,11 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
       try {
         console.log(`[Weather API] Trying provider: ${provider.display_name} (${provider.name})`);
 
-        if (provider.name === 'open-meteo') {
+        if (provider.name === 'netatmo') {
+          data = await fetchFromNetatmo(lat, lon);
+          console.log(`[Weather API] Successfully fetched data from ${provider.display_name}`);
+          break;
+        } else if (provider.name === 'open-meteo') {
           data = await fetchFromOpenMeteo(lat, lon, provider.api_url);
           console.log(`[Weather API] Successfully fetched data from ${provider.display_name}`);
           break;
@@ -169,18 +202,58 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
       throw lastError || new Error(`All weather providers failed. Tried ${providers.length} provider(s)`);
     }
 
-    if (!data.current) {
+    // Handle different data formats (Netatmo vs Open-Meteo)
+    let temp: number;
+    let currentPressure: number;
+    let humidity: number;
+    let precip: number;
+    let windSpeed: number;
+    let windDirection: number;
+    let cloudCover: number;
+    let cloudLow: number;
+    let cloudMid: number;
+    let cloudHigh: number;
+    let precipProb: number;
+
+    if (data.source === 'netatmo') {
+      // Netatmo data format
+      console.log('[Weather API] Processing Netatmo data format');
+      temp = data.temperature ?? 20;
+      currentPressure = data.pressure ?? 1013;
+      humidity = data.humidity ?? 50;
+      precip = data.precipitation ?? 0;
+      windSpeed = data.windSpeed ?? 0;
+      windDirection = data.windDirection ?? 0;
+      cloudCover = 0;
+      cloudLow = 0;
+      cloudMid = 0;
+      cloudHigh = 0;
+      precipProb = 0;
+    } else if (data.current) {
+      // Open-Meteo data format
+      console.log('[Weather API] Processing Open-Meteo data format');
+      temp = data.current.temperature_2m ?? 20;
+      currentPressure = Math.round(data.current.pressure_msl ?? 1013);
+      humidity = data.current.relative_humidity_2m ?? 50;
+      precip = data.current.precipitation ?? 0;
+      windSpeed = Math.round(data.current.wind_speed_10m ?? 0);
+      windDirection = data.current.wind_direction_10m ?? 0;
+      cloudCover = Math.round(data.current.cloud_cover ?? 0);
+      cloudLow = Math.round(data.current.cloud_cover_low ?? 0);
+      cloudMid = Math.round(data.current.cloud_cover_mid ?? 0);
+      cloudHigh = Math.round(data.current.cloud_cover_high ?? 0);
+      precipProb = Math.round(data.current.precipitation_probability ?? 0);
+    } else {
       throw new Error('Invalid weather data received');
     }
 
-    const currentPressure = Math.round(data.current.pressure_msl ?? 1013);
     const currentTime = Date.now();
-    
+
     // Calculate pressure trend
     let pressureTrend: 'rising' | 'falling' | 'stable' = 'stable';
-    
-    if (lastPressureReading.timestamp > 0 && 
-        currentTime - lastPressureReading.timestamp <= 3600000) { // Within last hour
+
+    if (lastPressureReading.timestamp > 0 &&
+        currentTime - lastPressureReading.timestamp <= 3600000) {
       const pressureDiff = currentPressure - lastPressureReading.pressure;
       if (pressureDiff > 0.5) {
         pressureTrend = 'rising';
@@ -196,9 +269,7 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
     };
 
     // Determine precipitation type based on temperature
-    const temp = data.current.temperature_2m ?? 20;
     let precipType: 'none' | 'rain' | 'snow' | 'sleet' = 'none';
-    const precip = data.current.precipitation ?? 0;
 
     if (precip > 0) {
       if (temp <= 0) {
@@ -211,27 +282,27 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
     }
 
     const cloudLayers: CloudLayers = {
-      low: Math.round(data.current.cloud_cover_low ?? 0),
-      mid: Math.round(data.current.cloud_cover_mid ?? 0),
-      high: Math.round(data.current.cloud_cover_high ?? 0)
+      low: cloudLow,
+      mid: cloudMid,
+      high: cloudHigh
     };
 
-    const cloudBase = calculateCloudBase(temp, data.current.relative_humidity_2m ?? 50);
+    const cloudBase = calculateCloudBase(temp, humidity);
     const dominantCloudType = determineCloudType(cloudLayers, cloudBase, precipType);
 
     const weatherData: WeatherData = {
       temperature: Math.round(temp),
       pressure: currentPressure,
       pressureTrend,
-      windSpeed: Math.round(data.current.wind_speed_10m ?? 0),
-      windDirection: getWindDirection(data.current.wind_direction_10m ?? 0),
-      cloudCover: Math.round(data.current.cloud_cover ?? 0),
+      windSpeed: Math.round(windSpeed),
+      windDirection: getWindDirection(windDirection),
+      cloudCover: cloudCover,
       cloudLayers,
       cloudBase,
       dominantCloudType,
       precipitation: precip,
       precipitationType: precipType,
-      precipitationProbability: Math.round(data.current.precipitation_probability ?? 0)
+      precipitationProbability: precipProb
     };
 
     // Save to cache
