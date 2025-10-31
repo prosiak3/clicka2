@@ -18,6 +18,7 @@ import { AdminDashboard } from './screens/AdminDashboard';
 import { AdminUsersScreen } from './screens/AdminUsersScreen';
 import { AdminRoadmapScreen } from './screens/AdminRoadmapScreen';
 import { AdminWeatherApiScreen } from './screens/AdminWeatherApiScreen';
+import { AdminFishSpeciesScreen } from './screens/AdminFishSpeciesScreen';
 import { RoadmapScreen } from './screens/RoadmapScreen';
 import { FishCatch, FishingSession, User as UserType, Location } from './types';
 import { saveSession, loadSessions, syncPendingSessions } from './utils/db';
@@ -527,7 +528,7 @@ interface AdminAppProps {
 }
 
 function AdminApp({ user, setUser }: AdminAppProps) {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'users' | 'roadmap' | 'weather-api'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'users' | 'roadmap' | 'weather-api' | 'fish-species'>('dashboard');
 
   const handleLogout = () => {
     setUser(null);
@@ -543,6 +544,7 @@ function AdminApp({ user, setUser }: AdminAppProps) {
     >
       {currentView === 'dashboard' && <AdminDashboard />}
       {currentView === 'users' && <AdminUsersScreen user={user} />}
+      {currentView === 'fish-species' && <AdminFishSpeciesScreen />}
       {currentView === 'roadmap' && <AdminRoadmapScreen user={user} />}
       {currentView === 'weather-api' && <AdminWeatherApiScreen />}
     </AdminLayout>

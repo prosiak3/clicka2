@@ -91,8 +91,9 @@ export function CatchList({ catches, onDeleteCatch }: CatchListProps) {
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate">{catch_.species}</h3>
-                    <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 flex-wrap">
+                      <span className="font-semibold text-base text-gray-900">{catch_.species}</span>
+                      <span className="text-gray-300">•</span>
                       <span>{format(catchDate, 'dd.MM.yyyy HH:mm')}</span>
                       <span className="text-gray-300">•</span>
                       <span className="flex items-center gap-1"><Ruler className="w-3 h-3" />{catch_.length}cm</span>

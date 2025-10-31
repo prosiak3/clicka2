@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, LogOut, Menu, X, Shield, Map, Cloud } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, Menu, X, Shield, Map, Cloud, Fish } from 'lucide-react';
 import { User } from '../types';
 import { signOut } from '../utils/auth';
 
 interface AdminLayoutProps {
   user: User;
   children: React.ReactNode;
-  currentView: 'dashboard' | 'users' | 'roadmap' | 'weather-api';
-  onViewChange: (view: 'dashboard' | 'users' | 'roadmap' | 'weather-api') => void;
+  currentView: 'dashboard' | 'users' | 'roadmap' | 'weather-api' | 'fish-species';
+  onViewChange: (view: 'dashboard' | 'users' | 'roadmap' | 'weather-api' | 'fish-species') => void;
   onLogout: () => void;
 }
 
@@ -38,6 +38,11 @@ export function AdminLayout({ user, children, currentView, onViewChange, onLogou
       id: 'users',
       name: 'Users',
       icon: Users,
+    },
+    {
+      id: 'fish-species',
+      name: 'Fish Species',
+      icon: Fish,
     },
     {
       id: 'roadmap',
@@ -74,7 +79,7 @@ export function AdminLayout({ user, children, currentView, onViewChange, onLogou
               return (
                 <button
                   key={item.id}
-                  onClick={() => onViewChange(item.id as 'dashboard' | 'users' | 'roadmap' | 'weather-api')}
+                  onClick={() => onViewChange(item.id as 'dashboard' | 'users' | 'roadmap' | 'weather-api' | 'fish-species')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive
                       ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -137,7 +142,7 @@ export function AdminLayout({ user, children, currentView, onViewChange, onLogou
                   <button
                     key={item.id}
                     onClick={() => {
-                      onViewChange(item.id as 'dashboard' | 'users' | 'roadmap' | 'weather-api');
+                      onViewChange(item.id as 'dashboard' | 'users' | 'roadmap' | 'weather-api' | 'fish-species');
                       setMobileMenuOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
