@@ -36,57 +36,119 @@ interface FishData {
   source_url?: string;
 }
 
+function extractSectionContent(html: string, sectionTitle: string): string {
+  const sectionRegex = new RegExp(`<h[34][^>]*>\\s*${sectionTitle}[^<]*<\\/h[34]>([\\s\\S]*?)(?=<h[234][^>]*>|$)`, 'i');
+  const match = html.match(sectionRegex);
+
+  if (match && match[1]) {
+    const content = match[1];
+    const paragraphRegex = /<p[^>]*>([\\s\\S]*?)<\\/p>/gi;
+    const paragraphs = content.match(paragraphRegex) || [];
+    const cleanedParagraphs = paragraphs
+      .map(p => p.replace(/<[^>]+>/g, '').trim())
+      .filter(p => p.length > 10);
+
+    return cleanedParagraphs.join(' ');
+  }
+
+  return '';
+}
+
 function extractRTWData(html: string, url: string): FishData {
   const data: FishData = { source_url: url };
 
   try {
-    const polishNameMatch = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
-    if (polishNameMatch) {
-      data.name_pl = polishNameMatch[1].trim();
+    const h1Match = html.match(/<h1[^>]*>([^<(]+)(?:\([^)]+\))?<\/h1>/i);
+    if (h1Match) {
+      data.name_pl = h1Match[1].trim();
     }
 
-    const latinMatch = html.match(/(?:Latin[:\s]*|Łacińsk[ai][:\s]*|<i>)\s*([A-Z][a-z]+\s+[a-z]+)/i);
-    if (latinMatch) {
-      data.latin_name = latinMatch[1].trim();
+    const h2Match = html.match(/<h2[^>]*>([^<(]+)\(([^)]+)\)<\/h2>/i);
+    if (h2Match) {
+      if (!data.name_pl) {
+        data.name_pl = h2Match[1].trim();
+      }
+      data.latin_name = h2Match[2].trim();
     }
 
-    const lengthMatch = html.match(/(?:długość|length)[:\s]*(?:do|up to|max)[:\s]*(\d+)\s*cm/i);
-    if (lengthMatch) {
-      data.max_length = parseInt(lengthMatch[1]);
-      data.min_length = Math.round(parseInt(lengthMatch[1]) * 0.2);
-    }
-
-    const weightMatch = html.match(/(?:waga|weight)[:\s]*(?:do|up to|max)[:\s]*(\d+(?:[.,]\d+)?)\s*kg/i);
-    if (weightMatch) {
-      data.max_weight = parseFloat(weightMatch[1].replace(',', '.'));
-    }
-
-    const legalSizeMatch = html.match(/(?:wymiar ochronny|protection size)[:\s]*(\d+)(?:\s*-\s*(\d+))?\s*cm/i);
-    if (legalSizeMatch) {
-      data.legal_size = parseInt(legalSizeMatch[1]);
-    }
-
-    const protectionPeriodMatch = html.match(/(?:okres ochronny|closed season)[:\s]*(\d+)\s+(\w+)\s*-\s*(\d+)\s+(\w+)/i);
-    if (protectionPeriodMatch) {
-      const monthMap: { [key: string]: string } = {
-        'stycznia': '01', 'stycznia': '01', 'lutego': '02', 'marca': '03', 'kwietnia': '04',
-        'maja': '05', 'czerwca': '06', 'lipca': '07', 'sierpnia': '08',
-        'września': '09', 'października': '10', 'listopada': '11', 'grudnia': '12',
-        'january': '01', 'february': '02', 'march': '03', 'april': '04',
-        'may': '05', 'june': '06', 'july': '07', 'august': '08',
-        'september': '09', 'october': '10', 'november': '11', 'december': '12'
-      };
-
-      const startMonth = monthMap[protectionPeriodMatch[2].toLowerCase()];
-      const endMonth = monthMap[protectionPeriodMatch[4].toLowerCase()];
-
-      if (startMonth && endMonth) {
-        data.protected_period_start = `2024-${startMonth}-${protectionPeriodMatch[1].padStart(2, '0')}`;
-        data.protected_period_end = `2024-${endMonth}-${protectionPeriodMatch[3].padStart(2, '0')}`;
+    if (!data.latin_name) {
+      const latinMatch = html.match(/\(([A-Z][a-z]+\s+[a-z]+)\)/i);
+      if (latinMatch) {
+        data.latin_name = latinMatch[1].trim();
       }
     }
 
-    const imageMatch = html.match(/<img[^>]*src=["']([^"']*(?:szczupak|okon|sandacz|karp|leszcz|sum|lin|amur|karas|pstrag|lipien|brzana|bolec|jaź|jelec|kleń|płoć|certa|kiełb|koza|krąp|miętus|piskorz|ukleja|węgorz|sieja|stynka|świnka|tołpyga|wzdręga)[^"']*)["']/i);
+    const budowaContent = extractSectionContent(html, 'Budowa zewn\u0119trzna');
+    if (budowaContent) {
+      data.description_pl = budowaContent.substring(0, 1000);
+
+      const lengthMatch = budowaContent.match(/(\d+)\s*cm/i);
+      if (lengthMatch) {
+        data.max_length = parseInt(lengthMatch[1]);
+        data.min_length = Math.round(parseInt(lengthMatch[1]) * 0.2);
+      }
+
+      const weightMatch = budowaContent.match(/(\d+(?:[.,]\d+)?)\s*kg/i);
+      if (weightMatch) {
+        data.max_weight = parseFloat(weightMatch[1].replace(',', '.'));
+      }
+    }
+
+    const wystepowanieContent = extractSectionContent(html, 'Wyst\u0119powanie');
+    if (wystepowanieContent) {
+      data.habitat_pl = wystepowanieContent.substring(0, 500);
+    }
+
+    const trybZyciaContent = extractSectionContent(html, 'Tryb \u017cycia');
+    if (trybZyciaContent) {
+      if (!data.habitat_pl) {
+        data.habitat_pl = trybZyciaContent.substring(0, 500);
+      } else {
+        data.habitat_pl += ' ' + trybZyciaContent.substring(0, 300);
+        data.habitat_pl = data.habitat_pl.substring(0, 800);
+      }
+    }
+
+    const odzywianieContent = extractSectionContent(html, 'Od\u017cywianie');
+    if (odzywianieContent) {
+      data.feeding_pl = odzywianieContent.substring(0, 500);
+    }
+
+    const tarloContent = extractSectionContent(html, 'Tar\u0142o');
+    if (tarloContent) {
+      data.spawning_pl = tarloContent.substring(0, 500);
+    }
+
+    const wedkarstwoContent = extractSectionContent(html, 'W\u0119dkarstwo');
+    if (wedkarstwoContent) {
+      if (!data.spawning_pl) {
+        data.spawning_pl = wedkarstwoContent.substring(0, 500);
+      }
+
+      const legalSizeMatch = wedkarstwoContent.match(/(?:wymiar ochronny|do)\s*(\d+)\s*cm/i);
+      if (legalSizeMatch) {
+        data.legal_size = parseInt(legalSizeMatch[1]);
+      }
+
+      const protectionPeriodMatch = wedkarstwoContent.match(/(\d+)\s+(stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|wrze\u015bnia|pa\u017adziernika|listopada|grudnia)\s*[-\u2013]\s*(\d+)\s+(stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|wrze\u015bnia|pa\u017adziernika|listopada|grudnia)/i);
+      if (protectionPeriodMatch) {
+        const monthMap: { [key: string]: string } = {
+          'stycznia': '01', 'lutego': '02', 'marca': '03', 'kwietnia': '04',
+          'maja': '05', 'czerwca': '06', 'lipca': '07', 'sierpnia': '08',
+          'wrze\u015bnia': '09', 'pa\u017adziernika': '10', 'listopada': '11', 'grudnia': '12'
+        };
+
+        const startMonth = monthMap[protectionPeriodMatch[2].toLowerCase()];
+        const endMonth = monthMap[protectionPeriodMatch[4].toLowerCase()];
+
+        if (startMonth && endMonth) {
+          data.protected_period_start = `2024-${startMonth}-${protectionPeriodMatch[1].padStart(2, '0')}`;
+          data.protected_period_end = `2024-${endMonth}-${protectionPeriodMatch[3].padStart(2, '0')}`;
+        }
+      }
+    }
+
+    const imageMatch = html.match(/<img[^>]*src=["']([^"']*\.(?:jpg|jpeg|png|gif|webp))["']/i);
     if (imageMatch) {
       let imageUrl = imageMatch[1];
       if (imageUrl.startsWith('/')) {
@@ -97,30 +159,12 @@ function extractRTWData(html: string, url: string): FishData {
       data.thumbnail_url = imageUrl;
     }
 
-    const descriptionSections = html.match(/<p[^>]*>([^<]+(?:<[^>]+>[^<]*)*?)<\/p>/gi);
-    if (descriptionSections && descriptionSections.length > 0) {
-      const cleanText = descriptionSections[0].replace(/<[^>]+>/g, '').trim();
-      if (cleanText.length > 50) {
-        data.description_pl = cleanText.substring(0, 500);
-      }
-    }
-
-    const habitatMatch = html.match(/(?:Siedlisko|Habitat)[:\s]*([^<.]+(?:\.[^<.]+){0,2})/i);
-    if (habitatMatch) {
-      data.habitat_pl = habitatMatch[1].trim();
-    }
-
-    const spawningMatch = html.match(/(?:Tarło|Spawning|Rozród)[:\s]*([^<.]+(?:\.[^<.]+){0,2})/i);
-    if (spawningMatch) {
-      data.spawning_pl = spawningMatch[1].trim();
-    }
-
     if (data.name_pl) {
       const lowercaseName = data.name_pl.toLowerCase();
-      if (lowercaseName.includes('szczupak') || lowercaseName.includes('okoń') ||
+      if (lowercaseName.includes('szczupak') || lowercaseName.includes('oko\u0144') ||
           lowercaseName.includes('sandacz') || lowercaseName.includes('sum')) {
         data.group_name = 'predatory';
-      } else if (lowercaseName.includes('pstrąg') || lowercaseName.includes('lipień')) {
+      } else if (lowercaseName.includes('pstr\u0105g') || lowercaseName.includes('lipie\u0144')) {
         data.group_name = 'salmonid';
       } else {
         data.group_name = 'freshwater';
@@ -296,9 +340,9 @@ Deno.serve(async (req: Request) => {
     if (fishData.image_url) {
       const fishCode = fishData.name_pl
         ? fishData.name_pl.toLowerCase()
-            .replace(/ą/g, 'a').replace(/ć/g, 'c').replace(/ę/g, 'e')
-            .replace(/ł/g, 'l').replace(/ń/g, 'n').replace(/ó/g, 'o')
-            .replace(/ś/g, 's').replace(/ź/g, 'z').replace(/ż/g, 'z')
+            .replace(/\u0105/g, 'a').replace(/\u0107/g, 'c').replace(/\u0119/g, 'e')
+            .replace(/\u0142/g, 'l').replace(/\u0144/g, 'n').replace(/\u00f3/g, 'o')
+            .replace(/\u015b/g, 's').replace(/\u017a/g, 'z').replace(/\u017c/g, 'z')
             .replace(/[^a-z0-9]/g, '')
         : 'fish';
 
