@@ -134,6 +134,14 @@ export function AdminWeatherApiScreen() {
 
   const saveOAuthConfig = async (providerId: string, clientId: string, clientSecret: string, redirectUri: string) => {
     try {
+      if (!clientId || !clientSecret) {
+        alert('Client ID and Client Secret are required');
+        return;
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const finalRedirectUri = redirectUri || `${supabaseUrl}/functions/v1/netatmo-oauth-callback`;
+
       const existingConfig = oauthConfigs.find(c => c.provider_id === providerId);
 
       if (existingConfig) {
@@ -142,11 +150,15 @@ export function AdminWeatherApiScreen() {
           .update({
             client_id: clientId,
             client_secret: clientSecret,
-            redirect_uri: redirectUri
+            redirect_uri: finalRedirectUri
           })
           .eq('id', existingConfig.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating OAuth config:', error);
+          alert(`Failed to save: ${error.message}`);
+          return;
+        }
       } else {
         const { error } = await supabase
           .from('weather_oauth_config')
@@ -154,17 +166,23 @@ export function AdminWeatherApiScreen() {
             provider_id: providerId,
             client_id: clientId,
             client_secret: clientSecret,
-            redirect_uri: redirectUri,
+            redirect_uri: finalRedirectUri,
             scopes: ['read_station']
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error inserting OAuth config:', error);
+          alert(`Failed to save: ${error.message}`);
+          return;
+        }
       }
 
       setEditingOAuth(null);
       await loadData();
+      alert('OAuth configuration saved successfully!');
     } catch (error) {
       console.error('Error saving OAuth config:', error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

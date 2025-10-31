@@ -48,7 +48,6 @@ Deno.serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get Netatmo provider and OAuth config
     const { data: provider, error: providerError } = await supabase
       .from('weather_api_providers')
       .select('id')
@@ -84,8 +83,10 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log('[Netatmo OAuth] Exchanging code for tokens...');
+    console.log('[Netatmo OAuth] Using redirect_uri:', oauthConfig.redirect_uri);
+    console.log('[Netatmo OAuth] Using client_id:', oauthConfig.client_id);
+    console.log('[Netatmo OAuth] Using scopes:', oauthConfig.scopes);
 
-    // Exchange authorization code for access token
     const tokenResponse = await fetch('https://api.netatmo.com/oauth2/token', {
       method: 'POST',
       headers: {
@@ -100,6 +101,8 @@ Deno.serve(async (req: Request) => {
         scope: (oauthConfig.scopes || []).join(' '),
       }).toString(),
     });
+
+    console.log('[Netatmo OAuth] Token response status:', tokenResponse.status);
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
@@ -116,10 +119,8 @@ Deno.serve(async (req: Request) => {
     const tokenData = await tokenResponse.json();
     console.log('[Netatmo OAuth] Tokens received successfully');
 
-    // Calculate token expiry time
     const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000));
 
-    // Update OAuth config with tokens
     const { error: updateError } = await supabase
       .from('weather_oauth_config')
       .update({
@@ -142,7 +143,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Enable the Netatmo provider
     await supabase
       .from('weather_api_providers')
       .update({ enabled: true })
@@ -150,7 +150,6 @@ Deno.serve(async (req: Request) => {
 
     console.log('[Netatmo OAuth] OAuth setup completed successfully');
 
-    // Redirect to admin panel with success message
     return new Response(
       `<!DOCTYPE html>
       <html>
