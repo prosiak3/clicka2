@@ -113,9 +113,10 @@ function SettingsSection({
 interface SettingsScreenProps {
   user?: User;
   onLogout?: () => void;
+  setUser?: (user: User | null) => void;
 }
 
-export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
+export function SettingsScreen({ user, onLogout, setUser }: SettingsScreenProps = {}) {
   const settings = useSettings();
   const t = useTranslation();
   const notifications = useNotifications();
@@ -244,7 +245,7 @@ export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
                   .update({ enable_quick_count: e.target.checked })
                   .eq('id', user.id);
 
-                if (!error) {
+                if (!error && setUser) {
                   setUser({ ...user, enable_quick_count: e.target.checked });
                 }
               }}

@@ -1023,6 +1023,7 @@ function MainApp({
             {activeTab === 'settings' && (
               <SettingsScreen
                 user={user}
+                setUser={setUser}
                 onLogout={() => {
                   setUser(null);
                   window.location.href = '/login';
