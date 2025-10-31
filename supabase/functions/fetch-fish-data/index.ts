@@ -211,6 +211,59 @@ function extractGenericData(html: string, url: string): FishData {
   return data;
 }
 
+const FISH_NAME_DICTIONARY: { [key: string]: { en: string; de: string } } = {
+  'szczupak': { en: 'Pike', de: 'Hecht' },
+  'okoń': { en: 'Perch', de: 'Barsch' },
+  'sandacz': { en: 'Zander', de: 'Zander' },
+  'sum': { en: 'Catfish', de: 'Wels' },
+  'karp': { en: 'Carp', de: 'Karpfen' },
+  'lin': { en: 'Tench', de: 'Schleie' },
+  'leszcz': { en: 'Bream', de: 'Brassen' },
+  'płoć': { en: 'Roach', de: 'Rotauge' },
+  'karaś': { en: 'Crucian Carp', de: 'Karausche' },
+  'pstrąg': { en: 'Trout', de: 'Forelle' },
+  'pstrąg potokowy': { en: 'Brown Trout', de: 'Bachforelle' },
+  'pstrąg tęczowy': { en: 'Rainbow Trout', de: 'Regenbogenforelle' },
+  'lipień': { en: 'Grayling', de: 'Äsche' },
+  'węgorz': { en: 'Eel', de: 'Aal' },
+  'jazgarz': { en: 'Ruffe', de: 'Kaulbarsch' },
+  'miętus': { en: 'Burbot', de: 'Quappe' },
+  'kleń': { en: 'Chub', de: 'Döbel' },
+  'jaź': { en: 'Ide', de: 'Aland' },
+  'wzdręga': { en: 'Common Dace', de: 'Hasel' },
+  'ukleja': { en: 'Bleak', de: 'Ukelei' },
+  'krąp': { en: 'Bream', de: 'Güster' },
+  'słonecznica': { en: 'Pumpkinseed', de: 'Sonnenbarsch' },
+  'amur': { en: 'Grass Carp', de: 'Graskarpfen' },
+  'tołpyga': { en: 'Silver Carp', de: 'Silberkarpfen' },
+  'stynka': { en: 'Spined Loach', de: 'Stint' },
+  'świnka': { en: 'Weatherfish', de: 'Schlammpeitzger' },
+  'piskorz': { en: 'Stone Loach', de: 'Schmerle' },
+  'certa': { en: 'Vimba', de: 'Zährte' },
+  'różanka': { en: 'Bitterling', de: 'Bitterling' },
+  'boleń': { en: 'Asp', de: 'Rapfen' },
+  'brzana': { en: 'Barbel', de: 'Barbe' },
+  'kiełb': { en: 'Belica', de: 'Weißflossengründling' },
+  'śliz': { en: 'Loach', de: 'Steinbeißer' },
+  'głowacz': { en: 'Bullhead', de: 'Groppe' },
+  'łosoś': { en: 'Salmon', de: 'Lachs' },
+  'troć': { en: 'Sea Trout', de: 'Meerforelle' }
+};
+
+function translateFishName(polishName: string, targetLang: 'en' | 'de'): string | null {
+  if (!polishName) return null;
+
+  const lowerName = polishName.toLowerCase().trim();
+
+  for (const [key, translations] of Object.entries(FISH_NAME_DICTIONARY)) {
+    if (lowerName.includes(key)) {
+      return translations[targetLang];
+    }
+  }
+
+  return null;
+}
+
 async function translateText(text: string, targetLang: string): Promise<string> {
   if (!text || text.trim().length === 0) {
     return '';
@@ -274,12 +327,23 @@ async function translateFishData(data: FishData): Promise<FishData> {
 
   if (data.name_pl && !data.name_en) {
     console.log('[Translation] Translating fish name...');
-    const [nameEn, nameDe] = await Promise.all([
-      translateText(data.name_pl, 'en'),
-      translateText(data.name_pl, 'de'),
-    ]);
-    data.name_en = nameEn;
-    data.name_de = nameDe;
+
+    const dictionaryNameEn = translateFishName(data.name_pl, 'en');
+    const dictionaryNameDe = translateFishName(data.name_pl, 'de');
+
+    if (dictionaryNameEn && dictionaryNameDe) {
+      console.log('[Translation] Using dictionary translation for fish name');
+      data.name_en = dictionaryNameEn;
+      data.name_de = dictionaryNameDe;
+    } else {
+      console.log('[Translation] Using automatic translation for fish name');
+      const [nameEn, nameDe] = await Promise.all([
+        translateText(data.name_pl, 'en'),
+        translateText(data.name_pl, 'de'),
+      ]);
+      data.name_en = nameEn;
+      data.name_de = nameDe;
+    }
   }
 
   console.log('[Translation] Translation process completed');
