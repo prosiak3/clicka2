@@ -31,6 +31,7 @@ import { useSettings } from '../utils/settings';
 import { FishSpecies, User } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { ConfirmSettingsDialog } from './ConfirmSettingsDialog';
+import { ConfirmDialog } from './ConfirmDialog';
 import { ExportDialog } from './ExportDialog';
 import { StatsCleanupDialog } from './StatsCleanupDialog';
 import { InstallPwaButton } from './InstallPwaButton';
@@ -121,6 +122,7 @@ export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showCleanup, setShowCleanup] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -848,7 +850,7 @@ export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
         onToggle={() => setExpandedSection(expandedSection === 'reset' ? null : 'reset')}
       >
         <button
-          onClick={settings.resetSettings}
+          onClick={() => setShowResetConfirm(true)}
           className="w-full py-2 px-4 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900 transition-colors"
         >
           {t.settings.resetSettings}
@@ -874,6 +876,19 @@ export function SettingsScreen({ user, onLogout }: SettingsScreenProps = {}) {
         onConfirm={(startDate, endDate) => {
           setShowCleanup(false);
         }}
+      />
+
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        onClose={() => setShowResetConfirm(false)}
+        onConfirm={() => {
+          settings.resetSettings();
+          setShowResetConfirm(false);
+        }}
+        title="Reset to Default Settings"
+        message="Are you sure you want to reset all settings to their default values? This action cannot be undone.\n\n⚠️ IMPORTANT: Consider backing up your data first by using the 'Export Location Data' option in the Data Management section. This will help you restore your fishing sessions and catches if needed."
+        confirmText="Reset Settings"
+        confirmColor="red"
       />
     </div>
   );
