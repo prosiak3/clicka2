@@ -205,35 +205,37 @@ export function TutorialOverlay({
         className="fixed inset-0 z-[9999]"
         style={{ isolation: 'isolate', pointerEvents: 'none' }}
       >
-        <svg
+        <div
           className="absolute inset-0 w-full h-full"
-          style={{ pointerEvents: 'auto' }}
+          style={{ pointerEvents: 'auto', zIndex: 9999 }}
           onClick={handleOverlayClick}
         >
-          <defs>
-            <mask id="tutorial-mask">
-              <rect x="0" y="0" width="100%" height="100%" fill="white" />
-              {highlightRect && (
-                <rect
-                  x={highlightRect.left - 8}
-                  y={highlightRect.top - 8}
-                  width={highlightRect.width + 16}
-                  height={highlightRect.height + 16}
-                  rx="12"
-                  fill="black"
-                />
-              )}
-            </mask>
-          </defs>
-          <rect
-            x="0"
-            y="0"
-            width="100%"
-            height="100%"
-            fill="rgba(0, 0, 0, 0.7)"
-            mask="url(#tutorial-mask)"
-          />
-        </svg>
+          <svg className="absolute inset-0 w-full h-full">
+            <defs>
+              <mask id="tutorial-mask">
+                <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                {highlightRect && (
+                  <rect
+                    x={highlightRect.left - 8}
+                    y={highlightRect.top - 8}
+                    width={highlightRect.width + 16}
+                    height={highlightRect.height + 16}
+                    rx="12"
+                    fill="black"
+                  />
+                )}
+              </mask>
+            </defs>
+            <rect
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              fill="rgba(0, 0, 0, 0.7)"
+              mask="url(#tutorial-mask)"
+            />
+          </svg>
+        </div>
 
         {highlightRect && (
           <div
@@ -278,7 +280,7 @@ export function TutorialOverlay({
           className="absolute bg-white rounded-xl shadow-2xl p-5 animate-fade-in"
           style={{
             ...tooltipStyle,
-            zIndex: 10002,
+            zIndex: 10003,
             pointerEvents: 'auto',
           }}
         >
