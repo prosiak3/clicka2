@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Lock, Loader as Loader2 } from 'lucide-react';
 import { signIn, signUp, signInWithOAuth } from '../utils/auth';
 import { ForgotPasswordDialog } from './ForgotPasswordDialog';
 import { useNavigate } from 'react-router-dom';
