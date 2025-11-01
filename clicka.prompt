@@ -1,0 +1,1452 @@
+# CLICKA - FISHING COMPANION APP
+## Kompletny przewodnik budowy aplikacji od podstaw
+
+---
+
+## 📋 SPIS TREŚCI
+1. [Opis Projektu](#opis-projektu)
+2. [Stack Technologiczny](#stack-technologiczny)
+3. [Wymagania Wstępne](#wymagania-wstępne)
+4. [Struktura Projektu](#struktura-projektu)
+5. [Konfiguracja Bazy Danych](#konfiguracja-bazy-danych)
+6. [Schemat Bazy Danych](#schemat-bazy-danych)
+7. [Architektura Aplikacji](#architektura-aplikacji)
+8. [Funkcjonalności](#funkcjonalności)
+9. [Komponenty UI](#komponenty-ui)
+10. [Konfiguracja PWA](#konfiguracja-pwa)
+11. [Integracje](#integracje)
+12. [Deployment](#deployment)
+13. [Bezpieczeństwo](#bezpieczeństwo)
+14. [Wskazówki dla AI Agent](#wskazówki-dla-ai-agent)
+
+---
+
+## 📖 OPIS PROJEKTU
+
+**Clicka - Better Fishing** to kompleksowa aplikacja PWA (Progressive Web App) dla wędkarzy, która pozwala:
+- Śledzić sesje wędkarskie z GPS tracking
+- Rejestrować złowione ryby z danymi pogodowymi
+- Analizować wzorce połowów
+- Zarządzać bazą danych gatunków ryb
+- Planować roadmap rozwoju aplikacji
+- Integrację z zewnętrznymi API pogodowymi (Netatmo, Open-Meteo)
+
+**Język interfejsu**: Wielojęzyczny (Polski, Angielski, Niemiecki)
+**Platforma**: Web (PWA) - działa na iOS, Android, Desktop
+
+---
+
+## 🛠️ STACK TECHNOLOGICZNY
+
+### Frontend
+```json
+{
+  "framework": "React 18.2.0",
+  "typescript": "5.2.2",
+  "build": "Vite 5.1.4",
+  "styling": "Tailwind CSS 3.4.1",
+  "icons": "Lucide React 0.359.0",
+  "routing": "React Router DOM 6.22.3",
+  "state": "Zustand 4.5.1",
+  "maps": "React Leaflet 4.2.1 + Leaflet 1.9.4",
+  "charts": "Chart.js 4.4.1 + React ChartJS 2 5.2.0",
+  "dates": "date-fns 3.3.1",
+  "pwa": "vite-plugin-pwa 1.1.0 + workbox-window 7.3.0"
+}
+```
+
+### Backend & Database
+```json
+{
+  "database": "Supabase (PostgreSQL)",
+  "auth": "Supabase Auth (Email/Password + OAuth)",
+  "storage": "Supabase Storage (dla zdjęć ryb)",
+  "edge-functions": "Supabase Edge Functions (Deno)",
+  "realtime": "Supabase Realtime (opcjonalne)"
+}
+```
+
+### External APIs
+- **Open-Meteo** - Bezpłatne API pogodowe (główne źródło)
+- **Netatmo** - OAuth weather API (opcjonalne, dla stacji domowych)
+
+---
+
+## ✅ WYMAGANIA WSTĘPNE
+
+### Dla developera:
+1. **Node.js** >= 18.x
+2. **npm** lub **yarn**
+3. **Konto Supabase** (darmowy plan wystarczy)
+4. **Git** (opcjonalnie)
+
+### Zmienne środowiskowe (.env):
+```bash
+VITE_SUPABASE_URL=https://twoj-projekt.supabase.co
+VITE_SUPABASE_ANON_KEY=twoj_klucz_publiczny_anon
+```
+
+---
+
+## 📁 STRUKTURA PROJEKTU
+
+```
+clicka-better-fishing/
+├── public/                              # Pliki statyczne
+│   ├── images/                         # Logo i obrazy
+│   │   ├── clicka-logo.svg            # GŁÓWNE LOGO (niebieska ryba z wędką)
+│   │   ├── clicka-logo.png
+│   │   └── clicka-logo-light.svg
+│   ├── sounds/                         # Dźwięki
+│   │   └── reel.mp3                   # Dźwięk kołowrotka
+│   ├── icon-*.png                      # Ikony PWA (72-512px)
+│   ├── apple-touch-icon*.png          # Ikony iOS
+│   └── manifest.webmanifest           # PWA manifest
+│
+├── src/
+│   ├── components/                     # 41 komponentów React
+│   │   ├── ActiveSessionButton.tsx
+│   │   ├── AdminLayout.tsx
+│   │   ├── AdminPanel.tsx
+│   │   ├── CatchForm.tsx              # Główny formularz łowienia
+│   │   ├── CatchList.tsx
+│   │   ├── EditCatchDialog.tsx
+│   │   ├── LoginScreen.tsx            # Ekran logowania
+│   │   ├── Map.tsx                    # Mapa Leaflet
+│   │   ├── ProtectedRoute.tsx         # Ochrona tras
+│   │   ├── PwaInstallPrompt.tsx       # Prompt instalacji PWA
+│   │   ├── SessionCard.tsx
+│   │   ├── SessionList.tsx
+│   │   ├── SettingsScreen.tsx
+│   │   ├── StatusBar.tsx              # Pasek statusu
+│   │   ├── TutorialManager.tsx        # System tutoriali
+│   │   ├── WeatherDisplay.tsx
+│   │   └── ... (36 więcej)
+│   │
+│   ├── screens/                       # Ekrany główne
+│   │   ├── AdminDashboard.tsx
+│   │   ├── AdminFishSpeciesScreen.tsx
+│   │   ├── AdminRoadmapScreen.tsx
+│   │   ├── AdminUsersScreen.tsx
+│   │   ├── AdminWeatherApiScreen.tsx
+│   │   ├── RoadmapScreen.tsx
+│   │   └── SessionsScreen.tsx
+│   │
+│   ├── hooks/                         # Custom React Hooks
+│   │   ├── useActiveSession.ts        # Zarządzanie aktywną sesją
+│   │   ├── useDatabaseStatus.ts
+│   │   ├── useGpsTracking.ts          # GPS tracking
+│   │   ├── useInactivityTimer.ts
+│   │   ├── useLastSpecies.ts
+│   │   ├── useLongPress.ts
+│   │   ├── useNotifications.ts
+│   │   ├── useOnboarding.ts
+│   │   ├── useOnlineStatus.ts
+│   │   ├── useTranslation.ts          # Tłumaczenia
+│   │   └── useWeatherStatus.ts
+│   │
+│   ├── utils/                         # Utility functions
+│   │   ├── auth.ts                   # Supabase Auth
+│   │   ├── db.ts                     # Database operations
+│   │   ├── fish.ts                   # Fish species helpers
+│   │   ├── location.ts               # GPS & geolocation
+│   │   ├── moon.ts                   # Fazy księżyca
+│   │   ├── notifications.ts          # Push notifications
+│   │   ├── pwa-debug.ts             # PWA debugging
+│   │   ├── settings.ts              # User settings
+│   │   ├── sound.ts                 # Sound effects
+│   │   ├── storage.ts               # LocalStorage helpers
+│   │   ├── tutorialSteps.ts         # Tutorial steps data
+│   │   ├── weather.ts               # Weather API
+│   │   └── weatherEstimation.ts     # Weather estimation fallback
+│   │
+│   ├── types/                        # TypeScript definitions
+│   │   ├── base.ts
+│   │   └── index.ts
+│   │
+│   ├── App.tsx                       # Główny komponent aplikacji
+│   ├── main.tsx                      # Entry point
+│   ├── index.css                     # Global styles + Tailwind
+│   ├── translations.ts               # Pliki tłumaczeń (PL/EN/DE)
+│   └── vite-env.d.ts
+│
+├── supabase/
+│   ├── migrations/                   # 42 migracje SQL
+│   │   ├── 20251029222310_*.sql
+│   │   ├── 20251030001958_add_oauth_support_to_users.sql
+│   │   ├── 20251030004954_add_admin_role_to_users.sql
+│   │   ├── 20251030124231_fix_user_profiles_rls_policies.sql
+│   │   ├── 20251030125633_create_roadmap_and_changelog_tables.sql
+│   │   ├── 20251030153520_add_weather_api_configuration.sql
+│   │   ├── 20251031012854_add_weather_oauth_config_table.sql
+│   │   ├── 20251031012917_add_netatmo_weather_provider.sql
+│   │   ├── 20251031020752_setup_netatmo_token_refresh_cron.sql
+│   │   ├── 20251031023520_create_fish_images_storage_bucket.sql
+│   │   ├── 20251031040957_add_catch_description_field.sql
+│   │   ├── 20251031045133_add_user_onboarding_table.sql
+│   │   └── ... (32 więcej)
+│   │
+│   └── functions/                    # Edge Functions (Deno)
+│       ├── fetch-fish-data/
+│       │   └── index.ts
+│       ├── netatmo-oauth-callback/
+│       │   └── index.ts
+│       ├── netatmo-refresh-token/
+│       │   └── index.ts
+│       └── netatmo-weather-data/
+│           └── index.ts
+│
+├── dist/                             # Build output
+├── .env                              # Environment variables
+├── .gitignore
+├── package.json
+├── tsconfig.json
+├── vite.config.ts                   # Vite + PWA config
+├── tailwind.config.js
+├── postcss.config.js
+└── README.md
+
+```
+
+---
+
+## 🗄️ KONFIGURACJA BAZY DANYCH
+
+### Inicjalizacja Supabase:
+
+1. **Utwórz projekt w Supabase**
+   - Wejdź na https://supabase.com
+   - Utwórz nowy projekt
+   - Zapisz **Project URL** i **Anon Key**
+
+2. **Skonfiguruj zmienne środowiskowe**
+   ```bash
+   VITE_SUPABASE_URL=https://twoj-projekt.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbG...
+   ```
+
+3. **Uruchom migracje**
+   - Wszystkie 42 migracje są w folderze `supabase/migrations/`
+   - Można je uruchomić przez Supabase Dashboard lub CLI
+   - Migracje tworzą całą strukturę bazy danych
+
+---
+
+## 🔗 SCHEMAT BAZY DANYCH
+
+### Główne tabele:
+
+#### 1. **user_profiles**
+```sql
+CREATE TABLE user_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  email TEXT NOT NULL,
+  full_name TEXT,
+  avatar_url TEXT,
+  provider TEXT DEFAULT 'email' NOT NULL,  -- 'email', 'google', 'github'
+  provider_id TEXT,
+  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  enable_quick_count BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**RLS Policies:**
+- Users can view own profile
+- Users can update own profile
+- Admins can view all profiles
+
+#### 2. **fishing_sessions**
+```sql
+CREATE TABLE fishing_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id),
+  start_time TIMESTAMPTZ DEFAULT now(),
+  end_time TIMESTAMPTZ,
+  weather JSONB NOT NULL,                  -- Dane pogodowe
+  locations JSONB[] NOT NULL,              -- Tablica lokalizacji GPS
+  notes TEXT,
+  pauses JSONB[] DEFAULT '{}',             -- Pauzy w sesji
+  total_pause_time INTEGER DEFAULT 0,
+  tracking_interval INTEGER DEFAULT 15 CHECK (tracking_interval IN (1,5,15,30,60)),
+  tracking_enabled BOOLEAN DEFAULT true,
+  counting_mode BOOLEAN DEFAULT false,
+  just_count_mode BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**RLS Policies:**
+- Users can CRUD own sessions
+- Sessions are user-scoped
+
+#### 3. **fish_catches**
+```sql
+CREATE TABLE fish_catches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID NOT NULL REFERENCES fishing_sessions(id) ON DELETE CASCADE,
+  species TEXT NOT NULL,
+  length NUMERIC NOT NULL,
+  weight NUMERIC NOT NULL,
+  location JSONB NOT NULL,                 -- {lat, lng, timestamp}
+  weather JSONB,                           -- Dane pogodowe dla złowienia
+  photo_urls TEXT[],                       -- Zdjęcia ryb
+  description TEXT,                        -- Opis złowienia
+  notes TEXT,
+  timestamp TIMESTAMPTZ DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**RLS Policies:**
+- Users can CRUD catches for their own sessions
+
+#### 4. **fish_species** (13 gatunków)
+```sql
+CREATE TABLE fish_species (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT UNIQUE NOT NULL,               -- 'CARP', 'PIKE', 'PERCH', etc.
+  name_en TEXT NOT NULL,
+  name_pl TEXT NOT NULL,
+  name_de TEXT NOT NULL,
+  latin_name TEXT NOT NULL,
+  group_name TEXT NOT NULL,                -- 'Predator', 'Peaceful', etc.
+  min_length INTEGER NOT NULL,
+  max_length INTEGER NOT NULL,
+  max_weight NUMERIC NOT NULL,
+  description_pl TEXT,
+  description_en TEXT,
+  description_de TEXT,
+  habitat_pl TEXT,
+  habitat_en TEXT,
+  habitat_de TEXT,
+  feeding_pl TEXT,
+  feeding_en TEXT,
+  feeding_de TEXT,
+  spawning_pl TEXT,
+  spawning_en TEXT,
+  spawning_de TEXT,
+  legal_size INTEGER,                      -- Minimalna długość połowu
+  protected_period_start DATE,
+  protected_period_end DATE,
+  image_url TEXT,
+  thumbnail_url TEXT,
+  length_weight_data JSONB,                -- Dane do obliczania wagi z długości
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**Domyślne gatunki:**
+- Karp (CARP)
+- Szczupak (PIKE)
+- Okoń (PERCH)
+- Sum (CATFISH)
+- Sandacz (ZANDER)
+- Leszcz (BREAM)
+- Lin (TENCH)
+- Karaś (CRUCIAN_CARP)
+- Płoć (ROACH)
+- Amur (GRASS_CARP)
+- Tołpyga (SILVER_CARP)
+- Pstrąg (TROUT)
+- Jaź (CHUB)
+
+**RLS Policies:**
+- Everyone can read
+- Only admins can modify
+
+#### 5. **weather_api_providers**
+```sql
+CREATE TABLE weather_api_providers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT UNIQUE NOT NULL,               -- 'open-meteo', 'netatmo'
+  display_name TEXT NOT NULL,
+  api_url TEXT NOT NULL,
+  requires_key BOOLEAN DEFAULT false,
+  enabled BOOLEAN DEFAULT true,
+  priority INTEGER DEFAULT 0,              -- 0 = highest priority
+  last_sync_at TIMESTAMPTZ,
+  last_successful_sync_at TIMESTAMPTZ,
+  sync_interval_minutes INTEGER DEFAULT 5,
+  sync_error_count INTEGER DEFAULT 0,
+  last_sync_error TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**RLS Policies:**
+- Everyone can read providers
+- Only admins can modify
+
+#### 6. **weather_oauth_config**
+```sql
+CREATE TABLE weather_oauth_config (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  provider_id UUID UNIQUE REFERENCES weather_api_providers(id),
+  client_id TEXT NOT NULL,
+  client_secret TEXT NOT NULL,
+  access_token TEXT,
+  refresh_token TEXT,
+  token_expires_at TIMESTAMPTZ,
+  redirect_uri TEXT DEFAULT '',
+  scopes TEXT[] DEFAULT ARRAY[]::TEXT[],
+  is_configured BOOLEAN DEFAULT false,
+  last_token_refresh TIMESTAMPTZ,
+  last_data_fetch_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**RLS Policies:**
+- Only admins can access
+
+#### 7. **roadmap_items**
+```sql
+CREATE TABLE roadmap_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'planned' CHECK (status IN ('planned', 'in_progress', 'completed')),
+  phase INTEGER DEFAULT 1,
+  priority INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**RLS Policies:**
+- Everyone can read
+- Only admins can modify
+
+#### 8. **app_versions** & **changelog_entries**
+```sql
+CREATE TABLE app_versions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  version TEXT UNIQUE NOT NULL,
+  release_date TIMESTAMPTZ DEFAULT now(),
+  is_current BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE changelog_entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  version_id UUID NOT NULL REFERENCES app_versions(id),
+  type TEXT CHECK (type IN ('added', 'changed', 'fixed', 'removed')),
+  description TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**RLS Policies:**
+- Everyone can read
+- Only admins can modify
+
+#### 9. **user_onboarding**
+```sql
+CREATE TABLE user_onboarding (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID UNIQUE NOT NULL REFERENCES auth.users(id),
+  completed BOOLEAN DEFAULT false,
+  current_step INTEGER DEFAULT 0,
+  total_steps INTEGER DEFAULT 11,
+  skipped BOOLEAN DEFAULT false,
+  completed_at TIMESTAMPTZ,
+  last_seen_step INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**RLS Policies:**
+- Users can view and update own onboarding
+
+#### 10. **Supabase Storage Buckets**
+
+**fish-images** - dla zdjęć ryb
+```sql
+-- Bucket publiczny z RLS
+-- Users mogą upload tylko do własnego folderu: user_id/*
+-- Format: fish-images/user_id/session_id/catch_id_timestamp.jpg
+```
+
+---
+
+## 🏗️ ARCHITEKTURA APLIKACJI
+
+### Wzorce architektury:
+
+1. **Component-Based Architecture** (React)
+2. **Custom Hooks Pattern** - logika biznesowa w hooks
+3. **Utility Functions** - czyste funkcje w /utils
+4. **Protected Routes** - middleware dla autoryzacji
+5. **Edge Functions** - serverless dla zewnętrznych API
+
+### Główne moduły:
+
+```
+┌─────────────────┐
+│   React App     │
+│   (Frontend)    │
+└────────┬────────┘
+         │
+         ├─► Custom Hooks (state management)
+         │   ├─► useActiveSession
+         │   ├─► useGpsTracking
+         │   ├─► useTranslation
+         │   └─► useWeatherStatus
+         │
+         ├─► Utils (business logic)
+         │   ├─► auth.ts (Supabase Auth)
+         │   ├─► db.ts (Database ops)
+         │   ├─► weather.ts (API calls)
+         │   └─► location.ts (GPS)
+         │
+         └─► Components (UI)
+             ├─► CatchForm
+             ├─► SessionList
+             ├─► Map (Leaflet)
+             └─► Charts (Chart.js)
+
+┌─────────────────┐
+│   Supabase      │
+│   (Backend)     │
+└────────┬────────┘
+         │
+         ├─► PostgreSQL Database
+         │   └─► RLS Policies
+         │
+         ├─► Supabase Auth
+         │   ├─► Email/Password
+         │   └─► OAuth (Google, GitHub)
+         │
+         ├─► Supabase Storage
+         │   └─► fish-images bucket
+         │
+         └─► Edge Functions
+             ├─► netatmo-oauth-callback
+             ├─► netatmo-refresh-token
+             ├─► netatmo-weather-data
+             └─► fetch-fish-data
+```
+
+---
+
+## 🎯 FUNKCJONALNOŚCI
+
+### 1. **Zarządzanie Sesjami Wędkarskimi**
+
+**Rozpoczęcie sesji:**
+- Kliknij przycisk "Start Session"
+- Automatyczne pobranie lokalizacji GPS
+- Automatyczne pobranie danych pogodowych
+- Zapisanie do bazy danych
+- Rozpoczęcie GPS tracking (co 1/5/15/30/60 min)
+
+**Podczas sesji:**
+- Przycisk "Add Catch" - dodaj złowioną rybę
+- GPS tracking lokalizacji
+- Możliwość pauzy sesji
+- Licznik czasu trwania
+- Wyświetlanie liczby złowionych ryb
+
+**Zakończenie sesji:**
+- Kliknij "End Session"
+- Podsumowanie: czas, liczba ryb, pogoda
+- Zapisanie do historii
+
+### 2. **Rejestrowanie Złowień (Catches)**
+
+**Formularz złowienia:**
+```typescript
+{
+  species: string,           // Gatunek ryby (z listy)
+  length: number,            // Długość (cm)
+  weight: number,            // Waga (kg) - auto lub manual
+  location: {lat, lng},      // GPS location
+  weather: {...},            // Aktualna pogoda
+  photo_urls: string[],      // Zdjęcia (opcjonalne)
+  description: string,       // Opis tekstowy (opcjonalny)
+  notes: string,             // Notatki (opcjonalne)
+  timestamp: Date            // Czas złowienia
+}
+```
+
+**Funkcje:**
+- Auto-kalkulacja wagi z długości (jeśli brak wagi)
+- Możliwość dodania 1+ zdjęć
+- Geolokalizacja automatyczna
+- Dane pogodowe automatyczne
+- Dźwięk kołowrotka po zapisaniu (reel.mp3)
+
+### 3. **Tryby Pracy**
+
+**Normal Mode:**
+- Pełne dane dla każdej ryby
+- Gatunek, długość, waga, zdjęcia
+
+**Quick Count Mode:**
+- Szybkie liczenie ryb
+- Tylko gatunek i liczba
+- Bez szczegółowych danych
+
+**Just Count Mode:**
+- Najprostszy tryb
+- Tylko total count
+- Bez gatunków
+
+### 4. **GPS Tracking**
+
+**Interwały:**
+- 1 minuta (częste)
+- 5 minut
+- 15 minut (domyślny)
+- 30 minut
+- 60 minut
+
+**Dane zapisywane:**
+```typescript
+{
+  lat: number,
+  lng: number,
+  timestamp: Date,
+  accuracy: number
+}
+```
+
+**Funkcje:**
+- Auto-request permission
+- Retry przy błędach
+- Offline support
+- Optymalizacja baterii
+
+### 5. **Dane Pogodowe**
+
+**Źródła:**
+- **Open-Meteo** (primary, darmowe)
+- **Netatmo** (opcjonalne, OAuth)
+
+**Dane zbierane:**
+```typescript
+{
+  temperature: number,       // °C
+  windSpeed: number,         // km/h
+  windDirection: number,     // degrees
+  pressure: number,          // hPa
+  humidity: number,          // %
+  cloudCover: number,        // %
+  precipitation: number,     // mm
+  weatherCode: number,       // WMO code
+  timestamp: Date
+}
+```
+
+**Fallback:**
+- Jeśli brak API, użyj estymacji
+- Zapisz jako "estimated"
+
+### 6. **Analiza i Statystyki**
+
+**Wykresy (Chart.js):**
+- Catches by species (pie chart)
+- Catches over time (line chart)
+- Weather correlation (bar chart)
+- Moon phase correlation
+- Best time of day
+- Best locations (map)
+
+**Metryki:**
+- Total sessions
+- Total catches
+- Biggest fish
+- Average size
+- Success rate
+- Most productive hours
+
+### 7. **Wielojęzyczność**
+
+**Języki:**
+- Polski (domyślny)
+- English
+- Deutsch
+
+**Tłumaczenia:**
+```typescript
+// src/translations.ts
+export const translations = {
+  pl: { /* ... */ },
+  en: { /* ... */ },
+  de: { /* ... */ }
+};
+```
+
+**Hook:**
+```typescript
+const { t, language, setLanguage } = useTranslation();
+```
+
+### 8. **PWA Funkcje**
+
+**Instalacja:**
+- Auto-prompt na Android (Chrome)
+- Manual prompt (przycisk Install)
+- iOS instructions (Add to Home Screen)
+
+**Offline:**
+- Service Worker cache
+- IndexedDB fallback
+- Sync when online
+
+**Push Notifications:**
+- Sesja zakończona
+- Przypomnienia
+- Nowe funkcje
+
+### 9. **Panel Administratora**
+
+**Dostęp:**
+- Tylko dla `role = 'admin'`
+- Ukryty od zwykłych użytkowników
+
+**Funkcje:**
+- Zarządzanie użytkownikami
+- Zarządzanie gatunkami ryb
+- Konfiguracja Weather API
+- Roadmap management
+- Changelog management
+- Statystyki systemu
+
+### 10. **Tutorial System**
+
+**11 kroków onboardingu:**
+1. Welcome message
+2. Start session button
+3. Add catch button
+4. Session list
+5. Weather display
+6. GPS tracking
+7. Settings
+8. Species selector
+9. Photo upload
+10. Analysis charts
+11. End session
+
+**Funkcje:**
+- Overlay highlights
+- Step-by-step guide
+- Możliwość skip
+- Możliwość reset w Settings
+- Tracking progress w bazie
+
+---
+
+## 🎨 KOMPONENTY UI
+
+### Najważniejsze komponenty:
+
+#### **CatchForm.tsx**
+Główny formularz do rejestrowania złowień.
+
+**Props:**
+```typescript
+{
+  sessionId: string,
+  onSave: (catch: FishCatch) => void,
+  onCancel: () => void,
+  initialData?: Partial<FishCatch>
+}
+```
+
+**Funkcje:**
+- Wybór gatunku (autocomplete)
+- Input długości i wagi
+- Auto-kalkulacja wagi
+- Upload zdjęć (Supabase Storage)
+- Geolokalizacja
+- Walidacja danych
+
+#### **SessionCard.tsx**
+Karta pojedynczej sesji.
+
+**Wyświetla:**
+- Data i czas
+- Czas trwania
+- Liczba złowionych ryb
+- Pogoda
+- Lokalizacja (mapa miniatura)
+
+#### **Map.tsx**
+Mapa Leaflet z markerami.
+
+**Funkcje:**
+- Wyświetlanie lokalizacji sesji
+- Wyświetlanie tras GPS
+- Markers dla złowień
+- Click na marker = details
+
+#### **WeatherDisplay.tsx**
+Widget pogody.
+
+**Wyświetla:**
+- Temperatura
+- Ikona pogody
+- Wiatr
+- Ciśnienie
+- Wilgotność
+- Zachmurzenie
+
+#### **AnalysisSection.tsx**
+Sekcja analiz i wykresów.
+
+**Wykresy:**
+- Species distribution (pie)
+- Catches timeline (line)
+- Weather correlation (bar)
+- Time of day analysis
+- Moon phase correlation
+
+#### **StatusBar.tsx**
+Pasek statusu aplikacji.
+
+**Wyświetla:**
+- Online/Offline status
+- GPS status
+- Weather API status
+- Database sync status
+- Battery level (PWA)
+
+#### **TutorialManager.tsx**
+System tutoriali i onboardingu.
+
+**Funkcje:**
+- Overlay highlights
+- Step navigation
+- Progress tracking
+- Skip/Reset options
+
+---
+
+## 📱 KONFIGURACJA PWA
+
+### vite.config.ts
+
+```typescript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['icon-*.png', 'icon-*.svg', 'apple-touch-icon.png', 'images/*', 'sounds/*'],
+      manifest: {
+        name: 'Clicka - Better Fishing',
+        short_name: 'Clicka',
+        description: 'Track your fishing sessions, catches, and analyze patterns',
+        theme_color: '#2563eb',
+        background_color: '#ffffff',
+        display: 'standalone',
+        orientation: 'portrait-primary',
+        start_url: '/',
+        scope: '/',
+        categories: ['sports', 'utilities', 'lifestyle'],
+        icons: [
+          { src: '/icon-72x72.png', sizes: '72x72', type: 'image/png', purpose: 'any' },
+          { src: '/icon-96x96.png', sizes: '96x96', type: 'image/png', purpose: 'any' },
+          { src: '/icon-128x128.png', sizes: '128x128', type: 'image/png', purpose: 'any' },
+          { src: '/icon-144x144.png', sizes: '144x144', type: 'image/png', purpose: 'any' },
+          { src: '/icon-152x152.png', sizes: '152x152', type: 'image/png', purpose: 'any' },
+          { src: '/icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-192x192-maskable.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: '/icon-384x384.png', sizes: '384x384', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512x512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+        ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}'],
+        navigateFallback: '/index.html',
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'weather-api-cache',
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-cache',
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 5 }
+            }
+          }
+        ]
+      }
+    })
+  ]
+});
+```
+
+### Generowanie ikon PWA
+
+**WAŻNE**: Logo to `public/images/clicka-logo.svg` - niebieska ryba z wędką.
+
+**Skrypt generowania:**
+```bash
+# Z SVG generuj wszystkie rozmiary PNG
+convert -background none clicka-logo.svg -resize 72x72 icon-72x72.png
+convert -background none clicka-logo.svg -resize 96x96 icon-96x96.png
+convert -background none clicka-logo.svg -resize 128x128 icon-128x128.png
+convert -background none clicka-logo.svg -resize 144x144 icon-144x144.png
+convert -background none clicka-logo.svg -resize 152x152 icon-152x152.png
+convert -background none clicka-logo.svg -resize 192x192 icon-192x192.png
+convert -background none clicka-logo.svg -resize 384x384 icon-384x384.png
+convert -background none clicka-logo.svg -resize 512x512 icon-512x512.png
+
+# Maskable icons (z tłem #2563eb)
+convert -size 192x192 xc:"#2563eb" clicka-logo.svg -gravity center -resize 154x154 -composite icon-192x192-maskable.png
+convert -size 512x512 xc:"#2563eb" clicka-logo.svg -gravity center -resize 410x410 -composite icon-512x512-maskable.png
+
+# Apple Touch Icons
+convert -background none clicka-logo.svg -resize 180x180 apple-touch-icon.png
+convert -background none clicka-logo.svg -resize 76x76 apple-touch-icon-76x76.png
+convert -background none clicka-logo.svg -resize 120x120 apple-touch-icon-120x120.png
+convert -background none clicka-logo.svg -resize 152x152 apple-touch-icon-152x152.png
+```
+
+---
+
+## 🔌 INTEGRACJE
+
+### 1. Open-Meteo API (Darmowe)
+
+**Endpoint:**
+```
+https://api.open-meteo.com/v1/forecast
+```
+
+**Request:**
+```typescript
+const response = await fetch(
+  `https://api.open-meteo.com/v1/forecast?` +
+  `latitude=${lat}&longitude=${lng}&` +
+  `current_weather=true&` +
+  `hourly=temperature_2m,relative_humidity_2m,precipitation,pressure_msl,cloud_cover,wind_speed_10m,wind_direction_10m`
+);
+```
+
+**Response:**
+```json
+{
+  "current_weather": {
+    "temperature": 15.5,
+    "windspeed": 12.3,
+    "winddirection": 270,
+    "weathercode": 2,
+    "time": "2025-11-01T12:00"
+  },
+  "hourly": {
+    "temperature_2m": [14.2, 15.1, ...],
+    "pressure_msl": [1013, 1012, ...],
+    ...
+  }
+}
+```
+
+### 2. Netatmo OAuth API (Opcjonalne)
+
+**Wymagania:**
+- Client ID
+- Client Secret
+- Redirect URI
+- Scopes: `read_station`
+
+**Flow:**
+1. Admin konfiguruje credentials w Admin Panel
+2. User authorize przez Netatmo OAuth
+3. Edge Function `netatmo-oauth-callback` receives code
+4. Exchange code for tokens
+5. Store tokens w `weather_oauth_config`
+6. Cron job (`netatmo-refresh-token`) refreshes co 50 min
+7. Edge Function `netatmo-weather-data` fetches weather
+
+**Edge Functions:**
+
+**netatmo-oauth-callback/index.ts:**
+```typescript
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+serve(async (req) => {
+  const url = new URL(req.url);
+  const code = url.searchParams.get('code');
+
+  // Exchange code for tokens
+  const tokenResponse = await fetch('https://api.netatmo.com/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: Deno.env.get('NETATMO_CLIENT_ID'),
+      client_secret: Deno.env.get('NETATMO_CLIENT_SECRET'),
+      code: code,
+      redirect_uri: Deno.env.get('NETATMO_REDIRECT_URI')
+    })
+  });
+
+  const tokens = await tokenResponse.json();
+
+  // Save tokens to database
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL'),
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  );
+
+  await supabase
+    .from('weather_oauth_config')
+    .update({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      token_expires_at: new Date(Date.now() + tokens.expires_in * 1000),
+      is_configured: true
+    })
+    .eq('provider_id', '...');
+
+  return new Response('Success! You can close this window.', { status: 200 });
+});
+```
+
+**netatmo-refresh-token/index.ts:**
+```typescript
+// Cron job co 50 minut
+// Refreshes access token using refresh token
+```
+
+**netatmo-weather-data/index.ts:**
+```typescript
+// Pobiera aktualne dane pogodowe z Netatmo
+// GET /functions/v1/netatmo-weather-data?lat=52.2&lng=21.0
+```
+
+### 3. Supabase Storage (Zdjęcia ryb)
+
+**Bucket:** `fish-images`
+
+**Upload:**
+```typescript
+const file = event.target.files[0];
+const fileName = `${userId}/${sessionId}/${catchId}_${Date.now()}.jpg`;
+
+const { data, error } = await supabase.storage
+  .from('fish-images')
+  .upload(fileName, file, {
+    cacheControl: '3600',
+    upsert: false
+  });
+
+if (data) {
+  const publicURL = supabase.storage
+    .from('fish-images')
+    .getPublicUrl(fileName).data.publicUrl;
+
+  // Save publicURL to catch.photo_urls[]
+}
+```
+
+**RLS Policy:**
+```sql
+-- Users can upload only to their own folder
+CREATE POLICY "Users can upload own images"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'fish-images' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- Users can view only their own images
+CREATE POLICY "Users can view own images"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (
+  bucket_id = 'fish-images' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+```
+
+---
+
+## 🚀 DEPLOYMENT
+
+### Build Production
+
+```bash
+npm run build
+```
+
+**Output:** `dist/` folder
+
+### Deployment Options
+
+#### 1. **Netlify** (Recommended)
+
+**netlify.toml:**
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+```
+
+**Deployment:**
+```bash
+netlify deploy --prod
+```
+
+#### 2. **Vercel**
+
+**vercel.json:**
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+**Deployment:**
+```bash
+vercel --prod
+```
+
+#### 3. **Supabase Hosting** (Beta)
+
+```bash
+supabase deploy
+```
+
+### Environment Variables
+
+**Production .env:**
+```bash
+VITE_SUPABASE_URL=https://your-production-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_production_anon_key
+```
+
+**Netlify/Vercel:**
+Add env vars in dashboard:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+### Post-Deployment Checklist
+
+- [ ] Test PWA installation na Android
+- [ ] Test PWA installation na iOS (Add to Home Screen)
+- [ ] Test offline functionality
+- [ ] Test GPS tracking
+- [ ] Test weather API
+- [ ] Test image upload
+- [ ] Test database sync
+- [ ] Test authentication
+- [ ] Test admin panel (admin role)
+
+---
+
+## 🔒 BEZPIECZEŃSTWO
+
+### Row Level Security (RLS)
+
+**ZAWSZE włącz RLS dla każdej tabeli!**
+
+```sql
+ALTER TABLE table_name ENABLE ROW LEVEL SECURITY;
+```
+
+**Przykładowe policies:**
+
+```sql
+-- Users can view only their own data
+CREATE POLICY "Users can view own sessions"
+ON fishing_sessions FOR SELECT
+TO authenticated
+USING (auth.uid() = user_id);
+
+-- Users can insert only their own data
+CREATE POLICY "Users can insert own sessions"
+ON fishing_sessions FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = user_id);
+
+-- Users can update only their own data
+CREATE POLICY "Users can update own sessions"
+ON fishing_sessions FOR UPDATE
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+-- Users can delete only their own data
+CREATE POLICY "Users can delete own sessions"
+ON fishing_sessions FOR DELETE
+TO authenticated
+USING (auth.uid() = user_id);
+
+-- Admins can view all data
+CREATE POLICY "Admins can view all sessions"
+ON fishing_sessions FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM user_profiles
+    WHERE user_profiles.id = auth.uid()
+    AND user_profiles.role = 'admin'
+  )
+);
+```
+
+### Best Practices
+
+1. **NIGDY nie wył RLS** na tabelach z danymi użytkowników
+2. **Zawsze sprawdzaj** `auth.uid()` w policies
+3. **Używaj funkcji pomocniczych** dla complex policies
+4. **Test policies** z różnymi rolami użytkowników
+5. **Nie przechowuj secrets** w frontend code
+6. **Używaj Service Role Key** tylko w Edge Functions
+7. **Waliduj input** na frontend i backend
+8. **Rate limiting** dla API endpoints
+9. **CORS** - only allowed origins
+10. **HTTPS** - zawsze w production
+
+---
+
+## 🤖 WSKAZÓWKI DLA AI AGENT
+
+### Budowanie aplikacji od zera
+
+#### Krok 1: Setup projektu
+```bash
+npm create vite@latest clicka-better-fishing -- --template react-ts
+cd clicka-better-fishing
+npm install
+```
+
+#### Krok 2: Instalacja zależności
+```bash
+npm install @supabase/supabase-js chart.js date-fns leaflet lucide-react react-chartjs-2 react-dom react-leaflet react-router-dom zustand
+
+npm install -D @types/leaflet @vitejs/plugin-react autoprefixer postcss tailwindcss typescript vite vite-plugin-pwa workbox-window
+```
+
+#### Krok 3: Konfiguracja Tailwind
+```bash
+npx tailwindcss init -p
+```
+
+**tailwind.config.js:**
+```javascript
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        primary: '#2563eb',  // Niebieski (kolor logo)
+      }
+    }
+  },
+  plugins: []
+};
+```
+
+#### Krok 4: Struktura folderów
+```bash
+mkdir -p src/{components,screens,hooks,utils,types}
+mkdir -p public/{images,sounds}
+mkdir -p supabase/{migrations,functions}
+```
+
+#### Krok 5: Setup Supabase
+1. Utwórz projekt na https://supabase.com
+2. Utwórz `.env`:
+```bash
+VITE_SUPABASE_URL=your_url
+VITE_SUPABASE_ANON_KEY=your_key
+```
+
+#### Krok 6: Uruchom migracje
+- Skopiuj wszystkie pliki z `supabase/migrations/`
+- Uruchom w Supabase SQL Editor lub przez CLI
+
+#### Krok 7: Dodaj logo i assets
+- Skopiuj `public/images/clicka-logo.svg`
+- Wygeneruj ikony PWA (użyj ImageMagick)
+- Dodaj `public/sounds/reel.mp3`
+
+#### Krok 8: Implementuj komponenty
+- Zacznij od `src/App.tsx`
+- Dodaj routing (React Router)
+- Implementuj kolejno komponenty (CatchForm, SessionList, etc.)
+- Dodaj custom hooks (useActiveSession, useGpsTracking, etc.)
+- Dodaj utility functions (auth.ts, db.ts, weather.ts, etc.)
+
+#### Krok 9: Konfiguracja PWA
+- Skopiuj `vite.config.ts`
+- Wygeneruj manifest
+- Test instalacji
+
+#### Krok 10: Deploy
+```bash
+npm run build
+# Deploy dist/ folder to Netlify/Vercel
+```
+
+### Style Guidelines
+
+**Kolory:**
+- Primary: `#2563eb` (niebieski)
+- Success: `#10b981` (zielony)
+- Danger: `#ef4444` (czerwony)
+- Warning: `#f59e0b` (pomarańczowy)
+- Dark: `#1f2937`
+- Light: `#f9fafb`
+
+**Typography:**
+- Font: System fonts (sans-serif)
+- Heading: font-bold
+- Body: font-normal
+- Small: text-sm
+
+**Spacing:**
+- Padding: p-4, p-6
+- Margin: m-4, m-6
+- Gap: gap-4
+
+**Components:**
+- Rounded corners: `rounded-lg`
+- Shadows: `shadow-md`, `shadow-lg`
+- Borders: `border border-gray-300`
+
+### Common Pitfalls
+
+❌ **NIE ROB TEGO:**
+- Wyłączanie RLS
+- Hardcodowanie API keys
+- Ignorowanie error handling
+- Brak offline support
+- Złe ikony PWA (nie logo)
+- Brak TypeScript types
+- Mieszanie języków w UI
+
+✅ **ROB TO:**
+- Włącz RLS zawsze
+- Używaj `.env` dla secrets
+- Handle wszystkie errors
+- Implementuj offline mode
+- Używaj prawidłowych ikon (z logo)
+- Typuj wszystko w TypeScript
+- Konsekwentne tłumaczenia
+
+### Debugging Tips
+
+**Problem: PWA się nie instaluje**
+- Sprawdź czy aplikacja jest na HTTPS
+- Sprawdź manifest.webmanifest
+- Sprawdź czy service worker jest aktywny
+- Sprawdź ikony (czy są PNG, nie SVG)
+
+**Problem: GPS nie działa**
+- Sprawdź permissions
+- Sprawdź czy HTTPS (geolocation wymaga HTTPS)
+- Test na prawdziwym urządzeniu (nie emulator)
+
+**Problem: Weather API error**
+- Sprawdź rate limits
+- Sprawdź network connectivity
+- Użyj fallback (weatherEstimation.ts)
+
+**Problem: RLS Policy denied**
+- Sprawdź czy user jest authenticated
+- Sprawdź czy policy jest correct
+- Test z różnymi users
+- Check `auth.uid()` vs `user_id`
+
+### Testing Checklist
+
+- [ ] Rejestracja nowego użytkownika
+- [ ] Logowanie
+- [ ] Rozpoczęcie sesji
+- [ ] Dodanie złowienia (catch)
+- [ ] Upload zdjęcia
+- [ ] Zakończenie sesji
+- [ ] Przeglądanie historii
+- [ ] Wyświetlanie map
+- [ ] Wyświetlanie wykresów
+- [ ] Zmiana języka
+- [ ] Zmiana ustawień
+- [ ] GPS tracking
+- [ ] Weather API
+- [ ] Offline mode
+- [ ] PWA installation
+- [ ] Push notifications
+- [ ] Admin panel (as admin)
+- [ ] Tutorial system
+
+---
+
+## 📚 DODATKOWE ZASOBY
+
+### Dokumentacja API:
+- **Supabase**: https://supabase.com/docs
+- **Open-Meteo**: https://open-meteo.com/en/docs
+- **Netatmo**: https://dev.netatmo.com/apidocumentation/weather
+- **Leaflet**: https://leafletjs.com/reference.html
+- **Chart.js**: https://www.chartjs.org/docs/
+
+### Style Guides:
+- **Tailwind CSS**: https://tailwindcss.com/docs
+- **Lucide Icons**: https://lucide.dev/icons/
+
+### PWA Resources:
+- **PWA Builder**: https://www.pwabuilder.com/
+- **Workbox**: https://developer.chrome.com/docs/workbox/
+
+---
+
+## 📝 NOTATKI KOŃCOWE
+
+### Aktualna wersja: 1.0.0
+
+### Known Issues:
+- iOS PWA nie wspiera push notifications (ograniczenie Safari)
+- GPS tracking może być nieaktywny w trybie low battery
+- Offline mode ma limitowany storage (IndexedDB)
+
+### Planowane funkcje (Roadmap):
+- Integracja z więcej weather APIs
+- Social features (sharing catches)
+- Competitions & leaderboards
+- AI fish species recognition (camera)
+- Apple Watch / Android Wear support
+- Export do PDF/Excel
+- Integration z fishing spots databases
+- Voice logging (voice-to-text)
+
+### Kontakt:
+Jeśli masz pytania lub potrzebujesz pomocy przy rebuilding tej aplikacji, daj znać!
+
+---
+
+**KONIEC DOKUMENTU**
+
+*Ostatnia aktualizacja: 2025-11-01*
+*Wersja: 1.0*
+*Autor: AI Agent based on Clicka project*
