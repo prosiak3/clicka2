@@ -53,14 +53,14 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-br from-[#1e3a8a] via-[#2563eb] to-[#3b82f6] p-12 text-center relative overflow-hidden">
+          <div className="bg-[#1a2332] p-12 text-center relative overflow-hidden">
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-3xl -mr-16 -mt-16"></div>
               <div className="absolute bottom-0 left-0 w-40 h-40 bg-white rounded-full blur-3xl -ml-20 -mb-20"></div>
             </div>
             <div className="relative z-10">
               <img
-                src="/images/clicka-logo-light.png"
+                src="/icons/clicka-logo.png"
                 alt="Clicka Logo"
                 className="w-48 h-auto mx-auto"
               />
