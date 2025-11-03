@@ -849,7 +849,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['icon-*.png', 'icon-*.svg', 'apple-touch-icon.png', 'images/*', 'sounds/*'],
       manifest: {
         name: 'Clicka - Better Fishing',
@@ -1429,12 +1429,43 @@ npm run build
 
 ## 📝 NOTATKI KOŃCOWE
 
-### Aktualna wersja: 1.0.0
+### Aktualna wersja: 1.0.0+
+
+### System Aktualizacji PWA:
+**WAŻNE**: Aplikacja posiada zaimplementowany system automatycznych aktualizacji PWA:
+- Automatyczne sprawdzanie co 15 minut
+- Powiadomienie użytkownika o dostępnej aktualizacji
+- Wybór użytkownika: "Zaktualizuj teraz" lub "Później"
+- Wykorzystuje `vite-plugin-pwa` z `registerType: 'prompt'`
+- Hook `usePWAUpdate.ts` dla zarządzania aktualizacjami
+- Komponent `UpdateNotification.tsx` dla UI powiadomień
+- Automatyczny reload po aktualizacji
+
+**Konfiguracja w vite.config.ts:**
+```typescript
+VitePWA({
+  registerType: 'prompt',  // Wymaga potwierdzenia użytkownika
+  workbox: {
+    skipWaiting: true,     // Natychmiastowa aktywacja nowego SW
+    clientsClaim: true,    // Przejmij kontrolę od razu
+    cleanupOutdatedCaches: true
+  }
+})
+```
+
+**Workflow aktualizacji:**
+1. Service Worker wykrywa nową wersję
+2. UpdateNotification pokazuje banner
+3. Użytkownik klika "Update Now"
+4. Nowy SW aktywuje się (SKIP_WAITING)
+5. Strona się przeładowuje automatycznie
+6. Użytkownik korzysta z nowej wersji
 
 ### Known Issues:
 - iOS PWA nie wspiera push notifications (ograniczenie Safari)
 - GPS tracking może być nieaktywny w trybie low battery
 - Offline mode ma limitowany storage (IndexedDB)
+- Service Worker update wymaga user interaction (security requirement)
 
 ### Planowane funkcje (Roadmap):
 - Integracja z więcej weather APIs
@@ -1445,6 +1476,14 @@ npm run build
 - Export do PDF/Excel
 - Integration z fishing spots databases
 - Voice logging (voice-to-text)
+- Inteligentny fallback system dla lokalizacji GPS/Network/IP
+
+### Ostatnie zmiany:
+**2025-11-03:**
+- Dodano szczegółowe komentarze JSDoc do systemu aktualizacji PWA
+- Zaktualizowano dokumentację techniczną (README.md)
+- Uzupełniono informacje o systemie aktualizacji w clicka.prompt
+- Poprawiono registerType z 'autoUpdate' na 'prompt' w dokumentacji
 
 ### Kontakt:
 Jeśli masz pytania lub potrzebujesz pomocy przy rebuilding tej aplikacji, daj znać!
@@ -1453,6 +1492,6 @@ Jeśli masz pytania lub potrzebujesz pomocy przy rebuilding tej aplikacji, daj z
 
 **KONIEC DOKUMENTU**
 
-*Ostatnia aktualizacja: 2025-11-01*
-*Wersja: 1.0*
+*Ostatnia aktualizacja: 2025-11-03*
+*Wersja: 1.0.0+*
 *Autor: AI Agent based on Clicka project*

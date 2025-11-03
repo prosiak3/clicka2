@@ -2,23 +2,51 @@ import React, { useEffect, useState } from 'react';
 import { Download, X, RefreshCw } from 'lucide-react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
+/**
+ * Props for UpdateNotification component
+ * @interface UpdateNotificationProps
+ * @property {number} [onUpdateCheckInterval=900000] - Interval in milliseconds to check for updates (default: 15 minutes)
+ */
 interface UpdateNotificationProps {
   onUpdateCheckInterval?: number;
 }
 
+/**
+ * UpdateNotification Component
+ *
+ * Displays a notification banner when a new version of the PWA is available.
+ * Automatically checks for updates at configured intervals and provides UI
+ * for users to update immediately or dismiss the notification.
+ *
+ * Features:
+ * - Automatic update checking at configurable intervals
+ * - Visual notification with gradient design
+ * - User choice to update now or later
+ * - Loading state during update process
+ * - Automatic page reload after update
+ *
+ * @param {UpdateNotificationProps} props - Component props
+ * @returns {JSX.Element | null} Notification banner or null if no update available
+ *
+ * @example
+ * <UpdateNotification onUpdateCheckInterval={15 * 60 * 1000} />
+ */
 export function UpdateNotification({ onUpdateCheckInterval = 15 * 60 * 1000 }: UpdateNotificationProps) {
   const [showNotification, setShowNotification] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Register service worker and set up update checking
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
+    // Called when service worker is successfully registered
     onRegisteredSW(swUrl, registration) {
       console.log('Service Worker registered:', swUrl);
 
       if (!registration) return;
 
+      // Function to check for new service worker versions
       const checkForUpdates = async () => {
         try {
           console.log('Checking for updates...');
@@ -28,12 +56,15 @@ export function UpdateNotification({ onUpdateCheckInterval = 15 * 60 * 1000 }: U
         }
       };
 
+      // Check immediately on registration
       checkForUpdates();
 
+      // Set up periodic checking at configured interval
       const intervalId = setInterval(() => {
         checkForUpdates();
       }, onUpdateCheckInterval);
 
+      // Cleanup interval on unmount
       return () => {
         clearInterval(intervalId);
       };
@@ -44,16 +75,23 @@ export function UpdateNotification({ onUpdateCheckInterval = 15 * 60 * 1000 }: U
     immediate: true,
   });
 
+  // Show notification when update is available
   useEffect(() => {
     if (needRefresh) {
       setShowNotification(true);
     }
   }, [needRefresh]);
 
+  /**
+   * Handles the update process when user clicks "Update Now"
+   * Activates the new service worker and reloads the page
+   */
   const handleUpdate = async () => {
     setIsUpdating(true);
     try {
+      // Activate the new service worker
       await updateServiceWorker(true);
+      // Reload page to use new version
       window.location.reload();
     } catch (error) {
       console.error('Error updating service worker:', error);
@@ -61,6 +99,10 @@ export function UpdateNotification({ onUpdateCheckInterval = 15 * 60 * 1000 }: U
     }
   };
 
+  /**
+   * Handles dismissing the update notification
+   * User can continue using current version
+   */
   const handleDismiss = () => {
     setShowNotification(false);
     setNeedRefresh(false);
