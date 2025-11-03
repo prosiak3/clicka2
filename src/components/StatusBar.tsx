@@ -110,22 +110,22 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
 
   return (
     <>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         {/* User Info */}
         {userInfo && (
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="flex items-center gap-1 cursor-pointer text-gray-700 bg-gray-100 hover:bg-gray-200 px-1.5 py-0.5 rounded transition-colors"
+            className="flex items-center gap-1.5 cursor-pointer text-gray-700 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
             title="Click to logout"
           >
             {userInfo.role === 'admin' ? (
-              <Shield className="w-3 h-3 text-red-600" />
+              <Shield className="w-4 h-4 text-red-600" />
             ) : (
-              <User className="w-3 h-3" />
+              <User className="w-4 h-4" />
             )}
-            <span className="text-[10px] font-medium">{userInfo.email}</span>
+            <span className="text-xs font-medium">{userInfo.email}</span>
             {userInfo.role === 'admin' && (
-              <span className="text-[8px] font-bold text-red-600 uppercase">Admin</span>
+              <span className="text-[10px] font-bold text-red-600 uppercase">Admin</span>
             )}
           </button>
         )}
@@ -144,16 +144,16 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
           }`}
           title={getTooltip('gps')}
         >
-          <LocationIcon className={`w-3.5 h-3.5 ${
+          <LocationIcon className={`w-4.5 h-4.5 ${
             gpsStatus === 'connecting' ? 'animate-pulse' : ''
           }`} />
           {coords?.source === 'gps' && satelliteCount > 0 && (
-            <div className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[12px] h-3 px-0.5 text-[8px] font-bold bg-green-100 text-green-700 rounded-full animate-pulse">
+            <div className="absolute -top-2 -right-2 flex items-center justify-center min-w-[15px] h-4 px-1 text-[10px] font-bold bg-green-100 text-green-700 rounded-full animate-pulse">
               {satelliteCount}
             </div>
           )}
           {gpsStatus === 'error' && (
-            <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" />
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
           )}
         </button>
 
@@ -164,11 +164,11 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
           }`}
           title={getTooltip('internet')}
         >
-          <Signal className={`w-3.5 h-3.5 ${
+          <Signal className={`w-4.5 h-4.5 ${
             internetStatus === 'offline' ? 'animate-pulse' : ''
           }`} />
           {internetStatus === 'offline' && (
-            <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" />
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
           )}
         </div>
 
@@ -181,11 +181,11 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
           }`}
           title={getTooltip('database')}
         >
-          <Database className={`w-3.5 h-3.5 ${
+          <Database className={`w-4.5 h-4.5 ${
             dbStatus === 'connecting' ? 'animate-pulse' : ''
           }`} />
           {dbStatus === 'error' && (
-            <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" />
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
           )}
         </div>
 
@@ -199,16 +199,16 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
           title={getTooltip('weather')}
         >
           {weatherStatus === 'available' ? (
-            <Cloud className={`w-3.5 h-3.5 ${
+            <Cloud className={`w-4.5 h-4.5 ${
               weatherStatus === 'checking' ? 'animate-pulse' : ''
             }`} />
           ) : (
-            <CloudOff className={`w-3.5 h-3.5 ${
+            <CloudOff className={`w-4.5 h-4.5 ${
               weatherStatus === 'checking' ? 'animate-pulse' : ''
             }`} />
           )}
           {weatherStatus === 'unavailable' && (
-            <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-orange-500 rounded-full animate-ping" />
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-ping" />
           )}
         </div>
       </div>

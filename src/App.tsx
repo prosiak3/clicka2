@@ -902,23 +902,23 @@ function MainApp({
         <div className="max-w-lg mx-auto pb-11">
           {/* Header */}
           <div className="sticky top-0 bg-white backdrop-blur-sm border-b z-10 shadow-sm">
-            <div className="px-3 py-1">
+            <div className="px-4 py-1.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   {activeTab === 'history' && selectedSession && (
                     <button
                       onClick={() => {
                         setSelectedSession(null);
                         pushNavigationState(2, 'history');
                       }}
-                      className="p-0.5 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                      <ArrowLeft className="w-3 h-3 text-gray-600" />
+                      <ArrowLeft className="w-4 h-4 text-gray-600" />
                     </button>
                   )}
                   <div>
-                    <h1 className="text-sm font-bold text-blue-900">Clicka</h1>
-                    <p className="text-[8px] text-blue-600 leading-none">Better Fishing</p>
+                    <h1 className="text-base font-bold text-blue-900">Clicka</h1>
+                    <p className="text-[10px] text-blue-600 leading-none">Better Fishing</p>
                   </div>
                 </div>
                 <StatusBar onLogout={() => {
