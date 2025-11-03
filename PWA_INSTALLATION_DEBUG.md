@@ -28,7 +28,9 @@
 
 ### 3. Manifest
 - ✅ Zaktualizowany z poprawnymi ikonami i scope
+- ✅ Poprawiona konfiguracja _redirects dla właściwego content-type
 - Sprawdź w DevTools: Application → Manifest
+- **WAŻNE**: Plik `_redirects` musi zawierać regułę dla manifestu PRZED regułą SPA fallback
 
 ### 4. Engagement heuristics
 Chrome na Androidzie wymaga:

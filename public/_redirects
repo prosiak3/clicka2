@@ -1,1 +1,15 @@
+# Netlify/Hosting Redirects Configuration
+# Ensure PWA files are served correctly with proper content-type
+
+# Serve manifest and service worker files directly (critical for PWA)
+/manifest.webmanifest   /manifest.webmanifest   200
+/sw.js   /sw.js   200
+/workbox-*.js   /workbox-*.js   200
+
+# Serve static assets directly
+/icons/*   /icons/:splat   200
+/sounds/*   /sounds/:splat   200
+/assets/*   /assets/:splat   200
+
+# SPA fallback - must be last rule
 /*    /index.html   200
