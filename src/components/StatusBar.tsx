@@ -13,9 +13,10 @@ interface StatusBarProps {
   isSessionActive?: boolean;
   isPaused?: boolean;
   onLogout?: () => void;
+  weatherProviderName?: string;
 }
 
-export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProps) {
+export function StatusBar({ isSessionActive, isPaused, onLogout, weatherProviderName }: StatusBarProps) {
   const {
     status: gpsStatus,
     satelliteCount,
@@ -83,8 +84,9 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
         return 'Database Connection Error';
       case 'weather':
         if (weatherStatus === 'available') {
+          const providerText = weatherProviderName ? ` via ${weatherProviderName}` : '';
           const lastFetchTime = lastSuccessfulFetch ? ` (Last: ${lastSuccessfulFetch.toLocaleTimeString()})` : '';
-          return `Weather API Available - Live data${lastFetchTime}`;
+          return `Weather API Available${providerText} - Live data${lastFetchTime}`;
         }
         if (weatherStatus === 'checking') {
           return 'Checking Weather API...';
@@ -108,7 +110,18 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
 
   const LocationIcon = getLocationIcon();
 
-  const appVersion = '1.3.0';
+  const appVersion = '1.3.1';
+
+  const getProviderAbbreviation = (providerName?: string): string => {
+    if (!providerName) return '';
+    switch (providerName.toLowerCase()) {
+      case 'netatmo': return 'NATMO';
+      case 'noaa': return 'NOAA';
+      case 'icon': return 'ICON';
+      case 'open-meteo': return 'OMET';
+      default: return providerName.substring(0, 4).toUpperCase();
+    }
+  };
 
   return (
     <>
@@ -202,7 +215,7 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
 
         {/* Weather Status */}
         <div
-          className={`flex items-center gap-1 cursor-help ${
+          className={`relative flex items-center gap-1 cursor-help ${
             weatherStatus === 'available' ? 'text-green-600' :
             weatherStatus === 'checking' ? 'text-yellow-600' :
             'text-orange-600'
@@ -217,6 +230,11 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
             <CloudOff className={`w-4.5 h-4.5 ${
               weatherStatus === 'checking' ? 'animate-pulse' : ''
             }`} />
+          )}
+          {weatherStatus === 'available' && weatherProviderName && (
+            <div className="absolute -top-2 -right-6 px-1 py-0.5 text-[8px] font-bold bg-green-100 text-green-700 rounded border border-green-300">
+              {getProviderAbbreviation(weatherProviderName)}
+            </div>
           )}
           {weatherStatus === 'unavailable' && (
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-ping" />
