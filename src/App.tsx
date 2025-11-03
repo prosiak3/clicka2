@@ -32,6 +32,7 @@ import { useTranslation } from './hooks/useTranslation';
 import { useGpsTracking } from './hooks/useGpsTracking';
 import { useActiveSession } from './hooks/useActiveSession';
 import { useInactivityTimer } from './hooks/useInactivityTimer';
+import { useBackButton } from './hooks/useBackButton';
 import { playClickSound, playReelSound } from './utils/sound';
 
 type TabType = 'home' | 'sessions' | 'history' | 'analysis' | 'settings' | 'stats' | 'profile';
@@ -783,6 +784,18 @@ function MainApp({
 }: MainAppProps) {
   const t = useTranslation();
 
+  const { pushNavigationState } = useBackButton({
+    activeTab,
+    setActiveTab,
+    showCatchForm,
+    setShowCatchForm,
+    selectedSession,
+    setSelectedSession,
+    activeSession,
+    selectionMode,
+    onCancelSelection,
+  });
+
   return (
       <div className={`min-h-screen bg-gradient-to-b from-blue-50 to-white ${settings.theme === 'dark' ? 'dark' : ''}`}>
         <div className="max-w-lg mx-auto pb-11">
@@ -793,7 +806,10 @@ function MainApp({
                 <div className="flex items-center gap-2">
                   {activeTab === 'history' && selectedSession && (
                     <button
-                      onClick={() => setSelectedSession(null)}
+                      onClick={() => {
+                        setSelectedSession(null);
+                        pushNavigationState(2, 'history');
+                      }}
                       className="p-0.5 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <ArrowLeft className="w-3 h-3 text-gray-600" />
@@ -915,6 +931,9 @@ function MainApp({
                       data-tutorial="add-catch-button"
                       onClick={async () => {
                         await playReelSound();
+                        if (!showCatchForm) {
+                          pushNavigationState(3, 'sessions');
+                        }
                         setShowCatchForm(!showCatchForm);
                       }}
                       disabled={showCatchForm}
@@ -940,7 +959,10 @@ function MainApp({
                   <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100" data-tutorial="catch-form">
                     <CatchForm
                       onSave={handleCatchSave}
-                      onCancel={() => setShowCatchForm(false)}
+                      onCancel={() => {
+                        setShowCatchForm(false);
+                        pushNavigationState(1, 'sessions');
+                      }}
                       selectedSpecies={settings.fishSpecies.filter(s => s.enabled)}
                     />
                   </div>
@@ -1007,7 +1029,10 @@ function MainApp({
                       </div>
                       <SessionList
                         sessions={sessions.filter(s => s.endTime)}
-                        onSessionSelect={setSelectedSession}
+                        onSessionSelect={(session) => {
+                          setSelectedSession(session);
+                          pushNavigationState(3, 'history');
+                        }}
                         selectionMode={selectionMode}
                         selectedSessions={selectedSessions}
                         onToggleSelection={onToggleSelection}
@@ -1045,6 +1070,7 @@ function MainApp({
                 onClick={() => {
                   setActiveTab('sessions');
                   setSelectedSession(null);
+                  pushNavigationState(1, 'sessions');
                 }}
                 className={`py-1.5 px-2 flex flex-col items-center relative ${
                   activeTab === 'sessions' ? 'text-blue-600' : 'text-gray-600'
@@ -1062,7 +1088,10 @@ function MainApp({
               </button>
             ) : (
               <button
-                onClick={() => setActiveTab('home')}
+                onClick={() => {
+                  setActiveTab('home');
+                  pushNavigationState(1, 'home');
+                }}
                 className={`py-1.5 px-2 flex flex-col items-center ${
                   activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'
                 }`}
@@ -1074,7 +1103,10 @@ function MainApp({
 
             <button
               data-tutorial="stats-tab"
-              onClick={() => setActiveTab('stats')}
+              onClick={() => {
+                setActiveTab('stats');
+                pushNavigationState(2, 'stats');
+              }}
               className={`py-1.5 px-2 flex flex-col items-center ${
                 activeTab === 'stats' ? 'text-blue-600' : 'text-gray-600'
               }`}
@@ -1085,7 +1117,10 @@ function MainApp({
 
             <button
               data-tutorial="history-tab"
-              onClick={() => setActiveTab('history')}
+              onClick={() => {
+                setActiveTab('history');
+                pushNavigationState(2, 'history');
+              }}
               className={`py-1.5 px-2 flex flex-col items-center ${
                 activeTab === 'history' ? 'text-blue-600' : 'text-gray-600'
               }`}
@@ -1095,7 +1130,10 @@ function MainApp({
             </button>
 
             <button
-              onClick={() => setActiveTab('settings')}
+              onClick={() => {
+                setActiveTab('settings');
+                pushNavigationState(2, 'settings');
+              }}
               className={`py-1.5 px-2 flex flex-col items-center ${
                 activeTab === 'settings' ? 'text-blue-600' : 'text-gray-600'
               }`}
