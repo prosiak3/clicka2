@@ -272,6 +272,92 @@ function App() {
     };
   }, [activeSession]);
 
+  useEffect(() => {
+    if (!activeSession || activeSession.endTime || !currentLocation || locationStatus !== 'connected') {
+      return;
+    }
+
+    const isPaused = activeSession.pauses?.some(p => !p.endTime);
+    if (isPaused) {
+      return;
+    }
+
+    if (!activeSession.tracking_enabled) {
+      return;
+    }
+
+    const lastLocation = activeSession.locations[activeSession.locations.length - 1];
+    if (!lastLocation) {
+      return;
+    }
+
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c;
+    };
+
+    const distance = calculateDistance(
+      lastLocation.latitude,
+      lastLocation.longitude,
+      currentLocation.latitude,
+      currentLocation.longitude
+    );
+
+    const MIN_DISTANCE = 5;
+    const MAX_ACCURACY = 100;
+
+    if (distance < MIN_DISTANCE) {
+      return;
+    }
+
+    if (currentLocation.accuracy > MAX_ACCURACY) {
+      console.log(`Skipping location update due to low accuracy: ${currentLocation.accuracy}m`);
+      return;
+    }
+
+    const timeSinceLastUpdate = new Date().getTime() - new Date(lastLocation.timestamp).getTime();
+    const minUpdateInterval = (activeSession.tracking_interval || settings.tracking.interval) * 60 * 1000;
+
+    if (timeSinceLastUpdate < minUpdateInterval) {
+      return;
+    }
+
+    const newLocation: Location = {
+      latitude: currentLocation.latitude,
+      longitude: currentLocation.longitude,
+      timestamp: new Date().toISOString(),
+      source: currentLocation.source,
+      accuracy: currentLocation.accuracy
+    };
+
+    const updatedSession = {
+      ...activeSession,
+      locations: [...activeSession.locations, newLocation],
+      last_activity_at: new Date().toISOString()
+    };
+
+    setActiveSession(updatedSession);
+    setSessions(prev =>
+      prev.map(s => s.id === updatedSession.id ? updatedSession : s)
+    );
+
+    saveSession(updatedSession).catch(error => {
+      console.error('Failed to save location update:', error);
+    });
+
+    console.log(`Added GPS point: distance=${distance.toFixed(1)}m, accuracy=${currentLocation.accuracy}m, source=${currentLocation.source}`);
+  }, [currentLocation, locationStatus, activeSession, setActiveSession, settings.tracking.interval]);
+
   const startQuickCatch = async () => {
     if (!user) return;
     if (isStartingSession) return;
