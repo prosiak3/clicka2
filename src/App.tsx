@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, ArrowLeft } from 'lucide-react';
+import { Fish, History, Settings, BarChart as ChartBar, Home, Trophy, User, ArrowLeft, CloudSun } from 'lucide-react';
 import { CatchForm } from './components/CatchForm';
 import { SessionList } from './components/SessionList';
 import { SessionCard } from './components/SessionCard';
@@ -23,6 +23,8 @@ import { AdminRoadmapScreen } from './screens/AdminRoadmapScreen';
 import { AdminWeatherApiScreen } from './screens/AdminWeatherApiScreen';
 import { AdminFishSpeciesScreen } from './screens/AdminFishSpeciesScreen';
 import { RoadmapScreen } from './screens/RoadmapScreen';
+import { WeatherScreen } from './screens/WeatherScreen';
+import { WeatherBar } from './components/WeatherBar';
 import { FishCatch, FishingSession, User as UserType, Location } from './types';
 import { saveSession, loadSessions, syncPendingSessions, deleteSessions, updateCatch } from './utils/db';
 import { getCurrentUser, signIn, signUp } from './utils/auth';
@@ -37,7 +39,7 @@ import { useBackButton } from './hooks/useBackButton';
 import { useSwipeGesture } from './hooks/useSwipeGesture';
 import { playClickSound, playReelSound } from './utils/sound';
 
-type TabType = 'home' | 'sessions' | 'history' | 'analysis' | 'settings' | 'stats' | 'profile';
+type TabType = 'home' | 'sessions' | 'history' | 'analysis' | 'settings' | 'stats' | 'profile' | 'weather';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
@@ -900,9 +902,9 @@ function MainApp({
 
   const getTabOrder = () => {
     if (activeSession) {
-      return ['sessions', 'stats', 'history', 'settings'];
+      return ['sessions', 'stats', 'history', 'weather', 'settings'];
     }
-    return ['home', 'stats', 'history', 'settings'];
+    return ['home', 'stats', 'history', 'weather', 'settings'];
   };
 
   const navigateToTab = (direction: 'left' | 'right') => {
@@ -960,12 +962,16 @@ function MainApp({
                     <p className="text-[10px] text-blue-600 leading-none">Better Fishing</p>
                   </div>
                 </div>
-                <StatusBar onLogout={() => {
-                  setUser(null);
-                  window.location.href = '/login';
-                }} />
+                <StatusBar
+                  weatherProviderName={activeSession?.weather?.providerName}
+                  onLogout={() => {
+                    setUser(null);
+                    window.location.href = '/login';
+                  }}
+                />
               </div>
             </div>
+            {activeSession && <WeatherBar weather={activeSession.weather} location={currentLocation ? { lat: currentLocation.latitude, lon: currentLocation.longitude } : null} />}
           </div>
 
           {error && (
@@ -1182,6 +1188,10 @@ function MainApp({
               <AnalysisSection sessions={sessions} />
             )}
 
+            {activeTab === 'weather' && (
+              <WeatherScreen />
+            )}
+
             {activeTab === 'settings' && (
               <SettingsScreen
                 user={user}
@@ -1198,7 +1208,7 @@ function MainApp({
 
         {/* Bottom Navigation Bar */}
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg safe-bottom">
-          <div className="max-w-lg mx-auto grid grid-cols-4">
+          <div className="max-w-lg mx-auto grid grid-cols-5">
             {activeSession ? (
               <button
                 onClick={() => {
@@ -1261,6 +1271,19 @@ function MainApp({
             >
               <History className="w-6 h-6" />
               <span className="text-[10px] font-medium">History</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('weather');
+                pushNavigationState(2, 'weather');
+              }}
+              className={`py-3 px-3 flex flex-col items-center gap-1 touch-feedback transition-colors ${
+                activeTab === 'weather' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <CloudSun className="w-6 h-6" />
+              <span className="text-[10px] font-medium">Weather</span>
             </button>
 
             <button
