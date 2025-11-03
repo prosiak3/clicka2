@@ -112,4 +112,7 @@ export interface AppSettings {
     autoEndTimeout: number;
     autoEndEnabled: boolean;
   };
+  weather: {
+    updateInterval: number;
+  };
 }

@@ -457,6 +457,37 @@ export function SettingsScreen({ user, onLogout, setUser, onNavigateHome }: Sett
       </SettingsSection>
 
       <SettingsSection
+        title="Weather Settings"
+        icon={<Sun className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />}
+        isExpanded={expandedSection === 'weather'}
+        onToggle={() => setExpandedSection(expandedSection === 'weather' ? null : 'weather')}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
+              Weather Update Interval
+            </label>
+            <select
+              value={settings.weather.updateInterval}
+              onChange={(e) => settings.updateWeatherSettings({ updateInterval: Number(e.target.value) })}
+              className="w-full p-3 border border-gray-200 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-50"
+            >
+              <option value={1}>Every 1 minute</option>
+              <option value={5}>Every 5 minutes</option>
+              <option value={10}>Every 10 minutes</option>
+              <option value={15}>Every 15 minutes</option>
+              <option value={30}>Every 30 minutes</option>
+              <option value={60}>Every 1 hour</option>
+              <option value={180}>Every 3 hours</option>
+            </select>
+            <p className="mt-2 text-sm text-gray-500 dark:text-dark-300">
+              How often to fetch current weather data. More frequent updates use more battery and data.
+            </p>
+          </div>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
         title={t.settings.fishSpecies}
         icon={<Fish className="w-5 h-5 text-orange-600 dark:text-orange-400" />}
         isExpanded={expandedSection === 'species'}

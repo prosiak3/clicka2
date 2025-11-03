@@ -11,9 +11,22 @@ interface CachedWeather {
 }
 
 const weatherCache = new Map<string, CachedWeather>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 const MIN_REQUEST_INTERVAL = 5000; // 5 seconds between requests
 let lastRequestTime = 0;
+
+const getCacheDuration = (): number => {
+  try {
+    const settingsStr = localStorage.getItem('clicka-better-fishing-settings');
+    if (settingsStr) {
+      const settings = JSON.parse(settingsStr);
+      const intervalMinutes = settings?.state?.weather?.updateInterval || 5;
+      return intervalMinutes * 60 * 1000;
+    }
+  } catch (error) {
+    console.warn('[Weather API] Failed to get cache duration from settings:', error);
+  }
+  return 5 * 60 * 1000; // Default 5 minutes
+};
 
 // Store the last pressure reading and its timestamp
 let lastPressureReading = {
@@ -28,11 +41,12 @@ const getCacheKey = (lat: number, lon: number): string => {
 const getFromCache = (lat: number, lon: number): WeatherData | null => {
   const key = getCacheKey(lat, lon);
   const cached = weatherCache.get(key);
-  
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+  const cacheDuration = getCacheDuration();
+
+  if (cached && Date.now() - cached.timestamp < cacheDuration) {
     return cached.data;
   }
-  
+
   return null;
 };
 

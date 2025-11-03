@@ -250,6 +250,9 @@ const DEFAULT_SETTINGS: AppSettings = {
     autoEndTimeout: 30,
     autoEndEnabled: true
   },
+  weather: {
+    updateInterval: 5
+  },
 };
 
 interface SettingsState extends AppSettings {
@@ -264,6 +267,7 @@ interface SettingsState extends AppSettings {
   updateDisplaySettings: (display: Partial<AppSettings['display']>) => void;
   updateTrackingSettings: (tracking: Partial<AppSettings['tracking']> & { methods?: Partial<AppSettings['tracking']['methods']> }) => void;
   updateSessionSettings: (session: Partial<AppSettings['session']>) => void;
+  updateWeatherSettings: (weather: Partial<AppSettings['weather']>) => void;
   applyPendingChanges: () => void;
   discardPendingChanges: () => void;
   resetSettings: () => void;
@@ -360,6 +364,14 @@ export const useSettings = create<SettingsState>()(
         },
         hasPendingChanges: true
       })),
+      updateWeatherSettings: (weather) => set((state) => ({
+        weather: { ...state.weather, ...weather },
+        pendingChanges: {
+          ...state.pendingChanges,
+          weather: { ...state.weather, ...weather }
+        },
+        hasPendingChanges: true
+      })),
       applyPendingChanges: () => set((state) => {
         const updates = { ...state, ...state.pendingChanges };
         return {
@@ -381,7 +393,7 @@ export const useSettings = create<SettingsState>()(
     }),
     {
       name: 'clicka-better-fishing-settings',
-      version: 4,
+      version: 5,
       migrate: (persistedState: any, version: number) => {
         if (version === 1) {
           return {
@@ -407,6 +419,14 @@ export const useSettings = create<SettingsState>()(
             display: {
               ...persistedState.display,
               hideScrollbar: false
+            }
+          };
+        }
+        if (version === 4) {
+          return {
+            ...persistedState,
+            weather: {
+              updateInterval: 5
             }
           };
         }
