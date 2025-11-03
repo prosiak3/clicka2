@@ -186,7 +186,7 @@ export function WeatherScreen() {
               <div className="flex items-center gap-2 mb-2">
                 <ArrowUp
                   className="w-8 h-8 text-blue-600"
-                  style={{ transform: `rotate(${weather.windDirection || 0}deg)` }}
+                  style={{ transform: `rotate(${(weather.windDirection || 0) + 180}deg)` }}
                 />
                 <div>
                   <p className="text-3xl font-bold text-gray-800">{Math.round(weather.windSpeed)} m/s</p>

@@ -119,63 +119,63 @@ export function WeatherBar() {
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-blue-200 shadow-sm">
-      <div className="px-4 py-3">
+      <div className="px-4 py-1.5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 min-w-0">
-            <MapPin className="w-4 h-4 text-blue-600 flex-shrink-0" />
+            <MapPin className="w-3 h-3 text-blue-600 flex-shrink-0" />
             <div className="min-w-0">
               {isLoadingLocation ? (
-                <span className="text-sm text-gray-500 italic">Loading location...</span>
+                <span className="text-xs text-gray-500 italic">Loading location...</span>
               ) : locationName ? (
-                <span className="text-sm font-medium text-gray-700 truncate">
+                <span className="text-xs font-medium text-gray-700 truncate">
                   {locationName.city}
                   {locationName.country && `, ${locationName.country}`}
                 </span>
               ) : (
-                <span className="text-sm text-gray-500 italic">Unknown location</span>
+                <span className="text-xs text-gray-500 italic">Unknown location</span>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg shadow-sm border border-blue-100">
-              <Thermometer className="w-4 h-4 text-red-500" />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-lg shadow-sm border border-blue-100">
+              <Thermometer className="w-3 h-3 text-red-500" />
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-gray-800">
+                <span className="text-xs font-bold text-gray-800">
                   {formatTemperature(weather.temperature)}°C
                 </span>
-                <span className="text-[10px] text-gray-500">
+                <span className="text-[9px] text-gray-500">
                   feels {formatTemperature(feelsLike)}°C
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg shadow-sm border border-blue-100">
+            <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-lg shadow-sm border border-blue-100">
               <div className="relative">
-                <Wind className="w-4 h-4 text-blue-500" />
+                <Wind className="w-3 h-3 text-blue-500" />
                 <ArrowUp
-                  className="w-3 h-3 text-blue-600 absolute -top-0.5 -right-0.5"
-                  style={{ transform: `rotate(${weather.windDirection || 0}deg)` }}
+                  className="w-2.5 h-2.5 text-blue-600 absolute -top-0.5 -right-0.5"
+                  style={{ transform: `rotate(${(weather.windDirection || 0) + 180}deg)` }}
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-gray-800">
+                <span className="text-xs font-bold text-gray-800">
                   {Math.round(weather.windSpeed)} m/s
                 </span>
-                <span className="text-[10px] text-gray-500">
+                <span className="text-[9px] text-gray-500">
                   {getWindDirection(weather.windDirection || 0)} • B{beaufort.scale}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg shadow-sm border border-blue-100">
-              <Gauge className="w-4 h-4 text-purple-500" />
+            <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-lg shadow-sm border border-blue-100">
+              <Gauge className="w-3 h-3 text-purple-500" />
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-gray-800">
+                <span className="text-xs font-bold text-gray-800">
                   {Math.round(weather.pressure)} hPa
                 </span>
-                <div className={`flex items-center gap-0.5 text-[10px] ${pressureTrend.color}`}>
-                  <PressureIcon className="w-3 h-3" />
+                <div className={`flex items-center gap-0.5 text-[9px] ${pressureTrend.color}`}>
+                  <PressureIcon className="w-2.5 h-2.5" />
                   <span>{pressureTrend.text}</span>
                 </div>
               </div>
