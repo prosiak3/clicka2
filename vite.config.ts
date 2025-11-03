@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { vitePwaMiddleware } from './vite-pwa-middleware.js';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    vitePwaMiddleware(),
     VitePWA({
       registerType: 'prompt',
       includeAssets: ['icons/*.png', 'sounds/*.mp3'],
@@ -74,7 +76,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}'],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: [/^\/api\//, /\/manifest\.webmanifest$/, /\/sw\.js$/, /\/workbox-.*\.js$/],
         runtimeCaching: [
           {
             urlPattern: /^\/api\//,
@@ -137,7 +139,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}']
       },
       devOptions: {
-        enabled: false
+        enabled: true,
+        type: 'module',
+        navigateFallback: 'index.html',
+        navigateFallbackAllowlist: [/^(?!\/(manifest\.webmanifest|sw\.js|workbox-.*\.js|icons\/|sounds\/|assets\/)).*$/]
       }
     })
   ],
@@ -151,7 +156,8 @@ export default defineConfig({
         target: 'http://localhost:54321',
         changeOrigin: true,
       }
-    }
+    },
+    middlewareMode: false
   },
   build: {
     rollupOptions: {
