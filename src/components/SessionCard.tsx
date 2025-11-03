@@ -55,7 +55,6 @@ export function SessionCard({
   const [showPauseConfirm, setShowPauseConfirm] = useState(false);
   const [showResumeConfirm, setShowResumeConfirm] = useState(false);
   const [showTrackingRecords, setShowTrackingRecords] = useState(false);
-  const [isWaypointMode, setIsWaypointMode] = useState(false);
   const settings = useSettings();
   const { coords: currentLocation } = useGpsTracking();
   
@@ -83,9 +82,17 @@ export function SessionCard({
   const moonPhase = getMoonPhase(startTime);
   const timeOfDay = getTimeOfDay(startTime);
 
-  const handleWaypointAdd = (location: Location) => {
-    onAddWaypoint?.(location);
-    setIsWaypointMode(false);
+  const handleAddWaypointClick = () => {
+    if (currentLocation) {
+      const waypointLocation: Location = {
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        timestamp: new Date().toISOString(),
+        source: currentLocation.source,
+        accuracy: currentLocation.accuracy
+      };
+      onAddWaypoint?.(waypointLocation);
+    }
   };
 
   return (
@@ -201,25 +208,20 @@ export function SessionCard({
           {isActive && onAddWaypoint && (
             <div className="mb-4">
               <button
-                onClick={() => setIsWaypointMode(!isWaypointMode)}
-                className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors ${
-                  isWaypointMode
-                    ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                    : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                }`}
+                onClick={handleAddWaypointClick}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                disabled={!currentLocation}
               >
-                {isWaypointMode ? (
-                  <>
-                    <X className="w-4 h-4" />
-                    <span className="text-xs">Cancel Waypoint</span>
-                  </>
-                ) : (
-                  <>
-                    <Flag className="w-4 h-4" />
-                    <span className="text-xs">Add Waypoint</span>
-                  </>
-                )}
+                <Flag className="w-4 h-4" />
+                <span className="text-xs">
+                  {currentLocation ? 'Add Waypoint at Current Location' : 'Waiting for GPS...'}
+                </span>
               </button>
+              {!currentLocation && (
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  GPS location required to add waypoint
+                </p>
+              )}
             </div>
           )}
 
@@ -237,9 +239,8 @@ export function SessionCard({
                   showRadius={true}
                   height="180px"
                   currentLocation={isActive ? currentLocation : undefined}
-                  onAddWaypoint={isWaypointMode ? handleWaypointAdd : undefined}
                   isActive={isActive}
-                  interactive={isWaypointMode}
+                  interactive={false}
                 />
               </div>
 
