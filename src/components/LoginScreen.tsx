@@ -50,10 +50,10 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-blue-600 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#2a3441] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bg-blue-600 p-12 text-center relative overflow-hidden">
+          <div className="bg-[#2a3441] p-12 text-center relative overflow-hidden">
             <div className="relative z-10">
               <img
                 src="/icons/clicka-logo.png"
