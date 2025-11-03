@@ -194,6 +194,17 @@ function App() {
 
         setSessions(loadedSessions);
 
+        if (activeSession && !activeSession.endTime) {
+          const sessionExists = loadedSessions.find(s => s.id === activeSession.id);
+          if (!sessionExists) {
+            console.log('Active session not found in database, clearing...');
+            setActiveSession(null);
+          } else {
+            console.log('Restored active session from localStorage');
+            setActiveTab('sessions');
+          }
+        }
+
         try {
           await syncPendingSessions();
         } catch (syncError) {
@@ -213,6 +224,52 @@ function App() {
       isMounted = false;
     };
   }, [user]);
+
+  useEffect(() => {
+    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
+      if (activeSession && !activeSession.endTime) {
+        e.preventDefault();
+        e.returnValue = '';
+
+        try {
+          const updatedSession = {
+            ...activeSession,
+            last_activity_at: new Date().toISOString()
+          };
+          await saveSession(updatedSession);
+        } catch (error) {
+          console.error('Failed to save session before unload:', error);
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [activeSession]);
+
+  useEffect(() => {
+    if (!activeSession || activeSession.endTime) return;
+
+    const autoSaveInterval = setInterval(async () => {
+      try {
+        const updatedSession = {
+          ...activeSession,
+          last_activity_at: new Date().toISOString()
+        };
+        await saveSession(updatedSession);
+        console.log('Auto-saved active session');
+      } catch (error) {
+        console.error('Failed to auto-save session:', error);
+      }
+    }, 2 * 60 * 1000);
+
+    return () => {
+      clearInterval(autoSaveInterval);
+    };
+  }, [activeSession]);
 
   const startQuickCatch = async () => {
     if (!user) return;
@@ -272,7 +329,9 @@ function App() {
         catches: [],
         synced: false,
         tracking_enabled: true,
-        tracking_interval: settings.tracking.interval
+        tracking_interval: settings.tracking.interval,
+        last_activity_at: new Date().toISOString(),
+        resumed_count: 0
       };
 
       setSessions(prev => [newSession, ...prev]);
@@ -350,7 +409,9 @@ function App() {
         catches: [],
         synced: false,
         tracking_enabled: true,
-        tracking_interval: settings.tracking.interval
+        tracking_interval: settings.tracking.interval,
+        last_activity_at: new Date().toISOString(),
+        resumed_count: 0
       };
       
       setSessions(prev => [newSession, ...prev]);
@@ -476,11 +537,51 @@ function App() {
 
   const handleDiscardSession = () => {
     if (!activeSession) return;
-    
+
     setActiveSession(null);
     setSessions(prev => prev.filter(s => s.id !== activeSession.id));
     setActiveTab('home');
   };
+
+  const handleResumeClosedSession = useCallback(async (sessionId: string) => {
+    if (!user) return;
+
+    try {
+      setError(null);
+      const sessionToResume = sessions.find(s => s.id === sessionId);
+
+      if (!sessionToResume) {
+        throw new Error('Session not found');
+      }
+
+      if (!sessionToResume.endTime) {
+        throw new Error('Session is not closed');
+      }
+
+      const resumedSession: FishingSession = {
+        ...sessionToResume,
+        endTime: undefined,
+        resumed_count: (sessionToResume.resumed_count || 0) + 1,
+        last_activity_at: new Date().toISOString()
+      };
+
+      setActiveSession(resumedSession);
+      setSessions(prev =>
+        prev.map(s => s.id === sessionId ? resumedSession : s)
+      );
+
+      try {
+        await saveSession(resumedSession);
+      } catch (saveError) {
+        console.error('Failed to save resumed session:', saveError);
+      }
+
+      setActiveTab('sessions');
+    } catch (error) {
+      console.error('Failed to resume closed session:', error);
+      setError(error instanceof Error ? error.message : 'Failed to resume session. Please try again.');
+    }
+  }, [user, sessions, setActiveSession]);
 
   const handleAddWaypoint = async (location: Location) => {
     if (!activeSession) return;
@@ -544,6 +645,7 @@ function App() {
                 handleDiscardSession={handleDiscardSession}
                 handlePauseSession={handlePauseSession}
                 handleResumeSession={handleResumeSession}
+                handleResumeClosedSession={handleResumeClosedSession}
                 handleAddWaypoint={handleAddWaypoint}
                 handleEditCatch={handleEditCatch}
                 startNewSession={startNewSession}
@@ -589,6 +691,7 @@ interface MainAppProps {
   handleDiscardSession: () => void;
   handlePauseSession: () => void;
   handleResumeSession: () => void;
+  handleResumeClosedSession: (sessionId: string) => void;
   handleAddWaypoint: (location: Location) => void;
   handleEditCatch: (catchId: string, photos: string[], description: string) => Promise<void>;
   startNewSession: () => void;
@@ -656,6 +759,7 @@ function MainApp({
   handleDiscardSession,
   handlePauseSession,
   handleResumeSession,
+  handleResumeClosedSession,
   handleAddWaypoint,
   handleEditCatch,
   startNewSession,
@@ -849,6 +953,7 @@ function MainApp({
                   onDiscardSession={handleDiscardSession}
                   onPauseSession={handlePauseSession}
                   onResumeSession={handleResumeSession}
+                  onResumeClosedSession={handleResumeClosedSession}
                   onAddWaypoint={handleAddWaypoint}
                   onEditCatch={handleEditCatch}
                 />
@@ -862,6 +967,7 @@ function MainApp({
                     session={selectedSession}
                     isActive={false}
                     onEditCatch={handleEditCatch}
+                    onResumeClosedSession={handleResumeClosedSession}
                   />
                 ) : (
                   <>
@@ -872,6 +978,7 @@ function MainApp({
                           session={sessions[0]}
                           isActive={false}
                           onEditCatch={handleEditCatch}
+                          onResumeClosedSession={handleResumeClosedSession}
                         />
                       </div>
                     )}

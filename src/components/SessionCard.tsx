@@ -25,6 +25,7 @@ interface SessionCardProps {
   onEditCatch?: (catchId: string, photos: string[], description: string) => void;
   onToggleTracking?: (enabled: boolean) => void;
   onAddWaypoint?: (location: Location) => void;
+  onResumeClosedSession?: (sessionId: string) => void;
 }
 
 function getTimeOfDay(date: Date) {
@@ -45,7 +46,8 @@ export function SessionCard({
   onDeleteCatch,
   onEditCatch,
   onToggleTracking,
-  onAddWaypoint
+  onAddWaypoint,
+  onResumeClosedSession
 }: SessionCardProps) {
   const [isTrackingExpanded, setIsTrackingExpanded] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
@@ -174,6 +176,24 @@ export function SessionCard({
                 <Trash2 className="w-4 h-4" />
                 <span className="text-xs">Discard</span>
               </button>
+            </div>
+          )}
+
+          {/* Resume Closed Session Button */}
+          {!isActive && session.endTime && onResumeClosedSession && (
+            <div className="mb-4">
+              <button
+                onClick={() => onResumeClosedSession(session.id)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors border-2 border-green-200"
+              >
+                <Play className="w-5 h-5" />
+                <span className="font-medium">Resume This Session</span>
+              </button>
+              {session.resumed_count && session.resumed_count > 0 && (
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  Previously resumed {session.resumed_count} time{session.resumed_count > 1 ? 's' : ''}
+                </p>
+              )}
             </div>
           )}
 

@@ -204,6 +204,8 @@ export interface FishingSession {
   totalPauseTime?: number;
   tracking_enabled: boolean;
   tracking_interval: number;
+  last_activity_at?: string;
+  resumed_count?: number;
 }
 
 export type { WeatherData, Location, FishCatch, User, FishSpecies, AppSettings, CloudType, CloudLayers };
