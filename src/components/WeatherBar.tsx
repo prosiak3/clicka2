@@ -145,7 +145,7 @@ export function WeatherBar() {
                 <Wind className="w-3 h-3 text-blue-500" />
                 <ArrowUp
                   className="w-2.5 h-2.5 text-blue-600 absolute -top-0.5 -right-0.5"
-                  style={{ transform: `rotate(${(weather.windDirection || 0) + 180}deg)` }}
+                  style={{ transform: `rotate(${weather.windDirection || 0}deg)` }}
                 />
               </div>
               <div className="flex flex-col">
