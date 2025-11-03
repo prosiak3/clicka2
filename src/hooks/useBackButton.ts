@@ -27,6 +27,8 @@ export function useBackButton({
   const isNavigating = useRef(false);
 
   const handleBackNavigation = useCallback((event: PopStateEvent) => {
+    event.preventDefault();
+
     if (isNavigating.current) {
       return;
     }

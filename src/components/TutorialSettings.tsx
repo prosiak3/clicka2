@@ -37,7 +37,6 @@ export function TutorialSettings({ userId, onNavigateHome }: TutorialSettingsPro
         } else {
           navigate('/');
         }
-        window.location.reload();
       }, 500);
     } catch (err) {
       console.error('Failed to restart tutorial:', err);

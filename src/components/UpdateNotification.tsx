@@ -36,6 +36,7 @@ export function UpdateNotification({ onUpdateCheckInterval = 5 * 60 * 1000 }: Up
   const [showNotification, setShowNotification] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showCheckNotification, setShowCheckNotification] = useState(false);
+  const [lastCheckTime, setLastCheckTime] = useState<Date | null>(null);
   const settings = useSettings();
 
   // Register service worker and set up update checking
@@ -52,7 +53,9 @@ export function UpdateNotification({ onUpdateCheckInterval = 5 * 60 * 1000 }: Up
       // Function to check for new service worker versions
       const checkForUpdates = async () => {
         try {
-          console.log('Checking for updates...');
+          console.log('🔍 Checking for updates...');
+          const checkTime = new Date();
+          setLastCheckTime(checkTime);
 
           if (settings.pwa.showUpdateCheckNotifications) {
             setShowCheckNotification(true);
@@ -62,8 +65,9 @@ export function UpdateNotification({ onUpdateCheckInterval = 5 * 60 * 1000 }: Up
           }
 
           await registration.update();
+          console.log('✅ Update check completed at', checkTime.toLocaleTimeString());
         } catch (error) {
-          console.error('Error checking for updates:', error);
+          console.error('❌ Error checking for updates:', error);
         }
       };
 
@@ -122,10 +126,15 @@ export function UpdateNotification({ onUpdateCheckInterval = 5 * 60 * 1000 }: Up
   if (showCheckNotification) {
     return (
       <div className="fixed bottom-20 left-0 right-0 z-50 px-4 pointer-events-none">
-        <div className="max-w-lg mx-auto bg-blue-500 rounded-lg shadow-lg p-3 animate-slide-up">
+        <div className="max-w-lg mx-auto bg-blue-600 rounded-lg shadow-xl p-3 animate-slide-up border-2 border-blue-400">
           <div className="flex items-center gap-2 justify-center">
-            <Search className="w-4 h-4 text-white animate-pulse" />
-            <p className="text-sm text-white font-medium">Checking for updates...</p>
+            <Search className="w-5 h-5 text-white animate-pulse" />
+            <div className="flex flex-col">
+              <p className="text-sm text-white font-bold">Checking for updates...</p>
+              {lastCheckTime && (
+                <p className="text-xs text-blue-100">Last check: {lastCheckTime.toLocaleTimeString()}</p>
+              )}
+            </div>
           </div>
         </div>
       </div>

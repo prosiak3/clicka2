@@ -34,6 +34,7 @@ import { useGpsTracking } from './hooks/useGpsTracking';
 import { useActiveSession } from './hooks/useActiveSession';
 import { useInactivityTimer } from './hooks/useInactivityTimer';
 import { useBackButton } from './hooks/useBackButton';
+import { useSwipeGesture } from './hooks/useSwipeGesture';
 import { playClickSound, playReelSound } from './utils/sound';
 
 type TabType = 'home' | 'sessions' | 'history' | 'analysis' | 'settings' | 'stats' | 'profile';
@@ -895,6 +896,44 @@ function MainApp({
     activeSession,
     selectionMode,
     onCancelSelection,
+  });
+
+  const getTabOrder = () => {
+    if (activeSession) {
+      return ['sessions', 'stats', 'history', 'settings'];
+    }
+    return ['home', 'stats', 'history', 'settings'];
+  };
+
+  const navigateToTab = (direction: 'left' | 'right') => {
+    if (showCatchForm || selectedSession || selectionMode) {
+      return;
+    }
+
+    const tabs = getTabOrder();
+    const currentIndex = tabs.indexOf(activeTab);
+
+    if (currentIndex === -1) return;
+
+    let newIndex;
+    if (direction === 'left') {
+      newIndex = currentIndex + 1;
+      if (newIndex >= tabs.length) newIndex = 0;
+    } else {
+      newIndex = currentIndex - 1;
+      if (newIndex < 0) newIndex = tabs.length - 1;
+    }
+
+    const newTab = tabs[newIndex] as TabType;
+    setActiveTab(newTab);
+    pushNavigationState(1, newTab);
+  };
+
+  useSwipeGesture({
+    onSwipeLeft: () => navigateToTab('left'),
+    onSwipeRight: () => navigateToTab('right'),
+    minSwipeDistance: 100,
+    maxVerticalDistance: 150,
   });
 
   return (

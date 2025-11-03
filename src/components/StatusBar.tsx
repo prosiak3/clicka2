@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Signal, Antenna, Database, MapPin, Satellite, User, Shield, Cloud, CloudOff } from 'lucide-react';
+import { Signal, Antenna, Database, MapPin, Satellite, User, Shield, Cloud, CloudOff, Info } from 'lucide-react';
 import { supabase } from '../utils/db';
 import { GpsPermissionDialog } from './GpsPermissionDialog';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -108,9 +108,20 @@ export function StatusBar({ isSessionActive, isPaused, onLogout }: StatusBarProp
 
   const LocationIcon = getLocationIcon();
 
+  const appVersion = '1.3.0';
+
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        {/* App Version */}
+        <div
+          className="flex items-center gap-1 px-2 py-1 bg-blue-50 rounded cursor-help border border-blue-200"
+          title={`Clicka Version ${appVersion}`}
+        >
+          <Info className="w-3.5 h-3.5 text-blue-600" />
+          <span className="text-[10px] font-bold text-blue-700">v{appVersion}</span>
+        </div>
+
         {/* User Info */}
         {userInfo && (
           <button
