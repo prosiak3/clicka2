@@ -151,9 +151,6 @@ export default defineConfig({
         target: 'http://localhost:54321',
         changeOrigin: true,
       }
-    },
-    headers: {
-      'Content-Type': 'application/manifest+json'
     }
   },
   build: {
