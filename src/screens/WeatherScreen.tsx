@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, Eye, Wind, Gauge, Thermometer, Umbrella, Sun, MapPin, ArrowUp } from 'lucide-react';
+import { Cloud, Eye, Wind, Gauge, Thermometer, Umbrella, Sun, MapPin, ArrowUp, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { WeatherData } from '../types';
 import { getWeatherData } from '../utils/weather';
 import { useGpsTracking } from '../hooks/useGpsTracking';
@@ -132,6 +132,19 @@ export function WeatherScreen() {
     return 'Overcast';
   };
 
+  const getPressureTrend = () => {
+    if (!weather.pressure || weather.pressure === 1013) {
+      return { icon: Minus, text: 'Stable', color: 'text-gray-500' };
+    }
+    if (weather.pressure > 1013) {
+      return { icon: TrendingUp, text: 'Rising', color: 'text-green-600' };
+    }
+    return { icon: TrendingDown, text: 'Falling', color: 'text-blue-600' };
+  };
+
+  const pressureTrend = getPressureTrend();
+  const PressureTrendIcon = pressureTrend.icon;
+
   return (
     <div className="flex-1 overflow-y-auto bg-gradient-to-br from-blue-50 to-cyan-50">
       <div className="max-w-4xl mx-auto p-4 space-y-4">
@@ -167,16 +180,18 @@ export function WeatherScreen() {
 
             <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-100">
               <div className="flex items-center gap-2 mb-2">
-                <div className="relative">
-                  <Wind className="w-5 h-5 text-blue-500" />
-                  <ArrowUp
-                    className="w-4 h-4 text-blue-600 absolute -top-1 -right-1"
-                    style={{ transform: `rotate(${weather.windDirection || 0}deg)` }}
-                  />
-                </div>
+                <Wind className="w-5 h-5 text-blue-500" />
                 <span className="text-sm font-medium text-gray-600">Wind</span>
               </div>
-              <p className="text-3xl font-bold text-gray-800">{Math.round(weather.windSpeed)} m/s</p>
+              <div className="flex items-center gap-2 mb-2">
+                <ArrowUp
+                  className="w-8 h-8 text-blue-600"
+                  style={{ transform: `rotate(${weather.windDirection || 0}deg)` }}
+                />
+                <div>
+                  <p className="text-3xl font-bold text-gray-800">{Math.round(weather.windSpeed)} m/s</p>
+                </div>
+              </div>
               <p className="text-sm text-gray-500 mt-1">
                 {getWindDirection(weather.windDirection || 0)} ({weather.windDirection}°) • Beaufort {getBeaufortScale(weather.windSpeed).scale}
               </p>
@@ -187,9 +202,12 @@ export function WeatherScreen() {
                 <Gauge className="w-5 h-5 text-purple-500" />
                 <span className="text-sm font-medium text-gray-600">Pressure</span>
               </div>
-              <p className="text-3xl font-bold text-gray-800">{Math.round(weather.pressure)} hPa</p>
+              <div className="flex items-center gap-2">
+                <p className="text-3xl font-bold text-gray-800">{Math.round(weather.pressure)} hPa</p>
+                <PressureTrendIcon className={`w-6 h-6 ${pressureTrend.color}`} />
+              </div>
               <p className="text-sm text-gray-500 mt-1">
-                {weather.pressure > 1013 ? 'High pressure' : weather.pressure < 1013 ? 'Low pressure' : 'Normal'}
+                {weather.pressure > 1013 ? 'High pressure' : weather.pressure < 1013 ? 'Low pressure' : 'Normal'} • {pressureTrend.text}
               </p>
             </div>
 
