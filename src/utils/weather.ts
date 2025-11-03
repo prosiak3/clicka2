@@ -126,6 +126,91 @@ const fetchFromNetatmo = async (lat: number, lon: number) => {
   return data;
 };
 
+const fetchFromNOAA = async (lat: number, lon: number) => {
+  const USER_AGENT = 'ClickaFishingApp/1.3.0 (contact@clickafishing.app)';
+
+  console.log(`[Weather API] Fetching from NOAA for coordinates: ${lat}, ${lon}`);
+
+  try {
+    const pointsUrl = `https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`;
+    console.log(`[Weather API] NOAA Points request: ${pointsUrl}`);
+
+    const pointsResponse = await fetch(pointsUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': USER_AGENT,
+        'Accept': 'application/geo+json'
+      }
+    });
+
+    if (!pointsResponse.ok) {
+      const errorText = await pointsResponse.text();
+      console.error(`[Weather API] NOAA points request failed: ${pointsResponse.status} ${errorText}`);
+      throw new Error(`NOAA points API failed: ${pointsResponse.status}`);
+    }
+
+    const pointsData = await pointsResponse.json();
+    const stationUrl = pointsData.properties?.observationStations;
+
+    if (!stationUrl) {
+      console.error('[Weather API] No observation stations URL in NOAA response');
+      throw new Error('No NOAA stations available for this location');
+    }
+
+    console.log(`[Weather API] NOAA Stations request: ${stationUrl}`);
+
+    const stationsResponse = await fetch(stationUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': USER_AGENT,
+        'Accept': 'application/geo+json'
+      }
+    });
+
+    if (!stationsResponse.ok) {
+      throw new Error(`NOAA stations API failed: ${stationsResponse.status}`);
+    }
+
+    const stationsData = await stationsResponse.json();
+    const stations = stationsData.features;
+
+    if (!stations || stations.length === 0) {
+      throw new Error('No NOAA weather stations found in area');
+    }
+
+    const nearestStation = stations[0];
+    const stationId = nearestStation.properties.stationIdentifier;
+    console.log(`[Weather API] Using NOAA station: ${stationId}`);
+
+    const obsUrl = `https://api.weather.gov/stations/${stationId}/observations/latest`;
+    console.log(`[Weather API] NOAA Observation request: ${obsUrl}`);
+
+    const obsResponse = await fetch(obsUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': USER_AGENT,
+        'Accept': 'application/geo+json'
+      }
+    });
+
+    if (!obsResponse.ok) {
+      throw new Error(`NOAA observation API failed: ${obsResponse.status}`);
+    }
+
+    const obsData = await obsResponse.json();
+    console.log(`[Weather API] Successfully fetched NOAA observation data:`, obsData);
+
+    return {
+      source: 'noaa',
+      stationId,
+      properties: obsData.properties
+    };
+  } catch (error) {
+    console.error('[Weather API] NOAA request failed:', error);
+    throw error;
+  }
+};
+
 const fetchFromOpenMeteo = async (lat: number, lon: number, apiUrl: string) => {
   const requestUrl = `${apiUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,precipitation,precipitation_probability&wind_speed_unit=ms`;
 
@@ -190,6 +275,10 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
           data = await fetchFromNetatmo(lat, lon);
           console.log(`[Weather API] Successfully fetched data from ${provider.display_name}`);
           break;
+        } else if (provider.name === 'noaa') {
+          data = await fetchFromNOAA(lat, lon);
+          console.log(`[Weather API] Successfully fetched data from ${provider.display_name}`);
+          break;
         } else if (provider.name === 'open-meteo') {
           data = await fetchFromOpenMeteo(lat, lon, provider.api_url);
           console.log(`[Weather API] Successfully fetched data from ${provider.display_name}`);
@@ -238,6 +327,21 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
       precip = data.precipitation ?? 0;
       windSpeed = data.windSpeed ?? 0;
       windDirection = data.windDirection ?? 0;
+      cloudCover = 0;
+      cloudLow = 0;
+      cloudMid = 0;
+      cloudHigh = 0;
+      precipProb = 0;
+    } else if (data.source === 'noaa') {
+      // NOAA data format
+      console.log('[Weather API] Processing NOAA data format');
+      const props = data.properties;
+      temp = props.temperature?.value ? props.temperature.value : 20;
+      currentPressure = props.barometricPressure?.value ? Math.round(props.barometricPressure.value / 100) : 1013;
+      humidity = props.relativeHumidity?.value ?? 50;
+      precip = props.precipitationLastHour?.value ?? 0;
+      windSpeed = props.windSpeed?.value ? Math.round(props.windSpeed.value * 0.277778) : 0;
+      windDirection = props.windDirection?.value ?? 0;
       cloudCover = 0;
       cloudLow = 0;
       cloudMid = 0;

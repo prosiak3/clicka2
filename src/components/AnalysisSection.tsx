@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { FishingSession, CloudType } from '../types';
 import { format, differenceInMinutes, getMonth } from 'date-fns';
-import { Fish, Clock, Sun, Moon, Wind, Thermometer, Trophy, Scale, Calendar, BarChart as ChartBar, CloudRain, Cloud } from 'lucide-react';
+import { Fish, Clock, Sun, Moon, Wind, Thermometer, Trophy, Scale, Calendar, BarChart as ChartBar, CloudRain, Cloud, TrendingUp } from 'lucide-react';
 import { getMoonPhase } from '../utils/moon';
 import { useTranslation } from '../hooks/useTranslation';
+import { WeatherSnapshotChart } from './WeatherSnapshotChart';
 
 interface AnalysisSectionProps {
   sessions: FishingSession[];
@@ -537,6 +538,52 @@ export function AnalysisSection({ sessions }: AnalysisSectionProps) {
           </div>
         </div>
       </div>
+
+      {/* Weather Snapshots Section */}
+      {filteredSessions.length > 0 && filteredSessions[0]?.id && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <TrendingUp className="w-6 h-6 text-blue-600" />
+            <h2 className="text-xl font-bold text-gray-900">Weather Trends Analysis</h2>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Session to View Weather History
+            </label>
+            <select
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              defaultValue={filteredSessions[0]?.id}
+              onChange={(e) => {
+                const sessionElement = document.getElementById(`weather-snapshot-${e.target.value}`);
+                sessionElement?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              {filteredSessions.map((session) => (
+                <option key={session.id} value={session.id}>
+                  {format(new Date(session.startTime), 'PPpp')} - {session.catches.length} catches
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-8">
+            {filteredSessions.map((session) => (
+              <div key={session.id} id={`weather-snapshot-${session.id}`}>
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {format(new Date(session.startTime), 'PPP')}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {format(new Date(session.startTime), 'p')} - {session.endTime ? format(new Date(session.endTime), 'p') : 'Ongoing'}
+                  </p>
+                </div>
+                <WeatherSnapshotChart sessionId={session.id} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -274,6 +274,7 @@ export function AdminWeatherApiScreen() {
             <h4 className="text-sm font-semibold text-gray-900 mb-2">Available Weather Services:</h4>
             <ul className="text-sm text-gray-700 space-y-1">
               <li><strong>Netatmo:</strong> Real-time data from nearby public weather stations. Requires OAuth authentication with your Netatmo account.</li>
+              <li><strong>NOAA (US Weather Service):</strong> Official weather data from US National Weather Service stations. Free, no API key required. Coverage: USA and territories only.</li>
               <li><strong>Open-Meteo:</strong> Free, open-source weather API. No API key required. Provides temperature, pressure, wind, clouds, and precipitation data.</li>
             </ul>
           </div>

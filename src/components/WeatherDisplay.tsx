@@ -1,4 +1,4 @@
-import { Cloud, Thermometer, Wind, Droplets, ArrowUp, TrendingUp, TrendingDown, Minus, CloudRain, CloudSnow, CloudDrizzle, Layers } from 'lucide-react';
+import { Cloud, Thermometer, Wind, Droplets, ArrowUp, TrendingUp, TrendingDown, Minus, CloudRain, CloudSnow, CloudDrizzle, Layers, Activity } from 'lucide-react';
 import { WeatherData, CloudType } from '../types';
 import { getBeaufortScale } from '../utils/weather';
 import { useTranslation } from '../hooks/useTranslation';
@@ -6,10 +6,37 @@ import { useTranslation } from '../hooks/useTranslation';
 interface WeatherDisplayProps {
   weather: WeatherData;
   waterTemp?: number;
+  providerName?: string;
+  lastUpdate?: Date;
 }
 
-export function WeatherDisplay({ weather, waterTemp }: WeatherDisplayProps) {
+export function WeatherDisplay({ weather, waterTemp, providerName, lastUpdate }: WeatherDisplayProps) {
   const t = useTranslation();
+
+  const getProviderDisplayName = (name?: string): string => {
+    if (!name) return 'Unknown';
+    switch (name) {
+      case 'noaa': return 'NOAA';
+      case 'netatmo': return 'Netatmo';
+      case 'open-meteo': return 'Open-Meteo';
+      default: return name;
+    }
+  };
+
+  const formatLastUpdate = (date?: Date): string => {
+    if (!date) return 'Unknown';
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins === 1) return '1 minute ago';
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours === 1) return '1 hour ago';
+    return `${diffHours} hours ago`;
+  };
 
   const getCloudIcon = (cloudType?: CloudType) => {
     if (!cloudType || cloudType === 'clear') return <Cloud className="text-blue-400 w-5 h-5" />;
@@ -48,7 +75,28 @@ export function WeatherDisplay({ weather, waterTemp }: WeatherDisplayProps) {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="space-y-3">
+      {(providerName || lastUpdate) && (
+        <div className="bg-gradient-to-r from-blue-50 to-gray-50 p-3 rounded-lg border border-blue-100">
+          <div className="flex items-center justify-between text-xs">
+            {providerName && (
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-blue-600" />
+                <span className="font-medium text-gray-700">Source:</span>
+                <span className="font-semibold text-blue-600">{getProviderDisplayName(providerName)}</span>
+              </div>
+            )}
+            {lastUpdate && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-600">Updated:</span>
+                <span className="font-medium text-gray-700">{formatLastUpdate(lastUpdate)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
       {/* Temperature */}
       <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
         <Thermometer className="text-red-500 w-5 h-5" />
@@ -210,6 +258,7 @@ export function WeatherDisplay({ weather, waterTemp }: WeatherDisplayProps) {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }
