@@ -14,6 +14,7 @@ import { AuthCallback } from './components/AuthCallback';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/AdminLayout';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
+import { UpdateNotification } from './components/UpdateNotification';
 import { IosInstallPrompt } from './components/IosInstallPrompt';
 import { TutorialManager } from './components/TutorialManager';
 import { AdminDashboard } from './screens/AdminDashboard';
@@ -1248,6 +1249,7 @@ function MainApp({
 
         <PwaInstallPrompt />
         <IosInstallPrompt />
+        <UpdateNotification onUpdateCheckInterval={15 * 60 * 1000} />
         <TutorialManager userId={user?.id || null} isAuthenticated={!!user} />
 
         <ConfirmDialog

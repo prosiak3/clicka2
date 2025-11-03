@@ -2,7 +2,6 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
-import { registerSW } from 'virtual:pwa-register';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { logPWAStatus } from './utils/pwa-debug';
 import { showOfflineNotification, showOnlineNotification } from './utils/notifications';
@@ -26,23 +25,6 @@ window.addEventListener('online', () => {
     console.log('App is back online');
     showOnlineNotification().catch(console.error);
     wasOffline = false;
-  }
-});
-
-registerSW({
-  onNeedRefresh() {
-    if (confirm('New content available. Reload?')) {
-      window.location.reload();
-    }
-  },
-  onOfflineReady() {
-    console.log('App ready to work offline');
-  },
-  onRegisteredSW(swScriptUrl) {
-    console.log('Service Worker registered:', swScriptUrl);
-  },
-  onRegisterError(error) {
-    console.error('Service Worker registration error:', error);
   }
 });
 
