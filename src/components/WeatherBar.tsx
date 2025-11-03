@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Thermometer, Wind, Gauge, TrendingUp, TrendingDown, Minus, MapPin } from 'lucide-react';
+import { Thermometer, Wind, Gauge, TrendingUp, TrendingDown, Minus, MapPin, ArrowUp } from 'lucide-react';
 import { WeatherData } from '../types';
 import { getWeatherData } from '../utils/weather';
 import { useGpsTracking } from '../hooks/useGpsTracking';
@@ -85,6 +85,22 @@ export function WeatherBar() {
     return directions[index];
   };
 
+  const getBeaufortScale = (windSpeed: number): { scale: number; description: string } => {
+    if (windSpeed < 0.5) return { scale: 0, description: 'Calm' };
+    if (windSpeed < 1.6) return { scale: 1, description: 'Light air' };
+    if (windSpeed < 3.4) return { scale: 2, description: 'Light breeze' };
+    if (windSpeed < 5.5) return { scale: 3, description: 'Gentle breeze' };
+    if (windSpeed < 8.0) return { scale: 4, description: 'Moderate breeze' };
+    if (windSpeed < 10.8) return { scale: 5, description: 'Fresh breeze' };
+    if (windSpeed < 13.9) return { scale: 6, description: 'Strong breeze' };
+    if (windSpeed < 17.2) return { scale: 7, description: 'Near gale' };
+    if (windSpeed < 20.8) return { scale: 8, description: 'Gale' };
+    if (windSpeed < 24.5) return { scale: 9, description: 'Strong gale' };
+    if (windSpeed < 28.5) return { scale: 10, description: 'Storm' };
+    if (windSpeed < 32.7) return { scale: 11, description: 'Violent storm' };
+    return { scale: 12, description: 'Hurricane' };
+  };
+
   const getPressureTrend = () => {
     if (!weather.pressure || weather.pressure === 1013) {
       return { icon: Minus, text: 'Stable', color: 'text-gray-500' };
@@ -99,6 +115,7 @@ export function WeatherBar() {
   const PressureIcon = pressureTrend.icon;
 
   const feelsLike = weather.feelsLike || weather.temperature;
+  const beaufort = getBeaufortScale(weather.windSpeed);
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-blue-200 shadow-sm">
@@ -134,13 +151,19 @@ export function WeatherBar() {
             </div>
 
             <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg shadow-sm border border-blue-100">
-              <Wind className="w-4 h-4 text-blue-500" />
+              <div className="relative">
+                <Wind className="w-4 h-4 text-blue-500" />
+                <ArrowUp
+                  className="w-3 h-3 text-blue-600 absolute -top-0.5 -right-0.5"
+                  style={{ transform: `rotate(${weather.windDirection || 0}deg)` }}
+                />
+              </div>
               <div className="flex flex-col">
                 <span className="text-sm font-bold text-gray-800">
                   {Math.round(weather.windSpeed)} m/s
                 </span>
                 <span className="text-[10px] text-gray-500">
-                  {getWindDirection(weather.windDirection || 0)}
+                  {getWindDirection(weather.windDirection || 0)} • B{beaufort.scale}
                 </span>
               </div>
             </div>

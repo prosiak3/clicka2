@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, Eye, Wind, Gauge, Thermometer, Umbrella, Sun, MapPin } from 'lucide-react';
+import { Cloud, Eye, Wind, Gauge, Thermometer, Umbrella, Sun, MapPin, ArrowUp } from 'lucide-react';
 import { WeatherData } from '../types';
 import { getWeatherData } from '../utils/weather';
 import { useGpsTracking } from '../hooks/useGpsTracking';
@@ -108,6 +108,22 @@ export function WeatherScreen() {
     return directions[index];
   };
 
+  const getBeaufortScale = (windSpeed: number): { scale: number; description: string } => {
+    if (windSpeed < 0.5) return { scale: 0, description: 'Calm' };
+    if (windSpeed < 1.6) return { scale: 1, description: 'Light air' };
+    if (windSpeed < 3.4) return { scale: 2, description: 'Light breeze' };
+    if (windSpeed < 5.5) return { scale: 3, description: 'Gentle breeze' };
+    if (windSpeed < 8.0) return { scale: 4, description: 'Moderate breeze' };
+    if (windSpeed < 10.8) return { scale: 5, description: 'Fresh breeze' };
+    if (windSpeed < 13.9) return { scale: 6, description: 'Strong breeze' };
+    if (windSpeed < 17.2) return { scale: 7, description: 'Near gale' };
+    if (windSpeed < 20.8) return { scale: 8, description: 'Gale' };
+    if (windSpeed < 24.5) return { scale: 9, description: 'Strong gale' };
+    if (windSpeed < 28.5) return { scale: 10, description: 'Storm' };
+    if (windSpeed < 32.7) return { scale: 11, description: 'Violent storm' };
+    return { scale: 12, description: 'Hurricane' };
+  };
+
   const getCloudCoverDescription = (cover: number): string => {
     if (cover <= 10) return 'Clear sky';
     if (cover <= 30) return 'Few clouds';
@@ -151,12 +167,18 @@ export function WeatherScreen() {
 
             <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-100">
               <div className="flex items-center gap-2 mb-2">
-                <Wind className="w-5 h-5 text-blue-500" />
+                <div className="relative">
+                  <Wind className="w-5 h-5 text-blue-500" />
+                  <ArrowUp
+                    className="w-4 h-4 text-blue-600 absolute -top-1 -right-1"
+                    style={{ transform: `rotate(${weather.windDirection || 0}deg)` }}
+                  />
+                </div>
                 <span className="text-sm font-medium text-gray-600">Wind</span>
               </div>
               <p className="text-3xl font-bold text-gray-800">{Math.round(weather.windSpeed)} m/s</p>
               <p className="text-sm text-gray-500 mt-1">
-                Direction: {getWindDirection(weather.windDirection || 0)} ({weather.windDirection}°)
+                {getWindDirection(weather.windDirection || 0)} ({weather.windDirection}°) • Beaufort {getBeaufortScale(weather.windSpeed).scale}
               </p>
             </div>
 
