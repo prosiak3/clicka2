@@ -145,12 +145,26 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
-    https: false, // Disable HTTPS for local development
+    https: false,
     proxy: {
-      // Add proxy configuration if needed
       '/api': {
         target: 'http://localhost:54321',
         changeOrigin: true,
+      }
+    },
+    headers: {
+      'Content-Type': 'application/manifest+json'
+    }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === 'manifest.webmanifest') {
+            return 'manifest.webmanifest';
+          }
+          return 'assets/[name]-[hash][extname]';
+        }
       }
     }
   }

@@ -32,7 +32,26 @@ export async function logPWAStatus() {
   if (manifestLink) {
     try {
       const manifestUrl = manifestLink.getAttribute('href');
-      const response = await fetch(manifestUrl!);
+      const response = await fetch(manifestUrl!, {
+        headers: {
+          'Accept': 'application/manifest+json,application/json,*/*'
+        }
+      });
+
+      if (!response.ok) {
+        console.error(`❌ Manifest fetch failed: ${response.status} ${response.statusText}`);
+        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+        const text = await response.text();
+        console.error('Response body (first 500 chars):', text.substring(0, 500));
+        console.groupEnd();
+        return;
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (contentType && !contentType.includes('json')) {
+        console.warn(`⚠️ Manifest has unexpected content-type: ${contentType}`);
+      }
+
       const manifest = await response.json();
       console.log('✅ Manifest loaded:', manifest);
 
