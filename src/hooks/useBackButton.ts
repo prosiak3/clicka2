@@ -24,47 +24,77 @@ export function useBackButton({
   onCancelSelection,
 }: UseBackButtonProps) {
   const hasHandledInitialState = useRef(false);
+  const isNavigating = useRef(false);
 
   const handleBackNavigation = useCallback((event: PopStateEvent) => {
+    if (isNavigating.current) {
+      return;
+    }
+
+    isNavigating.current = true;
     const state = event.state;
 
     if (selectionMode) {
       onCancelSelection();
-      window.history.pushState({ level: 2, tab: activeTab }, '');
+      setTimeout(() => {
+        window.history.pushState({ level: 2, tab: activeTab }, '');
+        isNavigating.current = false;
+      }, 0);
       return;
     }
 
     if (showCatchForm) {
       setShowCatchForm(false);
-      window.history.pushState({ level: 3, tab: 'sessions' }, '');
+      setTimeout(() => {
+        window.history.pushState({ level: 3, tab: 'sessions' }, '');
+        isNavigating.current = false;
+      }, 0);
       return;
     }
 
     if (selectedSession && activeTab === 'history') {
       setSelectedSession(null);
-      window.history.pushState({ level: 2, tab: 'history' }, '');
+      setTimeout(() => {
+        window.history.pushState({ level: 2, tab: 'history' }, '');
+        isNavigating.current = false;
+      }, 0);
       return;
     }
 
     if (activeTab !== 'home' && activeTab !== 'sessions') {
       if (activeSession) {
         setActiveTab('sessions');
-        window.history.pushState({ level: 1, tab: 'sessions' }, '');
+        setTimeout(() => {
+          window.history.pushState({ level: 1, tab: 'sessions' }, '');
+          isNavigating.current = false;
+        }, 0);
       } else {
         setActiveTab('home');
-        window.history.pushState({ level: 1, tab: 'home' }, '');
+        setTimeout(() => {
+          window.history.pushState({ level: 1, tab: 'home' }, '');
+          isNavigating.current = false;
+        }, 0);
       }
       return;
     }
 
     if (activeTab === 'sessions' && activeSession) {
-      window.history.pushState({ level: 1, tab: 'sessions' }, '');
+      setTimeout(() => {
+        window.history.pushState({ level: 1, tab: 'sessions' }, '');
+        isNavigating.current = false;
+      }, 0);
       return;
     }
 
     if (activeTab === 'home') {
+      setTimeout(() => {
+        window.history.pushState({ level: 0, tab: 'home' }, '');
+        isNavigating.current = false;
+      }, 0);
       return;
     }
+
+    isNavigating.current = false;
   }, [
     activeTab,
     setActiveTab,
@@ -80,6 +110,7 @@ export function useBackButton({
   useEffect(() => {
     if (!hasHandledInitialState.current) {
       const initialTab = activeSession ? 'sessions' : 'home';
+      window.history.replaceState({ level: 0, tab: initialTab }, '');
       window.history.pushState({ level: 1, tab: initialTab }, '');
       hasHandledInitialState.current = true;
     }
@@ -94,7 +125,9 @@ export function useBackButton({
   }, [handleBackNavigation]);
 
   const pushNavigationState = useCallback((level: number, tab: string) => {
-    window.history.pushState({ level, tab }, '');
+    if (!isNavigating.current) {
+      window.history.pushState({ level, tab }, '');
+    }
   }, []);
 
   return { pushNavigationState };
