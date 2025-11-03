@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     vitePwaMiddleware(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['icons/*.png', 'sounds/*.mp3'],
       manifest: {
         name: 'Clicka - Better Fishing',

@@ -34,15 +34,15 @@ interface UpdateNotificationProps {
  */
 export function UpdateNotification({ onUpdateCheckInterval = 5 * 60 * 1000 }: UpdateNotificationProps) {
   const [showNotification, setShowNotification] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [showCheckNotification, setShowCheckNotification] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<Date | null>(null);
+  const [updateReady, setUpdateReady] = useState(false);
   const settings = useSettings();
 
   // Register service worker and set up update checking
   const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
+    offlineReady: [offlineReady],
+    needRefresh: [needRefresh],
   } = useRegisterSW({
     // Called when service worker is successfully registered
     onRegisteredSW(swUrl, registration) {
@@ -90,37 +90,25 @@ export function UpdateNotification({ onUpdateCheckInterval = 5 * 60 * 1000 }: Up
     immediate: true,
   });
 
-  // Show notification when update is available
+  // Show notification when update is being downloaded/installed
   useEffect(() => {
     if (needRefresh) {
+      setUpdateReady(true);
       setShowNotification(true);
+
+      // Auto-hide after 5 seconds and reload
+      setTimeout(() => {
+        setShowNotification(false);
+        window.location.reload();
+      }, 5000);
     }
   }, [needRefresh]);
 
   /**
-   * Handles the update process when user clicks "Update Now"
-   * Activates the new service worker and reloads the page
-   */
-  const handleUpdate = async () => {
-    setIsUpdating(true);
-    try {
-      // Activate the new service worker
-      await updateServiceWorker(true);
-      // Reload page to use new version
-      window.location.reload();
-    } catch (error) {
-      console.error('Error updating service worker:', error);
-      setIsUpdating(false);
-    }
-  };
-
-  /**
    * Handles dismissing the update notification
-   * User can continue using current version
    */
   const handleDismiss = () => {
     setShowNotification(false);
-    setNeedRefresh(false);
   };
 
   if (showCheckNotification) {
@@ -141,55 +129,27 @@ export function UpdateNotification({ onUpdateCheckInterval = 5 * 60 * 1000 }: Up
     );
   }
 
-  if (!showNotification) return null;
+  if (!showNotification || !updateReady) return null;
 
   return (
     <div className="fixed bottom-20 left-0 right-0 z-50 px-4 animate-slide-up">
-      <div className="max-w-lg mx-auto bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-2xl border-2 border-blue-400 overflow-hidden">
+      <div className="max-w-lg mx-auto bg-gradient-to-r from-green-600 to-green-700 rounded-2xl shadow-2xl border-2 border-green-400 overflow-hidden">
         <div className="p-5">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-3">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3 flex-1">
               <div className="p-2 bg-white/20 rounded-xl">
-                <Download className="w-6 h-6 text-white" />
+                <RefreshCw className="w-6 h-6 text-white animate-spin" />
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-white">New Update Available!</h3>
-                <p className="text-sm text-blue-100">A new version of Clicka is ready</p>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-white">Update Ready!</h3>
+                <p className="text-sm text-green-100">Clicka will reload in a moment to apply the update</p>
               </div>
             </div>
             <button
               onClick={handleDismiss}
-              className="p-1 hover:bg-white/20 rounded-lg transition-colors"
-              disabled={isUpdating}
+              className="p-1 hover:bg-white/20 rounded-lg transition-colors ml-2"
             >
               <X className="w-5 h-5 text-white" />
-            </button>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={handleDismiss}
-              disabled={isUpdating}
-              className="flex-1 touch-target-min py-3 px-4 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white rounded-xl font-semibold transition-all border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed touch-feedback"
-            >
-              Later
-            </button>
-            <button
-              onClick={handleUpdate}
-              disabled={isUpdating}
-              className="flex-1 touch-target-min py-3 px-4 bg-white hover:bg-blue-50 active:bg-blue-100 text-blue-600 rounded-xl font-bold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed touch-feedback flex items-center justify-center gap-2"
-            >
-              {isUpdating ? (
-                <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  <span>Updating...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-5 h-5" />
-                  <span>Update Now</span>
-                </>
-              )}
             </button>
           </div>
         </div>
