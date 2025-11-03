@@ -91,49 +91,47 @@ export function CatchList({ catches, onDeleteCatch, onEditCatch }: CatchListProp
             <div className="flex items-center justify-between p-4">
               <button
                 onClick={() => toggleCatchDetails(catch_.id)}
-                className="flex-1 flex items-center justify-between hover:bg-gray-50 transition-colors rounded-lg"
+                className="flex-1 flex items-center justify-between hover:bg-gray-50 active:bg-gray-100 transition-colors rounded-lg py-2 touch-feedback min-h-[44px]"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 text-sm text-gray-600 flex-wrap">
-                      <span className="font-semibold text-base text-gray-900">{catch_.species}</span>
+                      <span className="font-bold text-lg text-gray-900">{catch_.species}</span>
                       <span className="text-gray-300">•</span>
-                      <span>{format(catchDate, 'dd.MM.yyyy HH:mm')}</span>
-                      <span className="text-gray-300">•</span>
-                      <span className="flex items-center gap-1"><Ruler className="w-3 h-3" />{catch_.length}cm</span>
-                      <span className="flex items-center gap-1"><Scale className="w-3 h-3" />{catch_.weight}kg</span>
+                      <span className="font-medium">{format(catchDate, 'dd.MM HH:mm')}</span>
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
+                      <span className="flex items-center gap-1.5 font-medium"><Ruler className="w-4 h-4" />{catch_.length}cm</span>
+                      <span className="flex items-center gap-1.5 font-medium"><Scale className="w-4 h-4" />{catch_.weight}kg</span>
                       {catch_.photoUrls && catch_.photoUrls.length > 0 && (
-                        <>
-                        <span className="text-gray-300">•</span>
-                        <span className="flex items-center gap-1"><Camera className="w-3 h-3" />{catch_.photoUrls.length}</span>
-                        </>
+                        <span className="flex items-center gap-1.5 font-medium"><Camera className="w-4 h-4" />{catch_.photoUrls.length}</span>
                       )}
                     </div>
                   </div>
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 p-2">
                     {isExpanded ? (
-                      <ChevronUp className="w-5 h-5 text-gray-400" />
+                      <ChevronUp className="w-6 h-6 text-gray-400" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                      <ChevronDown className="w-6 h-6 text-gray-400" />
                     )}
                   </div>
                 </div>
               </button>
-              <div className="flex items-center gap-2 ml-4">
+              <div className="flex items-center gap-2 ml-2">
                 {onEditCatch && (
                   <button
                     onClick={() => setCatchToEdit(catch_)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
+                    className="touch-target-min p-3 text-blue-600 hover:bg-blue-50 active:bg-blue-100 rounded-xl transition-colors flex-shrink-0 touch-feedback"
                   >
-                    <Edit className="w-5 h-5" />
+                    <Edit className="w-6 h-6" />
                   </button>
                 )}
                 {onDeleteCatch && (
                   <button
                     onClick={() => handleDelete(catch_.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                    className="touch-target-min p-3 text-red-600 hover:bg-red-50 active:bg-red-100 rounded-xl transition-colors flex-shrink-0 touch-feedback"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-6 h-6" />
                   </button>
                 )}
               </div>
@@ -289,17 +287,17 @@ export function CatchList({ catches, onDeleteCatch, onEditCatch }: CatchListProp
                 {/* Photos */}
                 {catch_.photoUrls && catch_.photoUrls.length > 0 && (
                   <div className="px-4 pb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Camera className="w-4 h-4 text-gray-600" />
-                      <h4 className="text-sm font-medium text-gray-700">Photos</h4>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Camera className="w-5 h-5 text-gray-600" />
+                      <h4 className="text-base font-semibold text-gray-700">Photos</h4>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       {catch_.photoUrls.map((url, photoIndex) => (
                         <img
                           key={photoIndex}
                           src={url}
                           alt={`${catch_.species} catch photo ${photoIndex + 1}`}
-                          className="w-full h-48 object-cover rounded-lg"
+                          className="w-full h-52 object-cover rounded-xl border-2 border-gray-100 shadow-sm"
                         />
                       ))}
                     </div>

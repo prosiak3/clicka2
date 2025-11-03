@@ -151,37 +151,37 @@ export function SessionCard({
 
           {/* Session Controls */}
           {isActive && (
-            <div className="flex items-center gap-3 mb-4">
+            <div className="grid grid-cols-2 gap-3 mb-4">
               {isPaused ? (
                 <button
                   onClick={() => setShowResumeConfirm(true)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
+                  className="touch-target-min col-span-2 flex items-center justify-center gap-2 px-4 py-4 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 active:scale-95 transition-all border-2 border-green-200 touch-feedback"
                 >
-                  <Play className="w-4 h-4" />
-                  <span className="text-xs">Resume Session</span>
+                  <Play className="w-5 h-5" />
+                  <span className="text-base font-semibold">Resume Session</span>
                 </button>
               ) : (
                 <button
                   onClick={() => setShowPauseConfirm(true)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors"
+                  className="touch-target-min col-span-2 flex items-center justify-center gap-2 px-4 py-4 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-100 active:scale-95 transition-all border-2 border-orange-200 touch-feedback"
                 >
-                  <Pause className="w-4 h-4" />
-                  <span className="text-xs">Pause Session</span>
+                  <Pause className="w-5 h-5" />
+                  <span className="text-base font-semibold">Pause Session</span>
                 </button>
               )}
               <button
                 onClick={() => setShowEndConfirm(true)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                className="touch-target-min flex items-center justify-center gap-2 px-4 py-4 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 active:scale-95 transition-all border-2 border-blue-200 touch-feedback"
               >
-                <Save className="w-4 h-4" />
-                <span className="text-xs">End & Save</span>
+                <Save className="w-5 h-5" />
+                <span className="text-sm font-semibold">End & Save</span>
               </button>
               <button
                 onClick={() => setShowDiscardConfirm(true)}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                className="touch-target-min flex items-center justify-center gap-2 px-4 py-4 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 active:scale-95 transition-all border-2 border-red-200 touch-feedback"
               >
-                <Trash2 className="w-4 h-4" />
-                <span className="text-xs">Discard</span>
+                <Trash2 className="w-5 h-5" />
+                <span className="text-sm font-semibold">Discard</span>
               </button>
             </div>
           )}
@@ -191,13 +191,13 @@ export function SessionCard({
             <div className="mb-4">
               <button
                 onClick={() => onResumeClosedSession(session.id)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors border-2 border-green-200"
+                className="touch-target-min w-full flex items-center justify-center gap-3 px-4 py-4 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 active:scale-95 transition-all border-2 border-green-200 shadow-sm touch-feedback"
               >
-                <Play className="w-5 h-5" />
-                <span className="font-medium">Resume This Session</span>
+                <Play className="w-6 h-6" />
+                <span className="text-base font-bold">Resume This Session</span>
               </button>
               {session.resumed_count && session.resumed_count > 0 && (
-                <p className="text-xs text-gray-500 text-center mt-2">
+                <p className="text-sm text-gray-500 text-center mt-2">
                   Previously resumed {session.resumed_count} time{session.resumed_count > 1 ? 's' : ''}
                 </p>
               )}
@@ -209,16 +209,16 @@ export function SessionCard({
             <div className="mb-4">
               <button
                 onClick={handleAddWaypointClick}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                className="touch-target-min w-full flex items-center justify-center gap-2 px-4 py-4 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 active:scale-95 transition-all border-2 border-blue-200 disabled:opacity-50 disabled:cursor-not-allowed touch-feedback"
                 disabled={!currentLocation}
               >
-                <Flag className="w-4 h-4" />
-                <span className="text-xs">
+                <Flag className="w-5 h-5" />
+                <span className="text-sm font-semibold">
                   {currentLocation ? 'Add Waypoint at Current Location' : 'Waiting for GPS...'}
                 </span>
               </button>
               {!currentLocation && (
-                <p className="text-xs text-gray-500 text-center mt-2">
+                <p className="text-sm text-gray-500 text-center mt-2">
                   GPS location required to add waypoint
                 </p>
               )}
@@ -228,7 +228,7 @@ export function SessionCard({
           {/* Map */}
           {lastLocation && (
             <div className="space-y-4 mb-4">
-              <div className="rounded-xl overflow-hidden border border-gray-100">
+              <div className="rounded-xl overflow-hidden border-2 border-gray-200 shadow-sm">
                 <Map
                   center={[lastLocation.latitude, lastLocation.longitude]}
                   catches={session.catches.map(c => ({
@@ -237,7 +237,7 @@ export function SessionCard({
                   }))}
                   locations={session.locations}
                   showRadius={true}
-                  height="180px"
+                  height="140px"
                   currentLocation={isActive ? currentLocation : undefined}
                   isActive={isActive}
                   interactive={false}

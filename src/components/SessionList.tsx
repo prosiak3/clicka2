@@ -91,52 +91,52 @@ function SessionCard({
   return (
     <button
       {...longPressHandlers}
-      className={`w-full text-left bg-white rounded-xl shadow-sm border transition-all ${
+      className={`touch-target-min w-full text-left bg-white rounded-xl shadow-sm border transition-all touch-feedback active:scale-98 ${
         isSelected
-          ? 'border-blue-500 ring-2 ring-blue-200'
+          ? 'border-blue-500 ring-2 ring-blue-200 scale-[0.98]'
           : 'border-gray-100 hover:shadow-md'
-      } p-4`}
+      } p-5`}
     >
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3 flex-1">
           {selectionMode && (
             <div className="flex-shrink-0">
               {isSelected ? (
-                <CheckCircle2 className="w-6 h-6 text-blue-600" />
+                <CheckCircle2 className="w-7 h-7 text-blue-600" />
               ) : (
-                <Circle className="w-6 h-6 text-gray-400" />
+                <Circle className="w-7 h-7 text-gray-400" />
               )}
             </div>
           )}
-          <div className="p-2 bg-blue-50 rounded-lg flex-shrink-0">
-            <Fish className="w-5 h-5 text-blue-600" />
+          <div className="p-2.5 bg-blue-50 rounded-xl flex-shrink-0">
+            <Fish className="w-6 h-6 text-blue-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-gray-900">Fishing Session</h3>
+            <h3 className="font-semibold text-lg text-gray-900">Fishing Session</h3>
             <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
               <Calendar className="w-4 h-4" />
-              <span>{format(startTime, 'dd.MM.yyyy')}</span>
+              <span className="font-medium">{format(startTime, 'dd.MM.yyyy')}</span>
               <span className="text-gray-300">•</span>
               <Clock className="w-4 h-4" />
-              <span>{format(startTime, 'HH:mm')}</span>
+              <span className="font-medium">{format(startTime, 'HH:mm')}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-lg text-gray-600 flex-shrink-0">
-          <Clock className="w-4 h-4" />
-          <span className="text-sm">{duration} min</span>
+        <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl text-gray-700 flex-shrink-0 border border-gray-200">
+          <Clock className="w-5 h-5" />
+          <span className="text-base font-semibold">{duration} min</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mt-3">
-        <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
-          <span className="text-sm font-medium text-blue-900">Catches:</span>
-          <span className="text-blue-700">{totalCatches}</span>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl border border-blue-200">
+          <span className="text-sm font-semibold text-blue-900">Catches:</span>
+          <span className="text-lg font-bold text-blue-700">{totalCatches}</span>
         </div>
         {bestCatch && (
-          <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
-            <span className="text-sm font-medium text-green-900">Best:</span>
-            <span className="text-green-700">{bestCatch.weight} kg</span>
+          <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl border border-green-200">
+            <span className="text-sm font-semibold text-green-900">Best:</span>
+            <span className="text-lg font-bold text-green-700">{bestCatch.weight} kg</span>
           </div>
         )}
       </div>

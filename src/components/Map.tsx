@@ -82,13 +82,13 @@ const waypointIcon = new Icon({
 const createFlagIcon = () => {
   return new DivIcon({
     className: '',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
     html: `
-      <div class="relative w-8 h-8">
+      <div class="relative w-10 h-10">
         <div class="absolute inset-0 bg-red-500 rounded-full opacity-20"></div>
         <div class="absolute inset-0 flex items-center justify-center">
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="text-red-500">
+          <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="text-red-500">
             <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
             <line x1="4" y1="22" x2="4" y2="15"></line>
           </svg>
@@ -101,13 +101,13 @@ const createFlagIcon = () => {
 const createFishIcon = () => {
   return new DivIcon({
     className: '',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
     html: `
-      <div class="relative w-8 h-8">
+      <div class="relative w-10 h-10">
         <div class="absolute inset-0 bg-blue-500 rounded-full opacity-20"></div>
         <div class="absolute inset-0 flex items-center justify-center">
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500">
+          <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500">
             <path d="M12 20l-3-3h6l-3 3z"/>
             <path d="M16.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z"/>
             <path d="M18 9l-3 3"/>
@@ -120,16 +120,16 @@ const createFishIcon = () => {
 
 const createLocationIcon = (source: 'gps' | 'network' | 'ip') => {
   const color = source === 'gps' ? 'blue' : source === 'network' ? 'orange' : 'gray';
-  
+
   return new DivIcon({
     className: '',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
     html: `
-      <div class="relative w-8 h-8">
+      <div class="relative w-10 h-10">
         <div class="absolute inset-0 bg-${color}-500 rounded-full opacity-20 animate-ping"></div>
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class="w-4 h-4 bg-${color}-500 rounded-full border-2 border-white shadow-lg"></div>
+          <div class="w-5 h-5 bg-${color}-500 rounded-full border-2 border-white shadow-lg"></div>
         </div>
       </div>
     `
@@ -292,20 +292,20 @@ export function Map({
 
       {!isMapActive && !interactive && (
         <div
-          className="absolute inset-0 bg-white/40 backdrop-blur-[1px] flex items-center justify-center cursor-pointer z-[400] rounded-lg transition-opacity duration-200 hover:bg-white/30"
+          className="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center cursor-pointer z-[400] rounded-lg transition-opacity duration-200 hover:bg-white/40 active:bg-white/60 touch-feedback"
           onClick={handleActivateMap}
           onTouchStart={handleActivateMap}
         >
-          <div className="bg-white/95 backdrop-blur-sm px-4 py-3 rounded-lg shadow-lg border border-gray-200 flex items-center gap-2 pointer-events-none">
-            <MousePointer2 className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-medium text-gray-700">Click to interact with map</span>
+          <div className="bg-white/95 backdrop-blur-sm px-6 py-4 rounded-xl shadow-lg border-2 border-gray-300 flex items-center gap-3 pointer-events-none">
+            <MousePointer2 className="w-6 h-6 text-blue-600" />
+            <span className="text-base font-semibold text-gray-700">Tap to interact with map</span>
           </div>
         </div>
       )}
 
       {isActive && onAddWaypoint && (
-        <div className="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur-sm p-2 rounded-lg text-sm text-center text-gray-600" style={{ zIndex: 9999 }}>
-          Click anywhere on the map to add a waypoint
+        <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-sm p-3 rounded-xl text-base text-center text-gray-700 font-medium border-2 border-blue-200 shadow-lg" style={{ zIndex: 9999 }}>
+          Tap anywhere on the map to add a waypoint
         </div>
       )}
     </div>

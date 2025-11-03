@@ -212,19 +212,19 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       {/* Top Species Buttons */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2">
         {topSpeciesList.map(s => (
           <button
             key={s.id}
             type="button"
             onClick={() => handleSpeciesSelect(s)}
-            className={`px-6 py-3 rounded-xl border-2 transition-all ${
+            className={`touch-target-min px-4 py-4 rounded-xl border-2 transition-all touch-feedback ${
               s.name[language] === species
-                ? 'bg-blue-50 border-blue-500 shadow-md'
-                : 'bg-white border-gray-200 hover:border-blue-300'
+                ? 'bg-blue-50 border-blue-500 shadow-md scale-105'
+                : 'bg-white border-gray-200 hover:border-blue-300 active:scale-95'
             }`}
           >
-            <div className={`text-base font-semibold text-center ${
+            <div className={`text-lg font-semibold text-center ${
               s.name[language] === species ? 'text-blue-700' : 'text-gray-700'
             }`}>
               {s.name[language]}
@@ -243,57 +243,69 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
         <>
           {/* Length Slider */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-0.5">
+            <label className="block text-base font-medium text-gray-700 mb-2">
               Length ({selectedSpeciesData.minLength} - {selectedSpeciesData.maxLength} cm)
             </label>
-            <input
-              type="range"
-              min={selectedSpeciesData.minLength}
-              max={selectedSpeciesData.maxLength}
-              step={1}
-              value={length}
-              onChange={(e) => {
-                const newLength = parseFloat(e.target.value);
-                console.log('Length slider onChange:', newLength, 'current:', length, 'manualWeightEdit:', manualWeightEdit);
-                setLength(newLength);
-              }}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-            />
-            <div className="flex justify-between items-center mt-0.5">
-              <span className="text-sm text-gray-500">{selectedSpeciesData.minLength} cm</span>
-              <span className="text-lg font-bold text-blue-600">{length} cm</span>
-              <span className="text-sm text-gray-500">{selectedSpeciesData.maxLength} cm</span>
+            <div className="relative pb-2">
+              <input
+                type="range"
+                min={selectedSpeciesData.minLength}
+                max={selectedSpeciesData.maxLength}
+                step={1}
+                value={length}
+                onChange={(e) => {
+                  const newLength = parseFloat(e.target.value);
+                  console.log('Length slider onChange:', newLength, 'current:', length, 'manualWeightEdit:', manualWeightEdit);
+                  setLength(newLength);
+                }}
+                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 touch-target-min"
+                style={{
+                  WebkitAppearance: 'none',
+                  background: `linear-gradient(to right, #2563eb 0%, #2563eb ${((length - selectedSpeciesData.minLength) / (selectedSpeciesData.maxLength - selectedSpeciesData.minLength)) * 100}%, #e5e7eb ${((length - selectedSpeciesData.minLength) / (selectedSpeciesData.maxLength - selectedSpeciesData.minLength)) * 100}%, #e5e7eb 100%)`
+                }}
+              />
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-sm text-gray-500 font-medium">{selectedSpeciesData.minLength} cm</span>
+              <span className="text-2xl font-bold text-blue-600 bg-blue-50 px-4 py-1 rounded-lg">{length} cm</span>
+              <span className="text-sm text-gray-500 font-medium">{selectedSpeciesData.maxLength} cm</span>
             </div>
           </div>
 
           {/* Weight Slider */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-0.5">
+            <label className="block text-base font-medium text-gray-700 mb-2">
               Weight ({MIN_WEIGHT} - {selectedSpeciesData.maxWeight} kg)
             </label>
-            <input
-              type="range"
-              min={MIN_WEIGHT}
-              max={selectedSpeciesData.maxWeight}
-              step={0.01}
-              value={weight}
-              onChange={(e) => {
-                const newWeight = parseFloat(e.target.value);
-                console.log('Weight slider onChange:', newWeight, 'setting manualWeightEdit to true');
-                setWeight(newWeight);
-                setManualWeightEdit(true);
-              }}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-            />
-            <div className="flex justify-between items-center mt-0.5">
-              <span className="text-sm text-gray-500">{MIN_WEIGHT} kg</span>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-blue-600">{weight.toFixed(2)} kg</span>
+            <div className="relative pb-2">
+              <input
+                type="range"
+                min={MIN_WEIGHT}
+                max={selectedSpeciesData.maxWeight}
+                step={0.01}
+                value={weight}
+                onChange={(e) => {
+                  const newWeight = parseFloat(e.target.value);
+                  console.log('Weight slider onChange:', newWeight, 'setting manualWeightEdit to true');
+                  setWeight(newWeight);
+                  setManualWeightEdit(true);
+                }}
+                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 touch-target-min"
+                style={{
+                  WebkitAppearance: 'none',
+                  background: `linear-gradient(to right, #10b981 0%, #10b981 ${((weight - MIN_WEIGHT) / (selectedSpeciesData.maxWeight - MIN_WEIGHT)) * 100}%, #e5e7eb ${((weight - MIN_WEIGHT) / (selectedSpeciesData.maxWeight - MIN_WEIGHT)) * 100}%, #e5e7eb 100%)`
+                }}
+              />
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-sm text-gray-500 font-medium">{MIN_WEIGHT} kg</span>
+              <div className="flex flex-col items-center">
+                <span className="text-2xl font-bold text-green-600 bg-green-50 px-4 py-1 rounded-lg">{weight.toFixed(2)} kg</span>
                 {!manualWeightEdit && (
-                  <span className="text-xs text-gray-400">(suggested)</span>
+                  <span className="text-xs text-gray-400 mt-1">(suggested)</span>
                 )}
               </div>
-              <span className="text-sm text-gray-500">{selectedSpeciesData.maxWeight} kg</span>
+              <span className="text-sm text-gray-500 font-medium">{selectedSpeciesData.maxWeight} kg</span>
             </div>
           </div>
 
@@ -349,21 +361,21 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+              className="flex-1 touch-target-min py-4 px-4 border-2 border-gray-300 rounded-xl shadow-sm text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 active:scale-95 transition-all touch-feedback"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!currentLocation || !selectedSpeciesData}
-              className={`flex-1 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors ${
+              className={`flex-1 touch-target-min py-4 px-4 border-2 border-transparent rounded-xl shadow-md text-base font-semibold text-white transition-all touch-feedback ${
                 !currentLocation || !selectedSpeciesData
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                  ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                  : 'bg-blue-600 hover:bg-blue-700 active:scale-95'
               }`}
             >
               {!currentLocation ? 'Waiting for location...' : t.catch.saveButton}

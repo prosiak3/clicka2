@@ -936,40 +936,38 @@ function MainApp({
 
           <div className="p-4">
             {activeTab === 'home' && !activeSession && (
-              <div className="space-y-12" data-tutorial="home-screen">
-                {/* Quick Catch and Just Count Buttons */}
-                <div className="flex justify-center items-center gap-4 pt-2">
-                  <div className="flex flex-col items-center gap-3">
-                    <button
-                      onClick={startQuickCatch}
-                      disabled={isStartingSession}
-                      className={`relative rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transition-opacity ${
-                        isStartingSession ? 'opacity-75 cursor-not-allowed' : 'hover:opacity-90 active:opacity-80'
-                      }`}
-                      style={{ width: '280px', height: '280px' }}
-                    >
-                      <div className="relative flex flex-col items-center justify-center h-full text-white">
-                        {isStartingSession && loadingStep ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="animate-spin rounded-full border-b-2 border-white" style={{ width: '80px', height: '80px' }} />
-                            <span className="text-lg font-medium">
-                              {loadingStep === 'checkingGPS' && 'GPS...'}
-                              {loadingStep === 'gettingLocation' && 'Location...'}
-                              {loadingStep === 'gettingWeather' && 'Weather...'}
-                              {loadingStep === 'startingSession' && 'Starting...'}
-                              {loadingStep === 'ready' && 'Ready!'}
-                            </span>
-                          </div>
-                        ) : (
-                          <>
-                            <Fish style={{ width: '100px', height: '100px' }} />
-                            <span className="text-2xl font-bold mt-2">Quick</span>
-                            <span className="text-xl font-medium">Catch</span>
-                          </>
-                        )}
-                      </div>
-                    </button>
-                  </div>
+              <div className="space-y-6" data-tutorial="home-screen">
+                {/* Quick Catch Button */}
+                <div className="flex justify-center items-center pt-2">
+                  <button
+                    onClick={startQuickCatch}
+                    disabled={isStartingSession}
+                    className={`touch-target-min relative rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-2xl transition-all touch-feedback ${
+                      isStartingSession ? 'opacity-75 cursor-not-allowed' : 'hover:opacity-90 active:scale-95'
+                    }`}
+                    style={{ width: '200px', height: '200px' }}
+                  >
+                    <div className="relative flex flex-col items-center justify-center h-full text-white">
+                      {isStartingSession && loadingStep ? (
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="animate-spin rounded-full border-b-2 border-white" style={{ width: '60px', height: '60px' }} />
+                          <span className="text-base font-semibold">
+                            {loadingStep === 'checkingGPS' && 'GPS...'}
+                            {loadingStep === 'gettingLocation' && 'Location...'}
+                            {loadingStep === 'gettingWeather' && 'Weather...'}
+                            {loadingStep === 'startingSession' && 'Starting...'}
+                            {loadingStep === 'ready' && 'Ready!'}
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          <Fish style={{ width: '80px', height: '80px' }} />
+                          <span className="text-xl font-bold mt-2">Quick</span>
+                          <span className="text-lg font-medium">Catch</span>
+                        </>
+                      )}
+                    </div>
+                  </button>
                 </div>
 
                 {/* Hero Section with Start Fishing Button */}
@@ -986,20 +984,20 @@ function MainApp({
                   </div>
                   <div className="relative">
                     <h2 className="text-2xl font-bold text-white mb-2">Ready to Fish?</h2>
-                    <p className="text-blue-100 mb-6">Add catches, improve your success rate in fishing.</p>
+                    <p className="text-blue-100 mb-5 text-base">Add catches, improve your success rate in fishing.</p>
                     <button
                       data-tutorial="start-fishing-button"
                       onClick={startNewSession}
                       disabled={isStartingSession}
-                      className={`w-full bg-white text-blue-600 rounded-xl py-4 px-6 font-bold text-2xl shadow-lg hover:bg-blue-50 transform transition-all hover:scale-105 focus:ring-4 focus:ring-white/50 ${
+                      className={`touch-target-min w-full bg-white text-blue-600 rounded-xl py-5 px-6 font-bold text-xl shadow-lg hover:bg-blue-50 transform transition-all active:scale-95 focus:ring-4 focus:ring-white/50 touch-feedback ${
                         isStartingSession ? 'opacity-75 cursor-not-allowed' : ''
                       }`}
                     >
                       <div className="flex items-center justify-center gap-3">
                         {isStartingSession ? (
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
                         ) : (
-                          <Fish className="w-6 h-6" />
+                          <Fish className="w-7 h-7" />
                         )}
                         <span>{isStartingSession ? 'Starting...' : 'Start Fishing'}</span>
                       </div>
@@ -1010,48 +1008,44 @@ function MainApp({
             )}
 
             {activeTab === 'sessions' && activeSession && (
-              <div className="space-y-6" data-tutorial="active-session">
+              <div className="space-y-5" data-tutorial="active-session">
                 {/* Add Catch Button and Catch Counter */}
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute left-0 flex items-center justify-center" style={{ width: 'calc(50% - 80px)' }}>
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-lg border border-blue-200">
-                      <div className="flex flex-col items-center">
-                        <div className="text-6xl font-bold text-blue-900">
-                          {activeSession.catches?.length || 0}
-                        </div>
-                        <div className="text-xs font-semibold text-blue-700 mt-2">
-                          {t.session.catchesInSession}
-                        </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 shadow-md border-2 border-blue-200">
+                    <div className="flex flex-col items-center">
+                      <div className="text-5xl font-bold text-blue-900">
+                        {activeSession.catches?.length || 0}
+                      </div>
+                      <div className="text-xs font-semibold text-blue-700 mt-1">
+                        {t.session.catchesInSession}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-center gap-2">
-                    <button
-                      data-tutorial="add-catch-button"
-                      onClick={async () => {
-                        await playReelSound();
-                        if (!showCatchForm) {
-                          pushNavigationState(3, 'sessions');
-                        }
-                        setShowCatchForm(!showCatchForm);
-                      }}
-                      disabled={showCatchForm}
-                      className={`relative w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 ${
-                        showCatchForm ? 'opacity-75 cursor-not-allowed scale-95' : 'hover:scale-105 hover:shadow-2xl hover:shadow-green-500/50 active:scale-95 animate-pulse-slow'
-                      }`}
-                      style={{
-                        animation: showCatchForm ? 'none' : 'pulse-glow 2s ease-in-out infinite'
-                      }}
-                    >
-                      <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" style={{ animationDuration: '3s' }} />
-                      <div className="relative flex flex-col items-center justify-center h-full text-white">
-                        <Fish className="w-14 h-14" />
-                        <span className="text-base font-bold mt-3">{t.session.addCatch.split(' ')[0]}</span>
-                        <span className="text-sm font-medium">{t.session.addCatch.split(' ')[1] || 'Catch'}</span>
-                      </div>
-                    </button>
-                  </div>
+                  <button
+                    data-tutorial="add-catch-button"
+                    onClick={async () => {
+                      await playReelSound();
+                      if (!showCatchForm) {
+                        pushNavigationState(3, 'sessions');
+                      }
+                      setShowCatchForm(!showCatchForm);
+                    }}
+                    disabled={showCatchForm}
+                    className={`touch-target-min relative w-32 h-32 rounded-full bg-gradient-to-br from-green-500 to-green-700 shadow-xl transform transition-all duration-300 touch-feedback ${
+                      showCatchForm ? 'opacity-75 cursor-not-allowed scale-90' : 'active:scale-90 hover:shadow-2xl animate-pulse-slow'
+                    }`}
+                    style={{
+                      animation: showCatchForm ? 'none' : 'pulse-glow 2s ease-in-out infinite'
+                    }}
+                  >
+                    <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" style={{ animationDuration: '3s' }} />
+                    <div className="relative flex flex-col items-center justify-center h-full text-white">
+                      <Fish className="w-12 h-12" />
+                      <span className="text-sm font-bold mt-2">{t.session.addCatch.split(' ')[0]}</span>
+                      <span className="text-xs font-medium">{t.session.addCatch.split(' ')[1] || 'Catch'}</span>
+                    </div>
+                  </button>
                 </div>
 
                 {/* Add Catch Form */}
@@ -1163,8 +1157,8 @@ function MainApp({
         </div>
 
         {/* Bottom Navigation Bar */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
-          <div className="max-w-lg mx-auto grid grid-cols-4 divide-x">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg safe-bottom">
+          <div className="max-w-lg mx-auto grid grid-cols-4">
             {activeSession ? (
               <button
                 onClick={() => {
@@ -1172,19 +1166,19 @@ function MainApp({
                   setSelectedSession(null);
                   pushNavigationState(1, 'sessions');
                 }}
-                className={`py-1.5 px-2 flex flex-col items-center relative ${
-                  activeTab === 'sessions' ? 'text-blue-600' : 'text-gray-600'
+                className={`py-3 px-3 flex flex-col items-center gap-1 relative touch-feedback transition-colors ${
+                  activeTab === 'sessions' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 <div className="relative">
-                  <Fish className="w-5 h-5" />
-                  <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${
+                  <Fish className="w-6 h-6" />
+                  <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${
                     activeSession.pauses?.some(p => !p.endTime)
                       ? 'bg-orange-500 animate-pulse'
                       : 'bg-green-500 animate-pulse'
                   }`} />
                 </div>
-                <span className="text-[9px] mt-0.5">Session</span>
+                <span className="text-[10px] font-medium">Session</span>
               </button>
             ) : (
               <button
@@ -1192,12 +1186,12 @@ function MainApp({
                   setActiveTab('home');
                   pushNavigationState(1, 'home');
                 }}
-                className={`py-1.5 px-2 flex flex-col items-center ${
-                  activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'
+                className={`py-3 px-3 flex flex-col items-center gap-1 touch-feedback transition-colors ${
+                  activeTab === 'home' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <Home className="w-5 h-5" />
-                <span className="text-[9px] mt-0.5">Home</span>
+                <Home className="w-6 h-6" />
+                <span className="text-[10px] font-medium">Home</span>
               </button>
             )}
 
@@ -1207,12 +1201,12 @@ function MainApp({
                 setActiveTab('stats');
                 pushNavigationState(2, 'stats');
               }}
-              className={`py-1.5 px-2 flex flex-col items-center ${
-                activeTab === 'stats' ? 'text-blue-600' : 'text-gray-600'
+              className={`py-3 px-3 flex flex-col items-center gap-1 touch-feedback transition-colors ${
+                activeTab === 'stats' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <ChartBar className="w-5 h-5" />
-              <span className="text-[9px] mt-0.5">Stats</span>
+              <ChartBar className="w-6 h-6" />
+              <span className="text-[10px] font-medium">Stats</span>
             </button>
 
             <button
@@ -1221,12 +1215,12 @@ function MainApp({
                 setActiveTab('history');
                 pushNavigationState(2, 'history');
               }}
-              className={`py-1.5 px-2 flex flex-col items-center ${
-                activeTab === 'history' ? 'text-blue-600' : 'text-gray-600'
+              className={`py-3 px-3 flex flex-col items-center gap-1 touch-feedback transition-colors ${
+                activeTab === 'history' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <History className="w-5 h-5" />
-              <span className="text-[9px] mt-0.5">History</span>
+              <History className="w-6 h-6" />
+              <span className="text-[10px] font-medium">History</span>
             </button>
 
             <button
@@ -1234,12 +1228,12 @@ function MainApp({
                 setActiveTab('settings');
                 pushNavigationState(2, 'settings');
               }}
-              className={`py-1.5 px-2 flex flex-col items-center ${
-                activeTab === 'settings' ? 'text-blue-600' : 'text-gray-600'
+              className={`py-3 px-3 flex flex-col items-center gap-1 touch-feedback transition-colors ${
+                activeTab === 'settings' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <Settings className="w-5 h-5" />
-              <span className="text-[9px] mt-0.5">Settings</span>
+              <Settings className="w-6 h-6" />
+              <span className="text-[10px] font-medium">Settings</span>
             </button>
           </div>
         </nav>
