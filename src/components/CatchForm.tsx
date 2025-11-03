@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Camera, X } from 'lucide-react';
-import { getWeatherData } from '../utils/weather';
-import { FishCatch, WeatherData, FishSpecies } from '../types';
+import { FishCatch, FishSpecies } from '../types';
+import { useWeatherContext } from '../contexts/WeatherContext';
 import { useSettings } from '../utils/settings';
 import { useTranslation } from '../hooks/useTranslation';
 import { useGpsTracking } from '../hooks/useGpsTracking';
@@ -23,13 +23,12 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   const t = useTranslation();
   const { coords: currentLocation, status: locationStatus } = useGpsTracking();
   const { lastSpecies, setLastSpecies } = useLastSpecies();
+  const { weather, refreshWeather, isLoading: weatherLoading } = useWeatherContext();
 
-  const [weather, setWeather] = useState<WeatherData | null>(null);
   const [species, setSpecies] = useState('');
   const [length, setLength] = useState(25);
   const [weight, setWeight] = useState(MIN_WEIGHT);
   const [photos, setPhotos] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fishSpeciesData, setFishSpeciesData] = useState<FishSpeciesDetails[]>([]);
   const [manualWeightEdit, setManualWeightEdit] = useState(false);
@@ -75,32 +74,12 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
   }, []);
 
   useEffect(() => {
-    const fetchWeather = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    if (!currentLocation) {
+      return;
+    }
 
-        if (!currentLocation) {
-          return;
-        }
-
-        const weatherData = await getWeatherData(
-          currentLocation.latitude,
-          currentLocation.longitude
-        );
-
-        setWeather(weatherData);
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching weather:', error);
-        setError(error instanceof Error ? error.message : 'Failed to fetch weather data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWeather();
-  }, [currentLocation]);
+    refreshWeather(currentLocation.latitude, currentLocation.longitude);
+  }, [currentLocation, refreshWeather]);
 
   const handlePhotoCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -200,7 +179,7 @@ export function CatchForm({ onSave, onCancel, selectedSpecies }: CatchFormProps)
     setInitialSpeciesSet(false);
   };
 
-  if (loading && !currentLocation) {
+  if (weatherLoading && !currentLocation) {
     return (
       <div className="p-4 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>

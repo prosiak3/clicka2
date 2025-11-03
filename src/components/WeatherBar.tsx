@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Thermometer, Wind, Gauge, TrendingUp, TrendingDown, Minus, MapPin, ArrowUp } from 'lucide-react';
-import { WeatherData } from '../types';
-import { getWeatherData } from '../utils/weather';
 import { useGpsTracking } from '../hooks/useGpsTracking';
+import { useWeatherContext } from '../contexts/WeatherContext';
 
 interface LocationName {
   city?: string;
@@ -10,32 +9,23 @@ interface LocationName {
 }
 
 export function WeatherBar() {
-  const [weather, setWeather] = useState<WeatherData | null>(null);
   const [locationName, setLocationName] = useState<LocationName | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const { coords } = useGpsTracking();
+  const { weather, refreshWeather } = useWeatherContext();
 
   useEffect(() => {
     if (!coords) {
-      setWeather(null);
-      setLocationName(null);
       return;
     }
 
-    const fetchWeather = async () => {
-      try {
-        const data = await getWeatherData(coords.latitude, coords.longitude);
-        setWeather(data);
-      } catch (error) {
-        console.error('Error fetching weather:', error);
-      }
-    };
-
-    fetchWeather();
-    const interval = setInterval(fetchWeather, 5 * 60 * 1000);
+    refreshWeather(coords.latitude, coords.longitude);
+    const interval = setInterval(() => {
+      refreshWeather(coords.latitude, coords.longitude);
+    }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [coords?.latitude, coords?.longitude]);
+  }, [coords?.latitude, coords?.longitude, refreshWeather]);
 
   useEffect(() => {
     if (!coords) {

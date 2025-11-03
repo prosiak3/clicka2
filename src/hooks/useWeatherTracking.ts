@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import { getWeatherData } from '../utils/weather';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '../utils/db';
-import { WeatherData } from '../types';
+import { useWeatherContext } from '../contexts/WeatherContext';
 
 interface WeatherSnapshot {
   sessionId: string;
-  weatherData: WeatherData;
+  weatherData: any;
   location: { lat: number; lon: number };
   providerName: string;
 }
@@ -29,6 +28,7 @@ export function useWeatherTracking({
   const [providerUsed, setProviderUsed] = useState<string>('unknown');
   const [isTracking, setIsTracking] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { weather, refreshWeather } = useWeatherContext();
 
   const saveWeatherSnapshot = async (snapshot: WeatherSnapshot) => {
     try {
@@ -54,7 +54,7 @@ export function useWeatherTracking({
     }
   };
 
-  const fetchAndSaveWeather = async () => {
+  const fetchAndSaveWeather = useCallback(async () => {
     if (!sessionId || !location || isPaused) {
       console.log('[WeatherTracking] Skipping weather fetch:', {
         hasSessionId: !!sessionId,
@@ -68,7 +68,12 @@ export function useWeatherTracking({
       console.log(`[WeatherTracking] Fetching weather for session ${sessionId}`);
       setIsTracking(true);
 
-      const weatherData = await getWeatherData(location.lat, location.lon);
+      await refreshWeather(location.lat, location.lon);
+
+      if (!weather) {
+        console.warn('[WeatherTracking] No weather data available after refresh');
+        return;
+      }
 
       const providers = await supabase
         .from('weather_api_providers')
@@ -81,7 +86,7 @@ export function useWeatherTracking({
 
       await saveWeatherSnapshot({
         sessionId,
-        weatherData,
+        weatherData: weather,
         location,
         providerName
       });
@@ -93,7 +98,7 @@ export function useWeatherTracking({
     } finally {
       setIsTracking(false);
     }
-  };
+  }, [sessionId, location, isPaused, weather, refreshWeather]);
 
   useEffect(() => {
     if (!enabled || !sessionId || !location || isPaused) {
@@ -120,7 +125,7 @@ export function useWeatherTracking({
         intervalRef.current = null;
       }
     };
-  }, [enabled, sessionId, location?.lat, location?.lon, isPaused, intervalMinutes]);
+  }, [enabled, sessionId, location?.lat, location?.lon, isPaused, intervalMinutes, fetchAndSaveWeather]);
 
   return {
     lastUpdate,

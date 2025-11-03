@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { WeatherProvider } from './contexts/WeatherContext';
 import { logPWAStatus } from './utils/pwa-debug';
 import { showOfflineNotification, showOnlineNotification } from './utils/notifications';
 import { initSounds } from './utils/sound';
@@ -35,7 +36,9 @@ initSounds();
 createRoot(rootElement).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <WeatherProvider>
+        <App />
+      </WeatherProvider>
     </ErrorBoundary>
   </StrictMode>
 );

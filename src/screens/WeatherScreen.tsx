@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Cloud, Eye, Wind, Gauge, Thermometer, Umbrella, Sun, MapPin, ArrowUp, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { WeatherData } from '../types';
-import { getWeatherData } from '../utils/weather';
 import { useGpsTracking } from '../hooks/useGpsTracking';
+import { useWeatherContext } from '../contexts/WeatherContext';
 
 interface LocationName {
   city?: string;
@@ -10,39 +9,23 @@ interface LocationName {
 }
 
 export function WeatherScreen() {
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [locationName, setLocationName] = useState<LocationName | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const { coords } = useGpsTracking();
+  const { weather, isLoading, error, refreshWeather } = useWeatherContext();
 
   useEffect(() => {
-    const fetchWeather = async () => {
-      if (!coords) {
-        setError('Location not available');
-        setIsLoading(false);
-        return;
-      }
+    if (!coords) {
+      return;
+    }
 
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await getWeatherData(coords.latitude, coords.longitude);
-        setWeather(data);
-      } catch (err) {
-        console.error('Error fetching weather:', err);
-        setError('Failed to fetch weather data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchWeather();
-    const interval = setInterval(fetchWeather, 5 * 60 * 1000);
+    refreshWeather(coords.latitude, coords.longitude);
+    const interval = setInterval(() => {
+      refreshWeather(coords.latitude, coords.longitude);
+    }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [coords?.latitude, coords?.longitude]);
+  }, [coords?.latitude, coords?.longitude, refreshWeather]);
 
   useEffect(() => {
     if (!coords) {
