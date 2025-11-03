@@ -110,7 +110,7 @@ export function StatusBar({ isSessionActive, isPaused, onLogout, weatherProvider
 
   const LocationIcon = getLocationIcon();
 
-  const appVersion = '1.3.3';
+  const appVersion = '1.3.4';
 
   const getProviderAbbreviation = (providerName?: string): string => {
     if (!providerName) return '';

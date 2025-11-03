@@ -1,23 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { Thermometer, Wind, Gauge, TrendingUp, TrendingDown, Minus, MapPin } from 'lucide-react';
 import { WeatherData } from '../types';
-
-interface WeatherBarProps {
-  weather: WeatherData | null;
-  location: { lat: number; lon: number } | null;
-}
+import { getWeatherData } from '../utils/weather';
+import { useGpsTracking } from '../hooks/useGpsTracking';
 
 interface LocationName {
   city?: string;
   country?: string;
 }
 
-export function WeatherBar({ weather, location }: WeatherBarProps) {
+export function WeatherBar() {
+  const [weather, setWeather] = useState<WeatherData | null>(null);
   const [locationName, setLocationName] = useState<LocationName | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const { coords } = useGpsTracking();
 
   useEffect(() => {
-    if (!location) {
+    if (!coords) {
+      setWeather(null);
+      setLocationName(null);
+      return;
+    }
+
+    const fetchWeather = async () => {
+      try {
+        const data = await getWeatherData(coords.latitude, coords.longitude);
+        setWeather(data);
+      } catch (error) {
+        console.error('Error fetching weather:', error);
+      }
+    };
+
+    fetchWeather();
+    const interval = setInterval(fetchWeather, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [coords?.latitude, coords?.longitude]);
+
+  useEffect(() => {
+    if (!coords) {
       setLocationName(null);
       return;
     }
@@ -26,7 +47,7 @@ export function WeatherBar({ weather, location }: WeatherBarProps) {
       setIsLoadingLocation(true);
       try {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${location.lat}&lon=${location.lon}&format=json&accept-language=en`,
+          `https://nominatim.openstreetmap.org/reverse?lat=${coords.latitude}&lon=${coords.longitude}&format=json&accept-language=en`,
           {
             headers: {
               'User-Agent': 'Clicka-Fishing-App'
@@ -50,9 +71,9 @@ export function WeatherBar({ weather, location }: WeatherBarProps) {
     };
 
     fetchLocationName();
-  }, [location?.lat, location?.lon]);
+  }, [coords?.latitude, coords?.longitude]);
 
-  if (!weather) {
+  if (!weather || !coords) {
     return null;
   }
 

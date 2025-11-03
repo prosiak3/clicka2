@@ -971,7 +971,7 @@ function MainApp({
                 />
               </div>
             </div>
-            {activeSession && <WeatherBar weather={activeSession.weather} location={currentLocation ? { lat: currentLocation.latitude, lon: currentLocation.longitude } : null} />}
+            <WeatherBar />
           </div>
 
           {error && (
