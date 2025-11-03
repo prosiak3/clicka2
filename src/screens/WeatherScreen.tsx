@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, Droplets, Eye, Wind, Gauge, Thermometer, Umbrella, Sun } from 'lucide-react';
+import { Cloud, Eye, Wind, Gauge, Thermometer, Umbrella, Sun, MapPin } from 'lucide-react';
 import { WeatherData } from '../types';
 import { getWeatherData } from '../utils/weather';
 import { useGpsTracking } from '../hooks/useGpsTracking';
+
+interface LocationName {
+  city?: string;
+  country?: string;
+}
 
 export function WeatherScreen() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [locationName, setLocationName] = useState<LocationName | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const { coords } = useGpsTracking();
 
   useEffect(() => {
@@ -35,6 +42,42 @@ export function WeatherScreen() {
     const interval = setInterval(fetchWeather, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
+  }, [coords?.latitude, coords?.longitude]);
+
+  useEffect(() => {
+    if (!coords) {
+      setLocationName(null);
+      return;
+    }
+
+    const fetchLocationName = async () => {
+      setIsLoadingLocation(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${coords.latitude}&lon=${coords.longitude}&format=json&accept-language=en`,
+          {
+            headers: {
+              'User-Agent': 'Clicka-Fishing-App'
+            }
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setLocationName({
+            city: data.address?.city || data.address?.town || data.address?.village || data.address?.hamlet || 'Unknown',
+            country: data.address?.country || ''
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching location name:', error);
+        setLocationName({ city: 'Unknown', country: '' });
+      } finally {
+        setIsLoadingLocation(false);
+      }
+    };
+
+    fetchLocationName();
   }, [coords?.latitude, coords?.longitude]);
 
   if (isLoading) {
@@ -77,7 +120,22 @@ export function WeatherScreen() {
     <div className="flex-1 overflow-y-auto bg-gradient-to-br from-blue-50 to-cyan-50">
       <div className="max-w-4xl mx-auto p-4 space-y-4">
         <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-100">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Current Weather</h2>
+          <div className="flex items-center gap-3 mb-6">
+            <MapPin className="w-6 h-6 text-blue-600" />
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">Current Weather</h2>
+              {isLoadingLocation ? (
+                <p className="text-sm text-gray-500 italic">Loading location...</p>
+              ) : locationName ? (
+                <p className="text-sm text-gray-600">
+                  {locationName.city}
+                  {locationName.country && `, ${locationName.country}`}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-500 italic">Unknown location</p>
+              )}
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="bg-gradient-to-br from-red-50 to-orange-50 p-4 rounded-lg border border-red-100">
@@ -110,17 +168,6 @@ export function WeatherScreen() {
               <p className="text-3xl font-bold text-gray-800">{Math.round(weather.pressure)} hPa</p>
               <p className="text-sm text-gray-500 mt-1">
                 {weather.pressure > 1013 ? 'High pressure' : weather.pressure < 1013 ? 'Low pressure' : 'Normal'}
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-4 rounded-lg border border-cyan-100">
-              <div className="flex items-center gap-2 mb-2">
-                <Droplets className="w-5 h-5 text-cyan-500" />
-                <span className="text-sm font-medium text-gray-600">Humidity</span>
-              </div>
-              <p className="text-3xl font-bold text-gray-800">{Math.round(weather.humidity)}%</p>
-              <p className="text-sm text-gray-500 mt-1">
-                {weather.humidity > 70 ? 'High' : weather.humidity < 40 ? 'Low' : 'Moderate'}
               </p>
             </div>
 
