@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <g transform="translate(20, 30)">
+    <!-- Fish body -->
+    <path d="M10 30 Q15 20, 25 17 Q38 15, 50 20 Q58 24, 62 30 Q58 36, 50 40 Q38 45, 25 43 Q15 40, 10 30 Z"
+          fill="white" stroke="white" stroke-width="3"/>
+
+    <!-- Fish tail -->
+    <path d="M7 30 L-5 20 L0 30 L-5 40 Z"
+          fill="white" stroke="white" stroke-width="2"/>
+
+    <!-- Fish fins -->
+    <path d="M25 38 Q22 44, 18 46"
+          stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M38 20 Q41 14, 44 12"
+          stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+    <!-- Fish eye -->
+    <circle cx="48" cy="27" r="3" fill="#1e40af"/>
+
+    <!-- Fishing rod -->
+    <g transform="translate(55, 10)">
+      <line x1="0" y1="0" x2="18" y2="-8"
+            stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="18" y1="-8" x2="22" y2="12"
+            stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="22" cy="12" r="2" fill="white"/>
+    </g>
+
+    <!-- Bubbles -->
+    <circle cx="15" cy="22" r="2" fill="white" opacity="0.7"/>
+    <circle cx="20" cy="18" r="1.5" fill="white" opacity="0.7"/>
+    <circle cx="12" cy="26" r="1.5" fill="white" opacity="0.7"/>
+
+    <!-- Star accents -->
+    <circle cx="70" cy="10" r="2" fill="white" opacity="0.8"/>
+    <circle cx="75" cy="20" r="1.5" fill="white" opacity="0.6"/>
+  </g>
+</svg>

@@ -56,7 +56,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <div className="bg-[#2a3441] p-12 text-center relative overflow-hidden">
             <div className="relative z-10">
               <img
-                src="/icons/clicka-logo.png"
+                src="/icons/clicka-logo.svg"
                 alt="Clicka Logo"
                 className="w-48 h-auto mx-auto"
               />
