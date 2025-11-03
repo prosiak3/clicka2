@@ -251,6 +251,7 @@ function App() {
     };
   }, [activeSession]);
 
+  // Auto-save active session every 2 minutes to prevent data loss
   useEffect(() => {
     if (!activeSession || activeSession.endTime) return;
 
@@ -272,16 +273,21 @@ function App() {
     };
   }, [activeSession]);
 
+  // Real-time GPS tracking: automatically add location points to active session
+  // This creates a live trail on the map as the user moves during fishing
   useEffect(() => {
+    // Only track for active, non-ended sessions with valid GPS connection
     if (!activeSession || activeSession.endTime || !currentLocation || locationStatus !== 'connected') {
       return;
     }
 
+    // Don't track when session is paused
     const isPaused = activeSession.pauses?.some(p => !p.endTime);
     if (isPaused) {
       return;
     }
 
+    // Respect user's tracking preference
     if (!activeSession.tracking_enabled) {
       return;
     }
@@ -291,8 +297,9 @@ function App() {
       return;
     }
 
+    // Calculate distance between current and last location using Haversine formula
     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-      const R = 6371e3;
+      const R = 6371e3; // Earth radius in meters
       const φ1 = lat1 * Math.PI / 180;
       const φ2 = lat2 * Math.PI / 180;
       const Δφ = (lat2 - lat1) * Math.PI / 180;
@@ -303,7 +310,7 @@ function App() {
                 Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-      return R * c;
+      return R * c; // Distance in meters
     };
 
     const distance = calculateDistance(
@@ -313,18 +320,22 @@ function App() {
       currentLocation.longitude
     );
 
-    const MIN_DISTANCE = 5;
-    const MAX_ACCURACY = 100;
+    // Quality filters to prevent adding unnecessary or inaccurate points
+    const MIN_DISTANCE = 5; // Only add point if user moved at least 5 meters
+    const MAX_ACCURACY = 100; // Ignore points with accuracy worse than 100 meters
 
+    // User hasn't moved enough - skip this update
     if (distance < MIN_DISTANCE) {
       return;
     }
 
+    // GPS accuracy is too poor - skip to avoid cluttering trail with bad data
     if (currentLocation.accuracy > MAX_ACCURACY) {
       console.log(`Skipping location update due to low accuracy: ${currentLocation.accuracy}m`);
       return;
     }
 
+    // Respect the configured tracking interval (default: 15 minutes)
     const timeSinceLastUpdate = new Date().getTime() - new Date(lastLocation.timestamp).getTime();
     const minUpdateInterval = (activeSession.tracking_interval || settings.tracking.interval) * 60 * 1000;
 
@@ -332,6 +343,7 @@ function App() {
       return;
     }
 
+    // All checks passed - add new location point to the trail
     const newLocation: Location = {
       latitude: currentLocation.latitude,
       longitude: currentLocation.longitude,
@@ -346,11 +358,13 @@ function App() {
       last_activity_at: new Date().toISOString()
     };
 
+    // Update local state to immediately show the new point on the map
     setActiveSession(updatedSession);
     setSessions(prev =>
       prev.map(s => s.id === updatedSession.id ? updatedSession : s)
     );
 
+    // Persist to database asynchronously
     saveSession(updatedSession).catch(error => {
       console.error('Failed to save location update:', error);
     });

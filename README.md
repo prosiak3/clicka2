@@ -7,7 +7,9 @@ A comprehensive fishing tracking application with real-time weather data, GPS tr
 - **Session Management**: Track fishing sessions with start/end times and locations
 - **Catch Recording**: Log fish catches with species, size, weight, and location
 - **Real-time Weather**: Integrated weather data for each catch
-- **GPS Tracking**: Automatic location tracking during fishing sessions
+- **GPS Tracking**: Automatic location tracking during fishing sessions with real-time trail visualization
+- **Live Trail Mapping**: See your movement path on the map in real-time as you fish
+- **Smart GPS Filtering**: Intelligent location tracking with distance and accuracy filters
 - **Analytics**: Detailed analysis of catches and fishing patterns
 - **Multi-language**: Support for English, Polish, and German
 - **PWA Support**: Install as a mobile app with offline capabilities

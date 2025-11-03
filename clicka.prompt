@@ -614,7 +614,8 @@ CREATE TABLE user_onboarding (
   lat: number,
   lng: number,
   timestamp: Date,
-  accuracy: number
+  accuracy: number,
+  source: 'gps' | 'network' | 'ip'
 }
 ```
 
@@ -623,6 +624,11 @@ CREATE TABLE user_onboarding (
 - Retry przy błędach
 - Offline support
 - Optymalizacja baterii
+- **Real-time trail tracking**: Automatyczne dodawanie punktów GPS podczas aktywnej sesji
+- **Smart filtering**: Punkty dodawane tylko gdy użytkownik się przemieszcza (min. 5m)
+- **Accuracy validation**: Ignorowanie punktów GPS o niskiej dokładności (>100m)
+- **Live map updates**: Ślad trasy aktualizowany w czasie rzeczywistym na mapie
+- **Pause-aware tracking**: Automatyczne zatrzymanie śledzenia podczas pauzy
 
 ### 5. **Dane Pogodowe**
 
