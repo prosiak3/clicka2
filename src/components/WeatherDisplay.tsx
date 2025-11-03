@@ -18,6 +18,7 @@ export function WeatherDisplay({ weather, waterTemp, providerName, lastUpdate }:
     switch (name) {
       case 'noaa': return 'NOAA';
       case 'netatmo': return 'Netatmo';
+      case 'icon': return 'ICON (DWD)';
       case 'open-meteo': return 'Open-Meteo';
       default: return name;
     }

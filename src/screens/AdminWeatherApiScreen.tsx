@@ -275,6 +275,7 @@ export function AdminWeatherApiScreen() {
             <ul className="text-sm text-gray-700 space-y-1">
               <li><strong>Netatmo:</strong> Real-time data from nearby public weather stations. Requires OAuth authentication with your Netatmo account.</li>
               <li><strong>NOAA (US Weather Service):</strong> Official weather data from US National Weather Service stations. Free, no API key required. Coverage: USA and territories only.</li>
+              <li><strong>ICON (DWD Model):</strong> German Weather Service numerical model. High-resolution 15-minute data for Central Europe (2.2km resolution), 11km global coverage. Excellent accuracy for European locations.</li>
               <li><strong>Open-Meteo:</strong> Free, open-source weather API. No API key required. Provides temperature, pressure, wind, clouds, and precipitation data.</li>
             </ul>
           </div>

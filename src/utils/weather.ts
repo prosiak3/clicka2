@@ -211,6 +211,31 @@ const fetchFromNOAA = async (lat: number, lon: number) => {
   }
 };
 
+const fetchFromICON = async (lat: number, lon: number, apiUrl: string) => {
+  const requestUrl = `${apiUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,precipitation&wind_speed_unit=ms`;
+
+  console.log(`[Weather API] Fetching from ICON (DWD): ${requestUrl}`);
+
+  const response = await fetch(requestUrl, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+
+  console.log(`[Weather API] ICON response status: ${response.status} ${response.statusText}`);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`[Weather API] ICON request failed with status ${response.status}: ${errorText}`);
+    throw new Error(`ICON API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  console.log(`[Weather API] Successfully fetched ICON weather data:`, data);
+  return data;
+};
+
 const fetchFromOpenMeteo = async (lat: number, lon: number, apiUrl: string) => {
   const requestUrl = `${apiUrl}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,precipitation,precipitation_probability&wind_speed_unit=ms`;
 
@@ -277,6 +302,10 @@ export const getWeatherData = async (lat: number, lon: number): Promise<WeatherD
           break;
         } else if (provider.name === 'noaa') {
           data = await fetchFromNOAA(lat, lon);
+          console.log(`[Weather API] Successfully fetched data from ${provider.display_name}`);
+          break;
+        } else if (provider.name === 'icon') {
+          data = await fetchFromICON(lat, lon, provider.api_url);
           console.log(`[Weather API] Successfully fetched data from ${provider.display_name}`);
           break;
         } else if (provider.name === 'open-meteo') {
