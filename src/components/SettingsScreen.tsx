@@ -184,7 +184,7 @@ export function SettingsScreen({ user, onLogout, setUser, onNavigateHome }: Sett
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       {user && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
           <div className="flex items-center gap-4 mb-4">

@@ -1054,7 +1054,7 @@ function MainApp({
             )}
 
             {activeTab === 'sessions' && activeSession && (
-              <div className="space-y-5" data-tutorial="active-session">
+              <div className="space-y-5 pb-24" data-tutorial="active-session">
                 {/* Add Catch Button and Catch Counter */}
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 shadow-md border-2 border-blue-200">
@@ -1123,7 +1123,7 @@ function MainApp({
             )}
 
             {activeTab === 'history' && (
-              <div className="space-y-6">
+              <div className="space-y-6 pb-24">
                 {selectedSession ? (
                   <SessionCard
                     session={selectedSession}
@@ -1185,11 +1185,15 @@ function MainApp({
             )}
 
             {activeTab === 'stats' && (
-              <AnalysisSection sessions={sessions} />
+              <div className="pb-24">
+                <AnalysisSection sessions={sessions} />
+              </div>
             )}
 
             {activeTab === 'weather' && (
-              <WeatherScreen />
+              <div className="pb-24">
+                <WeatherScreen />
+              </div>
             )}
 
             {activeTab === 'settings' && (
