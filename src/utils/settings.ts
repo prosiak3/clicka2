@@ -253,6 +253,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   weather: {
     updateInterval: 5
   },
+  pwa: {
+    showUpdateCheckNotifications: false
+  },
 };
 
 interface SettingsState extends AppSettings {
@@ -268,6 +271,7 @@ interface SettingsState extends AppSettings {
   updateTrackingSettings: (tracking: Partial<AppSettings['tracking']> & { methods?: Partial<AppSettings['tracking']['methods']> }) => void;
   updateSessionSettings: (session: Partial<AppSettings['session']>) => void;
   updateWeatherSettings: (weather: Partial<AppSettings['weather']>) => void;
+  updatePwaSettings: (pwa: Partial<AppSettings['pwa']>) => void;
   applyPendingChanges: () => void;
   discardPendingChanges: () => void;
   resetSettings: () => void;
@@ -372,6 +376,14 @@ export const useSettings = create<SettingsState>()(
         },
         hasPendingChanges: true
       })),
+      updatePwaSettings: (pwa) => set((state) => ({
+        pwa: { ...state.pwa, ...pwa },
+        pendingChanges: {
+          ...state.pendingChanges,
+          pwa: { ...state.pwa, ...pwa }
+        },
+        hasPendingChanges: true
+      })),
       applyPendingChanges: () => set((state) => {
         const updates = { ...state, ...state.pendingChanges };
         return {
@@ -393,7 +405,7 @@ export const useSettings = create<SettingsState>()(
     }),
     {
       name: 'clicka-better-fishing-settings',
-      version: 5,
+      version: 6,
       migrate: (persistedState: any, version: number) => {
         if (version === 1) {
           return {
@@ -427,6 +439,14 @@ export const useSettings = create<SettingsState>()(
             ...persistedState,
             weather: {
               updateInterval: 5
+            }
+          };
+        }
+        if (version === 5) {
+          return {
+            ...persistedState,
+            pwa: {
+              showUpdateCheckNotifications: false
             }
           };
         }

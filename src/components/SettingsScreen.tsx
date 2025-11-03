@@ -853,6 +853,25 @@ export function SettingsScreen({ user, onLogout, setUser, onNavigateHome }: Sett
           <p className="text-xs text-gray-500 text-center">
             Zainstaluj aplikację na swoim urządzeniu, aby korzystać z niej offline i mieć szybki dostęp z ekranu głównego.
           </p>
+
+          <div className="pt-4 border-t border-gray-200 dark:border-dark-600">
+            <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
+              <div className="flex-1">
+                <div className="font-medium text-gray-900 dark:text-dark-50">
+                  Show Update Check Notifications
+                </div>
+                <div className="text-sm text-gray-500 dark:text-dark-400 mt-1">
+                  Display a notification each time the app checks for updates (every 5 minutes)
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.pwa.showUpdateCheckNotifications}
+                onChange={(e) => settings.updatePwaSettings({ showUpdateCheckNotifications: e.target.checked })}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              />
+            </label>
+          </div>
         </div>
       </SettingsSection>
 

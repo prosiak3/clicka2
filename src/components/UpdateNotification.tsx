@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Download, X, RefreshCw } from 'lucide-react';
+import { Download, X, RefreshCw, Search } from 'lucide-react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useSettings } from '../utils/settings';
 
 /**
  * Props for UpdateNotification component
@@ -31,9 +32,11 @@ interface UpdateNotificationProps {
  * @example
  * <UpdateNotification onUpdateCheckInterval={15 * 60 * 1000} />
  */
-export function UpdateNotification({ onUpdateCheckInterval = 15 * 60 * 1000 }: UpdateNotificationProps) {
+export function UpdateNotification({ onUpdateCheckInterval = 5 * 60 * 1000 }: UpdateNotificationProps) {
   const [showNotification, setShowNotification] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showCheckNotification, setShowCheckNotification] = useState(false);
+  const settings = useSettings();
 
   // Register service worker and set up update checking
   const {
@@ -50,6 +53,14 @@ export function UpdateNotification({ onUpdateCheckInterval = 15 * 60 * 1000 }: U
       const checkForUpdates = async () => {
         try {
           console.log('Checking for updates...');
+
+          if (settings.pwa.showUpdateCheckNotifications) {
+            setShowCheckNotification(true);
+            setTimeout(() => {
+              setShowCheckNotification(false);
+            }, 3000);
+          }
+
           await registration.update();
         } catch (error) {
           console.error('Error checking for updates:', error);
@@ -107,6 +118,19 @@ export function UpdateNotification({ onUpdateCheckInterval = 15 * 60 * 1000 }: U
     setShowNotification(false);
     setNeedRefresh(false);
   };
+
+  if (showCheckNotification) {
+    return (
+      <div className="fixed bottom-20 left-0 right-0 z-50 px-4 pointer-events-none">
+        <div className="max-w-lg mx-auto bg-blue-500 rounded-lg shadow-lg p-3 animate-slide-up">
+          <div className="flex items-center gap-2 justify-center">
+            <Search className="w-4 h-4 text-white animate-pulse" />
+            <p className="text-sm text-white font-medium">Checking for updates...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!showNotification) return null;
 

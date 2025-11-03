@@ -115,4 +115,7 @@ export interface AppSettings {
   weather: {
     updateInterval: number;
   };
+  pwa: {
+    showUpdateCheckNotifications: boolean;
+  };
 }
